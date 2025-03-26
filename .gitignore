@@ -30,5 +30,9 @@
 
 /public/assets
 
-# Ignore master key for decrypting credentials and more.
+# Ignore local settings file (which might contain secrets)
+app_conf.local.rb
+spec/examples.txt
 /config/master.key
+
+node_modules/
