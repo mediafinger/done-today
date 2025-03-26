@@ -12,6 +12,7 @@ gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "mission_control-jobs", "~> 1.0" # dashboard for SolidQueue jobs
 gem "pg", "~> 1.1" # Use postgresql as the database for Active Record
+gem "propshaft" # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "puma", ">= 5.0" # Use the Puma web server [https://github.com/puma/puma]
 gem "pwned", "~> 2.4" # Pwned checks if a password has been found in huge data breaches [https://github.com/philnash/pwned]
 gem "rack-requestid", "~> 0.2" # always set a request_id with this middleware
