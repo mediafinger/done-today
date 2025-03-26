@@ -46,16 +46,13 @@ ActiveRecordDoctor.configure do
   ]
 
   detector :incorrect_dependent_option, ignore_associations: %w[
+  ], enabled: false # app only validation sufficient, no need to enforce length in DB
 
-  ]
-
-  # app only validation sufficient, no need to enforce length in DB
   detector :incorrect_length_validation, ignore_attributes: %w[
-
-  ]
+  ], enabled: false # app only validation sufficient, no need to enforce length in DB
 
   detector :missing_foreign_keys, ignore_columns: %w[
-
+    record_histories.user_id
   ]
 
   detector :missing_non_null_constraint, ignore_columns: %w[
@@ -76,6 +73,8 @@ ActiveRecordDoctor.configure do
 
   # Ignore indices that are not used in the application
   detector :unindexed_foreign_keys, ignore_columns: %w[
-
+    record_histories.record_id
+    record_histories.record_type
+    record_histories.user_id
   ]
 end
