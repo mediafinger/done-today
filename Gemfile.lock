@@ -46,7 +46,7 @@ GEM
       rails-html-sanitizer (~> 1.6)
     active_record_doctor (1.15.0)
       activerecord (>= 4.2.0)
-    active_storage_validations (1.4.0)
+    active_storage_validations (2.0.2)
       activejob (>= 6.1.4)
       activemodel (>= 6.1.4)
       activestorage (>= 6.1.4)
@@ -407,7 +407,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_record_doctor (~> 1.14)
-  active_storage_validations (~> 1.0)
+  active_storage_validations (~> 2.0)
   amazing_print (~> 1.6)
   bcrypt (~> 3.1.7)
   bundler-audit (~> 0.9)
