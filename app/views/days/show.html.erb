@@ -1,0 +1,8 @@
+<h2> Day <%= @day.date.to_s %> </h2>
+
+<% entries = @day.entries.order(member_id: :asc, status: :desc) %>
+<ul>
+  <% entries.each do |entry| %>
+    <li>  <b><%= entry.member.user.name %></b> <%= entry.log %> <b>[ <%= entry.status %> ]</b> </li>
+  <% end %>
+</ul>

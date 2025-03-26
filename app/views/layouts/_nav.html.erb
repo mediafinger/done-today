@@ -1,12 +1,18 @@
 <nav>
-  <div class="grid full-width">
+  <div class="nav-grid">
     <div class="left">
       <h1>Done today</h1>
     </div>
-    <div>
+
+    <div class="center">
+      <% if Current.user %>
+        <%= render partial: "days/select" %>
+      <% end %>
     </div>
+
     <div class="right">
       <% if Current.user %>
+        <%= button_to "⚙", settings_path, { method: :get, role: "button" } %>
         <%= button_to "Logout", session_path, { method: :delete, role: "button" } %>
       <% end %>
     </div>

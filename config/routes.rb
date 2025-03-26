@@ -9,6 +9,11 @@ Rails.application.routes.draw do
 
   resources :passwords, param: :token
 
+  resources :days, only: %i[ index new create show edit update ]
+  resources :projects, only: %i[ index new create show edit update ]
+
+  get "/settings", to: "settings#show", as: "settings"
+
   scope module: :orgs, path: "/" do
     # get "/",                  to: "orgs#show",   as: "home"
   end
