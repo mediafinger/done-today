@@ -1,0 +1,17 @@
+html[aria-busy="true"]::before {
+  all: unset;
+}
+
+html, body {
+  height: 100vh;
+}
+
+body>footer {
+  position: sticky;
+  top: 100vh;
+}
+
+body>header, body>main, div>article {
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+}

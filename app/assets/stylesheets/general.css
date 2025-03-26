@@ -1,0 +1,93 @@
+header {
+}
+
+nav {
+  text-align: right;
+  background-color: darkgoldenrod;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  padding: 0.5rem 1rem 0rem 1rem;
+
+  h1, h2, h3, p, a {
+    color: cornsilk;
+  }
+
+  h1 {
+    margin-top: 0.25rem;
+  }
+
+  h2 {
+    margin-top: 0.5rem;
+  }
+
+  button[role=button], button[role=link] {
+    color: cornsilk;
+    margin-bottom: 0;
+    margin-top: 0.25rem;
+  }
+
+  a[role=button], a[role=link] {
+    color: cornsilk;
+  }
+
+  .nav-grid {
+    display: grid;
+    grid-template-columns: minmax(3rem, 25%) minmax(5rem, 50%) minmax(3rem, 25%);
+    gap: 1rem;
+    width: 100%
+  }
+}
+
+main {
+  padding: 0rem 1rem;
+  margin-bottom: 2rem;
+}
+
+footer {
+  text-align: center;
+}
+
+article {
+  padding: 0.5rem 0.5rem 0.1rem 0.5rem;
+  background-color: burlywood; /* why does this not work? */
+}
+
+section {
+  padding: 0.5rem 0.5rem 0.1rem 0.5rem;
+  background-color: bisque;
+}
+
+a[role=link] {
+  white-space: nowrap;
+}
+
+button {
+  line-height: 80% !important;
+  white-space: nowrap;
+}
+
+img {
+  border-radius: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.left {
+  text-align: left;
+}
+
+.right {
+  text-align: right;
+}
+
+.slim {
+  line-height: 80% !important;
+}
+
+.vgap {
+  margin-top: 10%;
+}
