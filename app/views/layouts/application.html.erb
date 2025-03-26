@@ -1,44 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= content_for(:title) || "Done Today" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
 
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <% if AppConf.production_env? %>
-      <%= stylesheet_link_tag "https://unpkg.com/@picocss/pico@latest/css/pico.amber.min.css", "data-turbo-track": "reload" %>
-    <% else %>
-      <%= stylesheet_link_tag "pico.amber.css", "data-turbo-track": "reload" %>
-    <% end %>
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
+  <%= render partial: "layouts/head" %>
 
   <body>
-    <header>
-      <nav>
-        <% if Current.user %>
-          <%= button_to "Logout", session_path, { method: :delete, role: "link", class: "logout" } %>
-        <% end %>
-      </nav>
-      <%= render partial: "shared_partials/flash_notifications" %>
-    </header>
+
+    <%= render partial: "layouts/header" %>
+
     <main>
       <%= yield %>
     </main>
+
+    <%= render partial: "layouts/footer" %>
+
   </body>
 </html>

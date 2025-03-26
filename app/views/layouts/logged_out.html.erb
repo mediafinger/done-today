@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+  <%= render partial: "layouts/head" %>
+
+  <body>
+
+    <%= render partial: "layouts/header" %>
+
+    <main>
+      <div class="grid vgap">
+        <div></div>
+        <div>
+          <%= yield %>
+        </div>
+        <div></div>
+      </div>
+    </main>
+
+  <%= render partial: "layouts/footer" %>
+
+  </body>
+</html>
