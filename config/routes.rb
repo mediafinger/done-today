@@ -11,4 +11,15 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  namespace :admin do
+    root to: "home#index"
+
+    mount MissionControl::Jobs::Engine, at: "/jobs"
+  end
+
+  # keep this at the bottom of the routes file
+  # catch all unknown routes to NOT throw a FATAL ActionController::RoutingError
+  match "*path", to: "application#error_404", via: :all,
+    constraints: ->(request) { !request.path_parameters[:path].start_with?("rails/") }
 end
