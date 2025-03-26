@@ -3,8 +3,7 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  root "application#home"
 
   resource :session
 
@@ -14,11 +13,9 @@ Rails.application.routes.draw do
     # get "/",                  to: "orgs#show",   as: "home"
   end
 
-  namespace :admin do
-    root to: "home#index"
-
-    mount MissionControl::Jobs::Engine, at: "/jobs"
-  end
+  # namespace :admin do
+  #   mount MissionControl::Jobs::Engine, at: "/jobs"
+  # end
 
   # keep this at the bottom of the routes file
   # catch all unknown routes to NOT throw a FATAL ActionController::RoutingError
