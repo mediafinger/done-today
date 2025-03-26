@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_26_063138) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_26_132421) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -118,6 +118,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_26_063138) do
     t.index ["org_id", "record_type", "record_id"], name: "index_record_histories_on_org_id_and_record_type_and_record_id"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "email", null: false
     t.string "password_digest", null: false
@@ -145,4 +154,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_26_063138) do
   add_foreign_key "project_integrations", "projects"
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
+  add_foreign_key "sessions", "users"
 end
