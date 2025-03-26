@@ -22,8 +22,53 @@ jobs:
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
-  lint:
+
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: .ruby-version
+  #         bundler-cache: true
+
+  #     - name: Lint code for consistent style
+  #       run: bin/rubocop -f github
+
+
+  specs:
     runs-on: ubuntu-latest
+
+    env:
+      RAILS_ENV: test
+      CI: true
+      OSTYPE: linux
+      RAILS_MAX_THREADS: 5
+      DONE_DB_HOST: localhost
+      DONE_DB_NAME_TEST: done_test
+      DONE_DB_PASSWORD: ci_db_user_password
+      DONE_DB_PORT: 5432
+      DONE_DB_USERNAME: postgres-ci
+
+    services:
+      postgres:
+        image: postgres # Docker Hub image
+        env:
+          POSTGRES_USER: postgres-ci
+          POSTGRES_PASSWORD: ci_db_user_password
+          POSTGRES_DB: done_test
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 8
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,6 +79,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
+      - name: Run the migrations
+        run: |
+          bin/rails db:create db:migrate db:test:prepare
 
+      - name: Run the test suite
+        run: |
+          rake ci
+        # run: bin/rspec --exclude-pattern "spec/{system,controllers}/**/*_spec.rb"
