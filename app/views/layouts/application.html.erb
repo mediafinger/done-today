@@ -29,6 +29,16 @@
   </head>
 
   <body>
-    <%= yield %>
+    <header>
+      <nav>
+        <% if Current.user %>
+          <%= button_to "Logout", session_path, { method: :delete, role: "link", class: "logout" } %>
+        <% end %>
+      </nav>
+      <%= render partial: "shared_partials/flash_notifications" %>
+    </header>
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

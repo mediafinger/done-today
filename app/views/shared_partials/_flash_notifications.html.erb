@@ -1,0 +1,8 @@
+<% types = { "notice" => "success", "alert" => "error" } %>
+<% flash.each do |key, message| %>
+  <section id="notice" class="flash <%= types[key] %>">
+    <p>
+      <%= message %>
+    </p>
+  </section>
+<% end %>
