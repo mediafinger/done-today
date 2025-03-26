@@ -36,13 +36,11 @@ group :development, :test do
   gem "rspec-rails", "~> 7.0"
   gem "rubocop-rails-omakase", require: false # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   # gem "rubocop-capybara"
-  # gem "rubocop-factory_bot"
-  # gem "rubocop-faker"
-  # gem "rubocop-performance"
-  # gem "rubocop-rails", "~> 2.26"
-  # gem "rubocop-rake"
-  # gem "rubocop-rspec"
-  # gem "rubocop-rspec_rails"
+  gem "rubocop-factory_bot"
+  gem "rubocop-faker"
+  gem "rubocop-rake"
+  gem "rubocop-rspec"
+  gem "rubocop-rspec_rails"
 end
 
 group :development do
