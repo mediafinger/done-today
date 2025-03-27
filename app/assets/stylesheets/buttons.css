@@ -1,0 +1,46 @@
+nav {
+  button[role=button], button[role=link] {
+    color: cornsilk;
+    margin-bottom: 0;
+    margin-top: 0.25rem;
+  }
+
+  a[role=button], a[role=link] {
+    color: cornsilk;
+  }
+}
+
+button {
+  line-height: 80% !important;
+  white-space: nowrap;
+}
+
+.btn-inactive {
+  background-color: white !important;
+  border-color: lightgray !important;
+  color: lightgray !important;
+}
+
+.btn-inactive:hover {
+  background-color: lightblue !important;
+  border-color: black !important;
+  color: black !important;
+}
+
+.btn-todo {
+  background-color: red !important;
+  border-color: red !important;
+  color: white !important;
+}
+
+.btn-doing {
+  background-color: gold !important;
+  border-color: gold !important;
+  color: white !important;
+}
+
+.btn-done {
+  background-color: green !important;
+  border-color: green !important;
+  color: white !important;
+}

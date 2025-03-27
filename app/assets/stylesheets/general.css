@@ -22,16 +22,6 @@ nav {
     margin-top: 0.5rem;
   }
 
-  button[role=button], button[role=link] {
-    color: cornsilk;
-    margin-bottom: 0;
-    margin-top: 0.25rem;
-  }
-
-  a[role=button], a[role=link] {
-    color: cornsilk;
-  }
-
   .nav-grid {
     display: grid;
     grid-template-columns: minmax(3rem, 25%) minmax(5rem, 50%) minmax(3rem, 25%);
@@ -63,11 +53,6 @@ a[role=link] {
   white-space: nowrap;
 }
 
-button {
-  line-height: 80% !important;
-  white-space: nowrap;
-}
-
 img {
   border-radius: 0.5rem;
 }
@@ -86,6 +71,10 @@ img {
 
 .slim {
   line-height: 80% !important;
+}
+
+.bottom-spacer {
+  margin-bottom: 10%;
 }
 
 .vgap {

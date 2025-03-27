@@ -1,0 +1,26 @@
+<h2> Day <%= @day.date.to_s %> </h2>
+
+<ul class="bottom-spacer">
+  <% @entries.each do |entry| %>
+    <li>
+      <%= form_with(model: entry, data: { turbo_method: :patch }) do |form| %>
+        <div role="group">
+          <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>
+          <%= link_to "todo", entry_path(entry, entry: { status: "todo" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.todo? ? 'btn-todo' : 'btn-inactive'} btn-tdd" %>
+          <%= link_to "doing", entry_path(entry, entry: { status: "doing" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.doing? ? 'btn-doing' : 'btn-inactive'} btn-tdd" %>
+          <%= link_to "done", entry_path(entry, entry: { status: "done" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.done? ? 'btn-done' : 'btn-inactive'} btn-tdd" %>
+        </div>
+      <% end %>
+    </li>
+  <% end %>
+
+  <li>
+    <% new_entry = Entry.new(org: current_org, member: current_member, day: @day) %>
+    <%= form_with(model: new_entry, data: { turbo_method: :post }) do |form| %>
+      <div role="group">
+        <%= form.text_field :log, required: true, autofocus: true, placeholder: "What have you done today?", value: new_entry.log, minlength: 3, maxlength: 500 %>
+        <%= form.hidden_field :day_id, value: @day.id %>
+      </div>
+    <% end %>
+  </li>
+</ul>
