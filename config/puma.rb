@@ -27,7 +27,7 @@
 threads AppConf.rails_min_threads, AppConf.rails_max_threads
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
-port AppConf.zazu_web_port
+port AppConf.done_port
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
