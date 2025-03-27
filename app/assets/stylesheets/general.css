@@ -97,3 +97,10 @@ ul {
   gap: 1rem;
   width: 100%
 }
+
+/* TODO: style input type="date" date-picker button */
+.slimmer {
+  margin-bottom: 0;
+  margin-top: 0.25rem;
+  line-height: 80% !important;
+}

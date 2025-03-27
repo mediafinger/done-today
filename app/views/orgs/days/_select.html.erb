@@ -1,7 +1,8 @@
-<%- # TODO: add datepicker to select any day %>
-
 <div role="group">
   <%= link_to "yesterday", days_path(date: Date.yesterday), method: :get, role: "button", class: "slim" %>
   <%= link_to "today", days_path(date: Date.today), method: :get, role: "button", class: "slim" %>
   <%= link_to "tomorrow", days_path(date: Date.tomorrow), method: :get, role: "button", class: "slim" %>
+
+  <%- # TODO: add datepicker to select any day %>
+  <%- # <input type="date" id="datepicker" name="any-date" value= <%= Date.today.iso8601 % > class="slimmer" /> %>
 </div>
