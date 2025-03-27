@@ -3,5 +3,6 @@
 <ul>
   <li> User name: <b><%= current_user.name %></b></li>
   <li> Member of org: <b><%= current_org.name %></b></li>
-  <li> Participant of projects: <b><%= Participant.includes(:member, :project).where(member: current_member).map { |particpant| particpant.project.name }.join(", ") %></b></li>
+  <li> Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
+  <li> Current project: <b><%= current_project.name %></b></li>
 </ul>

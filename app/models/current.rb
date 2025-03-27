@@ -6,15 +6,14 @@ class Current < ActiveSupport::CurrentAttributes
   attribute :module_name
   attribute :org
   attribute :org_id
+  attribute :project
+  attribute :project_id
   attribute :path
   attribute :request_id
   attribute :session
   attribute :user
   attribute :user_agent
   attribute :user_id
-
-  # TODO: remove once CUSTOMIZED Authentication concern is included
-  delegate :user, to: :session, allow_nil: true
 
   def user=(user)
     self.user_id = user&.id
@@ -23,6 +22,11 @@ class Current < ActiveSupport::CurrentAttributes
 
   def org=(org)
     self.org_id = org&.id
+    super
+  end
+
+  def project=(project)
+    self.project_id = project&.id
     super
   end
 

@@ -1,5 +1,5 @@
 <div role="group">
-  <%= button_to "yesterday", day_path(Day.where(date: Date.yesterday).last), { method: :get, role: "button" } %>
-  <%= button_to "today", day_path(Day.where(date: Date.today).last), { method: :get, role: "button" } %>
-  <%= button_to "tomorrow", day_path(Day.where(date: Date.tomorrow).last), { method: :get, role: "button" } %>
+  <%= button_to "yesterday", day_path(current_project.days.find_by!(date: Date.yesterday)), { method: :get, role: "button" } %>
+  <%= button_to "today", day_path(current_project.days.find_by!(date: Date.today)), { method: :get, role: "button" } %>
+  <%= button_to "tomorrow", day_path(current_project.days.find_by!(date: Date.tomorrow)), { method: :get, role: "button" } %>
 </div>
