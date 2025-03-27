@@ -1,11 +1,23 @@
-<h2> Day <%= @day.date.to_s %> </h2>
+<div class="spacing-grid">
+  <div class="left">
+    <h2> Day <%= @day.date.to_s %> </h2>
+  </div>
+  <div class="center">
+    <%= link_to "view all", "/days?date=#{@day.date.iso8601}", method: :get, role: "button", class: "slim" %>
+  </div>
+  <div class="right">
+    <%= link_to "⬅️", "/entries?date=#{(@day.date - 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", "/entries?date=#{(@day.date + 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
+  </div>
+</div>
 
 <ul class="bottom-spacer">
   <% @entries.each do |entry| %>
-    <li>
+    <li class="nude">
       <%= form_with(model: entry, data: { turbo_method: :patch }) do |form| %>
         <div role="group">
           <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>
+          <%- # TODO: prevent losing edited log, when clicking on button instead of enter %>
           <%= link_to "todo", entry_path(entry, entry: { status: "todo" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.todo? ? 'btn-todo' : 'btn-inactive'} btn-tdd" %>
           <%= link_to "doing", entry_path(entry, entry: { status: "doing" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.doing? ? 'btn-doing' : 'btn-inactive'} btn-tdd" %>
           <%= link_to "done", entry_path(entry, entry: { status: "done" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.done? ? 'btn-done' : 'btn-inactive'} btn-tdd" %>
@@ -14,12 +26,12 @@
     </li>
   <% end %>
 
-  <li>
+  <li class="nude">
     <% new_entry = Entry.new(org: current_org, member: current_member, day: @day) %>
     <%= form_with(model: new_entry, data: { turbo_method: :post }) do |form| %>
       <div role="group">
         <%= form.text_field :log, required: true, autofocus: true, placeholder: "What have you done today?", value: new_entry.log, minlength: 3, maxlength: 500 %>
-        <%= form.hidden_field :day_id, value: @day.id %>
+        <%= form.hidden_field :date, value: @day.date %>
       </div>
     <% end %>
   </li>

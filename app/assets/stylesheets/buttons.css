@@ -8,6 +8,15 @@ nav {
   a[role=button], a[role=link] {
     color: cornsilk;
   }
+
+  div[role="group"] {
+    gap: 0.5rem;
+  }
+
+  .slim {
+    margin-bottom: 0;
+    margin-top: 0.25rem;
+  }
 }
 
 button {
@@ -43,4 +52,9 @@ button {
   background-color: green !important;
   border-color: green !important;
   color: white !important;
+}
+
+.slim {
+  line-height: 80% !important;
+  max-width: fit-content;
 }

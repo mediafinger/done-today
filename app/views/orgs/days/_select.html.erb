@@ -1,5 +1,7 @@
+<%- # TODO: add datepicker to select any day %>
+
 <div role="group">
-  <%= button_to "yesterday", day_path(current_project.days.find_by!(date: Date.yesterday)), { method: :get, role: "button" } %>
-  <%= button_to "today", day_path(current_project.days.find_by!(date: Date.today)), { method: :get, role: "button" } %>
-  <%= button_to "tomorrow", day_path(current_project.days.find_by!(date: Date.tomorrow)), { method: :get, role: "button" } %>
+  <%= link_to "yesterday", days_path(date: Date.yesterday), method: :get, role: "button", class: "slim" %>
+  <%= link_to "today", days_path(date: Date.today), method: :get, role: "button", class: "slim" %>
+  <%= link_to "tomorrow", days_path(date: Date.tomorrow), method: :get, role: "button", class: "slim" %>
 </div>

@@ -1,4 +1,15 @@
-<h2> Day <%= @day.date.to_s %> </h2>
+<div class="spacing-grid">
+  <div class="left">
+    <h2> Day <%= @day.date.to_s %> </h2>
+  </div>
+  <div class="center">
+    <%= link_to "add or edit", "/entries?date=#{@day.date.iso8601}", method: :get, role: "button", class: "slim" %>
+  </div>
+  <div class="right">
+    <%= link_to "⬅️", "/days?date=#{(@day.date - 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", "/days?date=#{(@day.date + 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
+  </div>
+</div>
 
 <% entries = @day.entries.order(member_id: :asc, status: :desc) %>
 <ul>

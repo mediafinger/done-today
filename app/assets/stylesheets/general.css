@@ -57,6 +57,16 @@ img {
   border-radius: 0.5rem;
 }
 
+ul {
+  .nude {
+    list-style-type: none;
+    margin-left: -1.75rem;
+  }
+  li.nude {
+    margin-bottom: -1rem;
+  }
+}
+
 .full-width {
   width: 100%;
 }
@@ -69,8 +79,8 @@ img {
   text-align: right;
 }
 
-.slim {
-  line-height: 80% !important;
+.center {
+  text-align: center;
 }
 
 .bottom-spacer {
@@ -79,4 +89,11 @@ img {
 
 .vgap {
   margin-top: 10%;
+}
+
+.spacing-grid {
+  display: grid;
+  grid-template-columns: minmax(8rem, 25%) minmax(1rem, 50%) minmax(6rem, 25%);
+  gap: 1rem;
+  width: 100%
 }

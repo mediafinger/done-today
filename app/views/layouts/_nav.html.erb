@@ -12,8 +12,8 @@
 
     <div class="right">
       <% if current_user %>
-        <%= button_to "⚙", settings_path, { method: :get, role: "button" } %>
-        <%= button_to "Logout", session_path, { method: :delete, role: "button" } %>
+        <%= link_to "⚙", settings_path, method: :get, role: "button", class: "slim" %>
+        <%= button_to "Logout", session_path, method: :delete, role: "button", class: "slim" %>
       <% end %>
     </div>
   </div>
