@@ -5,17 +5,23 @@ Rails.application.routes.draw do
 
   root "application#home"
 
-  resource :session
+  # As neiter the 'users' nor the 'orgs' module are namespaced,
+  #   pathes and 'as: :names' in them have to be uniquely named.
+  #   e.g. you can not define get "/settings" in both modules and expect it to work.
+  #
+  scope module: :users, path: "/" do
+    resource :session, only: %i[ new create destroy ]
+    resources :passwords, param: :token, only: %i[ new create edit update ]
 
-  resources :passwords, param: :token
-
-  resources :days, only: %i[ index new create show edit update ]
-  resources :projects, only: %i[ index new create show edit update ]
-
-  get "/settings", to: "settings#show", as: "settings"
+    get "/preferences", to: "preferences#show"
+  end
 
   scope module: :orgs, path: "/" do
-    # get "/",                  to: "orgs#show",   as: "home"
+    resources :days, only: %i[ index show ]
+    resources :entries, only: %i[ index new create show edit update destroy ]
+    resources :projects, only: %i[ index new create show edit update destroy ]
+
+    get "settings", to: "settings#show"
   end
 
   # namespace :admin do
