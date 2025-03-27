@@ -5,13 +5,13 @@
     </div>
 
     <div class="center">
-      <% if Current.user %>
+      <% if current_user %>
         <%= render partial: "days/select" %>
       <% end %>
     </div>
 
     <div class="right">
-      <% if Current.user %>
+      <% if current_user %>
         <%= button_to "⚙", settings_path, { method: :get, role: "button" } %>
         <%= button_to "Logout", session_path, { method: :delete, role: "button" } %>
       <% end %>
