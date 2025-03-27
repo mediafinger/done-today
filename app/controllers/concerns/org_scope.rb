@@ -7,6 +7,8 @@ module OrgScope
   end
 
   def switch_current_org(org_id)
+    return unless current_user
+
     raise ActiveRecord::RecordNotFound.new("User not persisted", current_user, :id) unless current_user.persisted?
 
     org = current_user.orgs.find(org_id)
@@ -16,6 +18,8 @@ module OrgScope
   end
 
   def go_solo
+    return unless current_user
+
     refresh_current_session(org: nil)
 
     true

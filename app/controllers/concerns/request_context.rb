@@ -9,9 +9,10 @@ module RequestContext
   private
 
   def initialize_request_context
-    Current.user = current_user
-    # Current.org = current_org
-    # Current.member = current_member
+    # Current.user = current_user # set in Authentication concern
+    # Current.org = current_org # set in OrgScope concern
+    # Current.member = current_member # set in OrgScope concern
+    # Current.project = current_project # set in ProjectScope concern
 
     Current.ip_address = request.remote_ip
     Current.module_name = self.class.module_parent_name
@@ -20,7 +21,7 @@ module RequestContext
     Current.user_agent = request.user_agent
   end
 
-  # uncomment when hosting and using Sentry
+  # uncomment, extract to it's own module and include after all Current.attributes are set when hosting and using Sentry
   #
   # def set_sentry_context
   #   Sentry.set_user(id: Current.user&.id)
@@ -31,7 +32,7 @@ module RequestContext
   #       params: request.filtered_parameters,
   #
   #       user_id: Current.user&.id
-  #       team_id: Current.team&.id,
+  #       org_id: Current.org&.id,
   #       member_id: Current.member&.id,
   #       member_roles: Current.member&.roles,
   #     )

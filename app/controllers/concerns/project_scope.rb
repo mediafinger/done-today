@@ -6,6 +6,8 @@ module ProjectScope
   end
 
   def switch_current_project(project_id)
+    return unless current_member
+
     Current.project = current_member.projects.find(project_id)
   end
 
