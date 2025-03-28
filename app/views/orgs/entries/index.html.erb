@@ -13,7 +13,7 @@
 
 <ul class="bottom-spacer">
   <% @entries.each do |entry| %>
-    <li class="nude">
+    <li class="nude tight">
       <%= form_with(model: entry, data: { turbo_method: :patch }) do |form| %>
         <div role="group">
           <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>

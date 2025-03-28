@@ -62,7 +62,8 @@ ul {
     list-style-type: none;
     margin-left: -1.75rem;
   }
-  li.nude {
+
+  li.tight {
     margin-bottom: -1rem;
   }
 }
@@ -89,6 +90,13 @@ ul {
 
 .vgap {
   margin-top: 10%;
+}
+
+.left-aligned-grid {
+  display: grid;
+  grid-template-columns: minmax(4rem, 10%) minmax(10rem, 60%) minmax(9rem, 30%);
+  gap: 0.5rem;
+  width: 100%
 }
 
 .spacing-grid {

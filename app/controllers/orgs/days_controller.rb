@@ -3,8 +3,10 @@ module Orgs
     def index
       if params[:date]
         @day =
-          current_project.days.find_by(date: params[:date]) ||
+          current_project.days.includes(entries: :member).find_by(date: params[:date]) ||
             current_project.days.build(org: current_org, date: params[:date])
+
+        @entries = sorted_entries(@day)
 
         render :show
       else
@@ -13,7 +15,14 @@ module Orgs
     end
 
     def show
-      @day = Day.find(params[:id])
+      @day = Day.includes(entries: :member).find(params[:id])
+      @entries = sorted_entries(@day)
+    end
+
+    private
+
+    def sorted_entries(day)
+      day.entries.joins(:member).order("entries.status desc", "members.name asc", "entries.created_at asc")
     end
   end
 end

@@ -11,9 +11,22 @@
   </div>
 </div>
 
-<% entries = @day.entries.order(member_id: :asc, status: :desc) %>
 <ul>
-  <% entries.each do |entry| %>
-    <li>  <b><%= entry.member.user.name %></b> <%= entry.log %> <b>[ <%= entry.status %> ]</b> </li>
+  <% @entries.each do |entry| %>
+    <li class="nude">
+      <div class="left-aligned-grid">
+        <div class="left">
+          <h3><%= entry.member.name %></h3>
+        </div>
+        <div class="left">
+          <%= entry.log %>
+        </div>
+        <div class="right">
+          <%= link_to "todo", "", method: nil, role: "button", class: "slim #{entry.todo? ? 'btn-todo' : 'btn-inactive'}" %>
+          <%= link_to "doing", "", method: nil, role: "button", class: "slim #{entry.doing? ? 'btn-doing' : 'btn-inactive'}" %>
+          <%= link_to "done", "", method: nil, role: "button", class: "slim #{entry.done? ? 'btn-done' : 'btn-inactive'}" %>
+        </div>
+      </div>
+    </li>
   <% end %>
 </ul>
