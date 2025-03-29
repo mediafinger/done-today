@@ -53,6 +53,12 @@ a[role=link] {
   white-space: nowrap;
 }
 
+.camouflage {
+  /* color: inherit; */
+  text-decoration: inherit;
+  cursor: inherit;
+}
+
 img {
   border-radius: 0.5rem;
 }
@@ -94,7 +100,7 @@ ul {
 
 .left-aligned-grid {
   display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(10rem, 60%) minmax(9rem, 30%);
+  grid-template-columns: minmax(6rem, 15%) minmax(10rem, 55%) minmax(9rem, 30%);
   gap: 0.5rem;
   width: 100%
 }
