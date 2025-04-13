@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html>
+<% if Current.display_mode %>
+  <html data-theme="<%= Current.display_mode %>">
+<% else %>
+  <html>
+<% end %>
 
   <%= render partial: "layouts/head" %>
 

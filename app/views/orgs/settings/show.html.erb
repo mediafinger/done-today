@@ -6,3 +6,13 @@
   <li> Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
   <li> Current project: <b><%= current_project.name %></b></li>
 </ul>
+
+<h2>Display</h2>
+
+<p><i>(current mode: <%= Current.display_mode || "system" %>)</i></p>
+
+<ul>
+  <li><%= button_to "Always use dark mode", dark_mode_path, method: :patch, role: "button", class: "slim", data: { turbo: false}%></li>
+  <li><%= button_to "Always use light mode", light_mode_path, method: :patch, role: "button", class: "slim", data: { turbo: false} %></li>
+  <li><%= button_to "Use system mode (needs reload)", system_mode_path, method: :patch, role: "button", class: "slim" %></li>
+</ul>

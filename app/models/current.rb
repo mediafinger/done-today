@@ -1,5 +1,6 @@
 class Current < ActiveSupport::CurrentAttributes
   attribute :admin_flag
+  attribute :display_mode
   attribute :ip_address
   attribute :member
   attribute :member_id
