@@ -4,7 +4,7 @@ ruby file: ".ruby-version"
 
 gem "rails", "~> 8.0.2"
 
-gem "active_storage_validations", "~> 1.0" # To validate uploaded files # TODO: update to 2.x
+gem "active_storage_validations", "~> 2.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
