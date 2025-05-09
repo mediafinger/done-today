@@ -29,7 +29,7 @@ gem "turbo-rails" # Hotwire's SPA-like page accelerator [https://turbo.hotwired.
 
 group :development, :test do
   gem "active_record_doctor", "~> 1.14", require: false
-  gem "amazing_print", "~> 1.6"
+  gem "amazing_print", "~> 1.8"
   gem "bundler-audit", "~> 0.9"
   gem "factory_bot-awesome_linter", "~> 1.0"
   gem "factory_bot_rails", "~> 6.2"
