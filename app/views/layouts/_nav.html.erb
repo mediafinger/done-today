@@ -10,6 +10,22 @@
       <% end %>
     </div>
 
+    <div class="right smaller">
+      <!-- # TODO: link to org overview & switcher, link to project overview & switcher -->
+
+      <% if current_org %>
+        <i>Organization: </i>
+        <%= link_to current_org.name, settings_path, method: :get, class: "links slim camouflage" %>
+      <% end %>
+
+      <p class="dark-contrast">
+        <% if current_project %>
+          <i>Project: </i>
+          <%= link_to current_project.name, settings_path, method: :get, class: "links slim camouflage" %>
+        <% end %>
+      <p>
+    </div>
+
     <div class="right">
       <% if current_user %>
         <%= link_to "⚙", settings_path, method: :get, role: "button", class: "slim" %>

@@ -24,9 +24,22 @@ nav {
 
   .nav-grid {
     display: grid;
-    grid-template-columns: minmax(3rem, 25%) minmax(5rem, 50%) minmax(3rem, 25%);
+    grid-template-columns: minmax(2rem, 20%) minmax(4rem, 35%) minmax(4rem, 30%) minmax(1.6rem, 15%);
     gap: 1rem;
     width: 100%
+  }
+
+  .dark-contrast {
+    color: var(--pico-color)
+  }
+
+  .links {
+    color: gold;
+  }
+
+  .smaller {
+    font-size: smaller;
+    margin-top: 0.15rem;
   }
 }
 
@@ -92,6 +105,10 @@ ul {
 
 .bottom-spacer {
   margin-bottom: 10%;
+}
+
+.hgap {
+  margin-right: 10%;
 }
 
 .vgap {
