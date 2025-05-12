@@ -7,6 +7,24 @@
   <li> Current project: <b><%= current_project.name %></b></li>
 </ul>
 
+<h2>All members of current project '<%= current_project.name %>'</h2>
+
+<ul>
+  <% current_project.members.each do |member| %>
+    <li><%= link_to member.name, "/days?member_id=#{member.id}", method: :get %></li>
+  <% end %>
+</ul>
+
+<h2>All projects of current organization '<%= current_org.name %>'</h2>
+
+<ul>
+  <% current_org.projects.each do |project| %>
+    <!-- TODO: Add controller action to: switch_current_project(project_id) OR apply to participate! -->
+    <li><%= link_to project.name, "/switch_to?project_id=#{project.id}", method: :get %></li>
+  <% end %>
+</ul>
+
+
 <h2>Display</h2>
 
 <p><i>(current mode: <%= Current.display_mode || "system" %>)</i></p>
