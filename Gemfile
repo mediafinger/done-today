@@ -4,7 +4,7 @@ ruby file: ".ruby-version"
 
 gem "rails", "~> 8.0.2"
 
-gem "active_storage_validations", "~> 1.0" # To validate uploaded files # TODO: update to 2.x
+gem "active_storage_validations", "~> 2.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
@@ -33,7 +33,7 @@ group :development, :test do
   gem "bundler-audit", "~> 0.9"
   gem "factory_bot-awesome_linter", "~> 1.0"
   gem "factory_bot_rails", "~> 6.2"
-  gem "rspec-rails", "~> 7.0"
+  gem "rspec-rails", "~> 8.0"
   gem "rubocop-rails-omakase", require: false # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   # gem "rubocop-capybara"
   gem "rubocop-factory_bot"
