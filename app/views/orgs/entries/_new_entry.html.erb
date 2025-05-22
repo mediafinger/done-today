@@ -1,0 +1,16 @@
+<!--
+  Expects the following local variables:
+
+  * org
+  * member
+  * day
+-->
+
+<% new_entry = Entry.new(org:, member:, day:) %>
+
+<%= form_with(model: new_entry, data: { turbo_method: :post }) do |form| %>
+  <div role="group">
+    <%= form.text_field :log, required: true, autofocus: true, placeholder: "What have you done today?", value: new_entry.log, minlength: 3, maxlength: 500 %>
+    <%= form.hidden_field :date, value: @day.date %>
+  </div>
+<% end %>

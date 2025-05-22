@@ -18,23 +18,7 @@
 <ul>
   <% @entries.each_with_index do |entry, index| %>
     <li class="nude">
-      <div class="left-aligned-grid">
-        <div class="left">
-          <%- if index == 0 || entry.day != @entries[index - 1].day %>
-            <h3 style="margin-top: -0.25rem;">
-              <%= link_to entry.day.date.to_s, "/days?date=#{entry.day.date.iso8601}", method: :get, class: "camouflage" %>
-            </h3>
-          <% end %>
-        </div>
-        <div class="left">
-          <%= entry.log %>
-        </div>
-        <div class="right">
-          <%= link_to "todo", "", method: nil, role: "button", class: "slim #{entry.todo? ? 'btn-todo' : 'btn-inactive'}" %>
-          <%= link_to "doing", "", method: nil, role: "button", class: "slim #{entry.doing? ? 'btn-doing' : 'btn-inactive'}" %>
-          <%= link_to "done", "", method: nil, role: "button", class: "slim #{entry.done? ? 'btn-done' : 'btn-inactive'}" %>
-        </div>
-      </div>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: true, with_member: false %>
     </li>
   <% end %>
 </ul>

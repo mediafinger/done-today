@@ -115,9 +115,23 @@ ul {
   margin-top: 10%;
 }
 
-.left-aligned-grid {
+.left-aligned-grid-2 {
   display: grid;
-  grid-template-columns: minmax(6rem, 15%) minmax(10rem, 55%) minmax(9rem, 30%);
+  grid-template-columns: minmax(30rem, 75%) minmax(10rem, 25%);
+  gap: 0.5rem;
+  width: 100%
+}
+
+.left-aligned-grid-3 {
+  display: grid;
+  grid-template-columns: minmax(6rem, 15%) minmax(20rem, 55%) minmax(10rem, 30%);
+  gap: 0.5rem;
+  width: 100%
+}
+
+.left-aligned-grid-4 {
+  display: grid;
+  grid-template-columns: minmax(6rem, 15%) minmax(6rem, 15%) minmax(20rem, 45%) minmax(10rem, 25%);
   gap: 0.5rem;
   width: 100%
 }
