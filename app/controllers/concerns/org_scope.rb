@@ -36,7 +36,7 @@ module OrgScope
 
   def current_org
     Current.org ||=
-      if Current.session.org && current_user.orgs.exists?(id: Current.session.org)
+      if Current.session&.org && current_user&.orgs&.exists?(id: Current.session.org)
         Current.session.org
       end # else nil
   end
