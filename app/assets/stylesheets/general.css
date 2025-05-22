@@ -72,6 +72,11 @@ a[role=link] {
   cursor: inherit;
 }
 
+.s-link {
+  font-weight: lighter;
+  font-size: 65%;
+}
+
 img {
   border-radius: 0.5rem;
 }
@@ -117,21 +122,28 @@ ul {
 
 .left-aligned-grid-2 {
   display: grid;
-  grid-template-columns: minmax(30rem, 75%) minmax(10rem, 25%);
+  grid-template-columns: minmax(32rem, 75%) minmax(8rem, 25%);
   gap: 0.5rem;
   width: 100%
 }
 
 .left-aligned-grid-3 {
   display: grid;
-  grid-template-columns: minmax(6rem, 15%) minmax(20rem, 55%) minmax(10rem, 30%);
+  grid-template-columns: minmax(4rem, 10%) minmax(28rem, 70%) minmax(8rem, 20%);
   gap: 0.5rem;
   width: 100%
 }
 
 .left-aligned-grid-4 {
   display: grid;
-  grid-template-columns: minmax(6rem, 15%) minmax(6rem, 15%) minmax(20rem, 45%) minmax(10rem, 25%);
+  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(24rem, 60%) minmax(8rem, 20%);
+  gap: 0.5rem;
+  width: 100%
+}
+
+.left-aligned-grid-5 {
+  display: grid;
+  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(4rem, 10%) minmax(20rem, 50%) minmax(8rem, 20%);
   gap: 0.5rem;
   width: 100%
 }

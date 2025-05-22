@@ -7,10 +7,29 @@ module Orgs
 
       @project = current_org.projects.find(params[:id])
       @entries_count = @project.entries.joins(:day).size
+
+      @with_date = true
+      @with_project = false
+      @with_member = true
+
+      # ONE project, many days
       @days =
         @project.days
           .includes(entries: :member)
           .order("days.date desc", "entries.status desc", "entries.member_id asc", "entries.created_at asc")
+
+      # ALL the projects, many days
+      #
+      # TODO: move this code to the Entries controller
+      #
+      # TODO: add filters for project, day, member, status
+      #
+      # TODO: allow to configure sorting order: date, project, member (should change column order)
+      #
+      # TODO: add pagination
+      #
+      # @days = current_org.days.includes(:project, entries: :member)
+      #   .order("days.date desc", "days.project_id asc", "entries.status desc", "entries.member_id asc", "entries.created_at asc")
     end
 
     def index

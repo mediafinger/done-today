@@ -8,24 +8,34 @@
   * with_date (boolean)
 -->
 
-<% grid_columns = 2 + (with_member ? 1 : 0) + (with_date ? 1 : 0) %>
+<% grid_columns = 2 + (defined?(with_date) && with_date ? 1 : 0) + (defined?(with_project) && with_project ? 1 : 0) + (defined?(with_member) && with_member ? 1 : 0) %>
 <div class="left-aligned-grid-<%= grid_columns %>">
 
-  <% if with_date %>
+  <% if defined?(with_date) && with_date %>
     <div class="left">
       <% if index == 0 || entry.day != entries[index - 1].day %>
         <h3 style="margin-top: -0.25rem;">
-          <%= link_to entry.day.date.to_s, "/days?date=#{entry.day.date.iso8601}", method: :get, class: "camouflage" %>
+          <%= link_to entry.day.date.to_s, "/days?date=#{entry.day.date.iso8601}", method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>
   <% end %>
 
-  <% if with_member %>
+  <% if defined?(with_project) && with_project %>
+    <div class="left">
+      <% if index == 0 || entry.project != entries[index - 1].project %>
+        <h3 style="margin-top: -0.25rem;">
+          <%= link_to entry.project.name, project_path(entry.day.project_id), method: :get, class: "camouflage s-link" %>
+        </h3>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if defined?(with_member) && with_member %>
     <div class="left">
       <% if index == 0 || entry.member != entries[index - 1].member %>
         <h3 style="margin-top: -0.25rem;">
-          <%= link_to entry.member.name, "/days?member_id=#{entry.member_id}", method: :get, class: "camouflage" %>
+          <%= link_to entry.member.name, "/days?member_id=#{entry.member_id}", method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>

@@ -12,7 +12,7 @@
   <ul>
     <% day.entries.each_with_index do |entry, index| %>
       <li class="nude">
-        <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: true, with_member: true %>
+        <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member %>
       </li>
     <% end %>
   </ul>
