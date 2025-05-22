@@ -5,6 +5,10 @@ class Entry < ApplicationRecord
   belongs_to :org
   belongs_to :member
 
+  has_one :project, through: :day
+
+  before_validation :set_org
+
   validates :log, presence: true
   validates :status, presence: true, inclusion: { in: STATES }
 
@@ -30,5 +34,11 @@ class Entry < ApplicationRecord
 
   def past?
     Time.current.to_date > day.date # TODO: timezone correction
+  end
+
+  private
+
+  def set_org
+    self.org ||= day.org
   end
 end

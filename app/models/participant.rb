@@ -5,7 +5,15 @@ class Participant < ApplicationRecord
   belongs_to :project, inverse_of: :participants
   belongs_to :member, inverse_of: :participations
 
+  before_validation :set_org
+
   validates :roles, presence: true, array_inclusion: {
     in: VALID_ROLES, message: "%{rejected_values} not allowed, roles must be in #{VALID_ROLES}"
   }
+
+  private
+
+  def set_org
+    self.org ||= project.org
+  end
 end
