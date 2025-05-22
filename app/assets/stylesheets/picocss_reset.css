@@ -1,3 +1,10 @@
+html {
+  transform: scale(0.8);
+  transform-origin: 0 0;
+  margin: 0;
+  width: 125%;
+}
+
 html[aria-busy="true"]::before {
   all: unset;
 }
