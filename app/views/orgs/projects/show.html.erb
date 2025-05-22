@@ -1,0 +1,37 @@
+<h2><%= @project.name %></h2>
+
+<ul class="bottom-spacer">
+  <li class="nude">The participants</li>
+  <% @project.participants.each do |participant| %>
+    <li class="nude"><%= link_to participant.member.name, "/days?member_id=#{participant.member.id}", method: :get %></li>
+  <% end %>
+  <li class="nude">Have added <%= @entries_count %> entries since <%= @project.created_at.to_date %></li>
+</ul>
+
+<!-- TODO: list entries properly by day and user: -->
+<% @days.each do |day| %>
+  <h2> Day <%= day.date.to_s %> </h2>
+  <ul>
+    <% day.entries.each_with_index do |entry, index| %>
+      <li class="nude">
+        <div class="left-aligned-grid">
+          <div class="left">
+            <%- if index == 0 || entry.member != day.entries[index - 1].member %>
+              <h3 style="margin-top: -0.25rem;">
+                <%= link_to entry.member.name, "/days?member_id=#{entry.member_id}", method: :get, class: "camouflage" %>
+              </h3>
+            <% end %>
+          </div>
+          <div class="left">
+            <%= entry.log %>
+          </div>
+          <div class="right">
+            <%= link_to "todo", "", method: nil, role: "button", class: "slim #{entry.todo? ? 'btn-todo' : 'btn-inactive'}" %>
+            <%= link_to "doing", "", method: nil, role: "button", class: "slim #{entry.doing? ? 'btn-doing' : 'btn-inactive'}" %>
+            <%= link_to "done", "", method: nil, role: "button", class: "slim #{entry.done? ? 'btn-done' : 'btn-inactive'}" %>
+          </div>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

@@ -1,0 +1,15 @@
+<!-- TODO: test and place this button: -->
+<!-- %= link_to "new project", new_project_path, method: :get, role: "button", class: "slim" % -->
+
+<!-- TODO: list all projects by name: -->
+<div class="spacing-grid">
+  <div class="left">
+    <h2> All Projects of <%= current_org.name %> </h2>
+
+    <ul>
+      <% @projects.each do |project| %>
+        <li class="nude"><%= link_to project.name, project_path(project), method: :get, role: "button", class: "slim" %></li>
+      <% end %>
+    </ul>
+  </div>
+</div>
