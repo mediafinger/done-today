@@ -24,7 +24,7 @@ nav {
 
   .nav-grid {
     display: grid;
-    grid-template-columns: minmax(2rem, 20%) minmax(4rem, 35%) minmax(4rem, 30%) minmax(1.6rem, 15%);
+    grid-template-columns: minmax(2rem, 20%) minmax(4rem, 40%) minmax(4rem, 30%) minmax(1rem, 5%);
     gap: 1rem;
     width: 100%
   }
@@ -35,11 +35,6 @@ nav {
 
   .links {
     color: gold;
-  }
-
-  .smaller {
-    font-size: smaller;
-    margin-top: 0.15rem;
   }
 }
 
@@ -87,6 +82,11 @@ ul {
     margin-left: -1.75rem;
   }
 
+  .without-bullet {
+    list-style-type: none;
+  }
+
+
   li.tight {
     margin-bottom: -1rem;
   }
@@ -129,21 +129,21 @@ ul {
 
 .left-aligned-grid-3 {
   display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(28rem, 70%) minmax(8rem, 20%);
+  grid-template-columns: minmax(4rem, 10%) minmax(28rem, 65%) minmax(8rem, 25%);
   gap: 0.5rem;
   width: 100%
 }
 
 .left-aligned-grid-4 {
   display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(24rem, 60%) minmax(8rem, 20%);
+  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(24rem, 55%) minmax(8rem, 25%);
   gap: 0.5rem;
   width: 100%
 }
 
 .left-aligned-grid-5 {
   display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(4rem, 10%) minmax(20rem, 50%) minmax(8rem, 20%);
+  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(4rem, 10%) minmax(20rem, 45%) minmax(8rem, 25%);
   gap: 0.5rem;
   width: 100%
 }
@@ -160,4 +160,43 @@ ul {
   margin-bottom: 0;
   margin-top: 0.25rem;
   line-height: 80% !important;
+}
+
+.slim-summary {
+  height: 66%;
+  line-height: 80% !important;
+  margin-top: 0.25rem;
+  max-width: 80%
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slim-summary-caption {
+  color: cornsilk;
+  display: inline-block;
+  margin-top: -0.2rem;
+  max-width: 85%;
+  overflow: clip;
+  padding-bottom: 0.2rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* to center the caret in the .slim-summary */
+details summary::after {
+  margin-top: -0.3rem !important;
+}
+
+.with-shadow {
+  --pico-dropdown-background-color: gold;
+  --pico-dropdown-box-shadow: 0.5rem 0.5rem 0.5rem 0.5rem darkgoldenrod;
+}
+
+.zown {
+  z-index: -100;
+}
+
+.zup {
+  z-index: 100;
 }

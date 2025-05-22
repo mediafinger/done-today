@@ -1,8 +1,14 @@
+<!-- TODO: ensure this page works without current_org / current_member or current_project -->
+
+<% if current_user %>
+  <%= button_to "Logout", session_path, method: :delete, role: "button", class: "slim" %>
+<% end %>
+
 <h2>Settings</h2>
 
 <ul>
   <li> User name: <b><%= current_user.name %></b></li>
-  <li> Member of org: <b><%= current_org.name %></b></li>
+  <li> Selected org: <b><%= current_org.name %></b></li>
   <li> Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
   <li> Current project: <b><%= current_project.name %></b></li>
 </ul>

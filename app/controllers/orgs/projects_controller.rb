@@ -6,7 +6,7 @@ module Orgs
       #  * all projects of org, if the member role is owner
 
       @project = current_org.projects.find(params[:id])
-      @entries_count = @project.entries.joins(:day).size
+      @entries_count = @project.entries.size
 
       @with_date = true
       @with_project = false
@@ -33,7 +33,11 @@ module Orgs
     end
 
     def index
-      @projects = current_org.projects.order(:name)
+      if current_org
+        @projects = current_org.projects.order(:name)
+      else
+        redirect_to root_path, notice: "Select an org first"
+      end
     end
   end
 end

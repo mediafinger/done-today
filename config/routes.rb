@@ -20,6 +20,9 @@ Rails.application.routes.draw do
     patch "system_mode", to: "display_modes#system"
   end
 
+  # resources :switch_current_organizations, only: %i[index show create destroy]
+  get "open/:slug_org(/:slug_project)", to: "switch_orgs#switch_to", as: :open
+
   scope module: :orgs, path: "/" do
     resources :days, only: %i[ index show ]
     resources :entries, only: %i[ index create update ]

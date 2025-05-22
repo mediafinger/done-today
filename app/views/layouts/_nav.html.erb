@@ -1,36 +1,27 @@
 <nav>
   <div class="nav-grid">
+
     <div class="left">
-      <h1>Done today</h1>
+      <h2>Done today</h2>
     </div>
 
-    <div class="center">
-      <% if current_user %>
+    <div class="center zup">
+      <% if current_user && current_project %>
         <%= render partial: "orgs/days/select" %>
       <% end %>
     </div>
 
-    <div class="right smaller">
-      <!-- # TODO: link to org overview & switcher, link to project overview & switcher -->
-
-      <% if current_org %>
-        <i>Organization: </i>
-        <%= link_to current_org.name, projects_path, method: :get, class: "links slim camouflage" %>
+    <div class="left">
+      <% if current_user && current_user.memberships.any? %>
+        <%= render partial: "shared_partials/org_switcher" %>
       <% end %>
-
-      <p class="dark-contrast">
-        <% if current_project %>
-          <i>Project: </i>
-          <%= link_to current_project.name, project_path(current_project), method: :get, class: "links slim camouflage" %>
-        <% end %>
-      <p>
     </div>
 
-    <div class="right">
+    <div class="right zup">
       <% if current_user %>
         <%= link_to "⚙", settings_path, method: :get, role: "button", class: "slim" %>
-        <%= button_to "Logout", session_path, method: :delete, role: "button", class: "slim" %>
       <% end %>
     </div>
+
   </div>
 </nav>

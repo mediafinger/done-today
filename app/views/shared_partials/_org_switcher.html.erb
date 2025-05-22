@@ -1,0 +1,30 @@
+<!-- TODO: extract all DB queries into a concern / current object -->
+
+<details class="dropdown with-shadow">
+  <% current_org_project = [current_org&.name, current_project&.name].compact.join(' | ') %>
+  <summary role="button" class="slim-summary"> <!-- TODO: ensure overflow: hidden works -->
+    <span class="slim-summary-caption">
+      <%= current_org_project.presence || "Select an org | project" %>
+      </span>
+  </summary>
+
+  <ul>
+    <% current_user.memberships.includes(:org, participations: :project).order("org.name asc").each_with_index do |member, index| %>
+      <!-- link to org -->
+      <li class="without-bullet">
+        <b>
+          <%= link_to member.org.name, open_path(member.org.slug), method: :get, class: "links slim camouflage" %>
+        </b>
+      </li>
+
+      <% member.participations.includes(:project).order("project.name asc").each do |participation| %>
+        <!-- link to org | project -->
+        <li class="without-bullet">
+          <%= link_to "#{member.org.name} | #{participation.project.name}", open_path(member.org.slug, participation.project.slug), method: :get, class: "links slim camouflage" %>
+          </a>
+        </li>
+      <% end %>
+
+    <% end %>
+  </ul>
+</details>

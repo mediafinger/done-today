@@ -9,5 +9,17 @@ class Project < ApplicationRecord
   has_many :integrations, through: :project_integrations
   has_many :members, through: :participants
 
+  before_create :set_slug
+
   validates :name, presence: true, uniqueness: { scope: :org_id }
+
+  private
+
+  def set_slug
+    new_slug = name.parameterize
+
+    new_slug = "#{new_slug}-#{rand(99)}" while Project.exists?(slug: new_slug)
+
+    self.slug = new_slug
+  end
 end

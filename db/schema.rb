@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_27_231407) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_22_144558) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -69,7 +69,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_231407) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
     t.index ["name"], name: "index_orgs_on_name", unique: true
+    t.index ["slug"], name: "index_orgs_on_slug", unique: true
   end
 
   create_table "participants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -100,7 +102,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_231407) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
     t.index ["org_id", "name"], name: "index_projects_on_org_id_and_name", unique: true
+    t.index ["slug"], name: "index_projects_on_slug", unique: true
   end
 
   create_table "record_histories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

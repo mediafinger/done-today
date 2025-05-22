@@ -1,5 +1,9 @@
 <h1> What have you done today? </h1>
 
+<% if current_user.memberships.blank? %>
+  Ask to join an org <!-- TODO -->
+<% end %>
+
 <article>
   <h2>Show me the money </h2>
   <p>And fill out the stuff</p>
