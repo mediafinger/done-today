@@ -53,7 +53,7 @@ class SwitchOrgsController < ApplicationController
 
       if project.present? && participant.present?
         switch_current_project(project.id)
-        redirect_to project_path(project), notice: "Org '#{current_org.name}' with project '#{project.name}' selected"
+        redirect_to project_path(project.slug), notice: "Org '#{current_org.name}' with project '#{project.name}' selected"
       else
         redirect_to projects_path, notice: "Org '#{current_org.name}' selected"
       end

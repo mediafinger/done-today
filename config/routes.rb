@@ -26,7 +26,7 @@ Rails.application.routes.draw do
   scope module: :orgs, path: "/" do
     resources :days, only: %i[ index show ]
     resources :entries, only: %i[ index create update ]
-    resources :projects, only: %i[ index new create show edit update destroy ]
+    resources :projects, param: :slug, only: %i[ index new create show edit update destroy ]
 
     get "settings", to: "settings#show"
   end

@@ -25,8 +25,7 @@
 
 <ul>
   <% current_org.projects.each do |project| %>
-    <!-- TODO: Add controller action to: switch_current_project(project_id) OR apply to participate! -->
-    <li><%= link_to project.name, "/switch_to?project_id=#{project.id}", method: :get %></li>
+    <li><%= link_to project.name, project_path(project.slug), method: :get %></li>
   <% end %>
 </ul>
 

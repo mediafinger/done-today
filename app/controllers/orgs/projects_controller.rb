@@ -5,7 +5,7 @@ module Orgs
       #  * projects the member is participant of
       #  * all projects of org, if the member role is owner
 
-      @project = current_org.projects.find(params[:id])
+      @project = current_org.projects.find_by!(slug: params[:slug])
       @entries_count = @project.entries.size
 
       @with_date = true

@@ -25,7 +25,7 @@
     <div class="left">
       <% if index == 0 || entry.project != entries[index - 1].project %>
         <h3 style="margin-top: -0.25rem;">
-          <%= link_to entry.project.name, project_path(entry.day.project_id), method: :get, class: "camouflage s-link" %>
+          <%= link_to entry.project.name, project_path(entry.day.project.slug), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>
@@ -44,6 +44,8 @@
   <div class="left">
     <%= entry.log %>
   </div>
+
+  <!-- TODO set disabled: true on links and adapt colors to pop more -->
 
   <div class="right">
     <%= link_to "todo", "", method: nil, role: "button", class: "slim #{entry.todo? ? 'btn-todo' : 'btn-inactive'}" %>
