@@ -1,0 +1,43 @@
+<!--
+  Expects the following local variables:
+
+  * member
+  * members
+  * mode read | edit
+-->
+
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> Entries of <%= member.name %> </h2>
+  </div>
+
+  <div class="center">
+    <% if mode == "read" %>
+
+      <% if @project && @project.participants.find_by(member: current_member) && @project != current_project %>
+        <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
+      <% elsif current_project %>
+        <%= link_to "add or edit", entries_path(date: Time.current.to_date, mode: "edit"), method: :get, role: "button", class: "slim" %>
+      <% end %>
+
+    <% elsif mode == "edit" %>
+      <%= link_to "view all", entries_path(member_id: member.id, mode: "read"), method: :get, role: "button", class: "slim" %>
+
+    <% else %>
+      mode '<%= mode %>' is invalid
+
+    <% end %>
+  </div>
+
+  <div class="right">
+    <% binding%>
+    <% member_index = members.find_index { |k, _v| k == member.id } %>
+    <% next_member_id = members[member_index + 1] ? members[member_index + 1][0] : members[0][0] %>
+    <% previous_member_id = members[member_index - 1] ? members[member_index - 1][0] : members[0][0] %>
+
+    <%= link_to "⬅️", entries_path(member_id: next_member_id, mode: "read", project_id: @project&.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", entries_path(member_id: previous_member_id, mode: "read", project_id: @project&.id), method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>

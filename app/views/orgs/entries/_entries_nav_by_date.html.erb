@@ -1,0 +1,37 @@
+<!--
+  Expects the following local variables:
+
+  * day
+  * mode read | edit
+-->
+
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> Day <%= date.iso8601 %> </h2>
+  </div>
+
+  <div class="center">
+    <% if mode == "read" %>
+
+      <% if @project && @project.participants.find_by(member: current_member) && @project != current_project %>
+        <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
+      <% elsif current_project %>
+        <%= link_to "add or edit", entries_path(date: date, mode: "edit"), method: :get, role: "button", class: "slim" %>
+      <% end %>
+
+    <% elsif mode == "edit" %>
+      <%= link_to "view all", entries_path(date: date, mode: "read"), method: :get, role: "button", class: "slim" %>
+
+    <% else %>
+      mode '<%= mode %>' is invalid
+
+    <% end %>
+  </div>
+
+  <div class="right">
+    <%= link_to "⬅️", entries_path(date: date - 1.day, mode: mode, project_id: @project&.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", entries_path(date: date + 1.day, mode: mode, project_id: @project&.id), method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>

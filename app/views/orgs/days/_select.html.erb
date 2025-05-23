@@ -1,8 +1,8 @@
 <div role="group">
-  <%= link_to "yesterday", days_path(date: Date.yesterday), method: :get, role: "button", class: "slim" %>
-  <%= link_to "today", days_path(date: Date.today), method: :get, role: "button", class: "slim" %>
-  <%= link_to "tomorrow", days_path(date: Date.tomorrow), method: :get, role: "button", class: "slim" %>
+  <%= link_to "yesterday", entries_path(date: (Time.current.to_date - 1.day), mode: @mode), method: :get, role: "button", class: "slim" %>
+  <%= link_to "today", entries_path(date: Time.current.to_date, mode: @mode), method: :get, role: "button", class: "slim" %>
+  <%= link_to "tomorrow", entries_path(date: (Time.current.to_date + 1.day), mode: @mode), method: :get, role: "button", class: "slim" %>
 
   <%- # TODO: add datepicker to select any day %>
-  <%- # <input type="date" id="datepicker" name="any-date" value= <%= Date.today.iso8601 % > class="slimmer" /> %>
+  <%- # <input type="date" id="datepicker" name="any-date" value= <%= Time.current.to_date.iso8601 % > class="slimmer" /> %>
 </div>

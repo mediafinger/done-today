@@ -3,7 +3,7 @@
 <ul class="bottom-spacer">
   <li class="nude">The participants</li>
   <% @project.participants.each do |participant| %>
-    <li class="nude"><%= link_to participant.member.name, "/days?member_id=#{participant.member.id}", method: :get %></li>
+    <li class="nude"><%= link_to participant.member.name, entries_path(member_id: participant.member.id, project_id: participant.project.id), method: :get %></li>
   <% end %>
   <li class="nude">Have added <%= @entries_count %> entries since <%= @project.created_at.to_date %></li>
 </ul>

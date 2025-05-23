@@ -15,7 +15,7 @@
     <div class="left">
       <% if index == 0 || entry.day != entries[index - 1].day %>
         <h3 style="margin-top: -0.25rem;">
-          <%= link_to entry.day.date.to_s, "/days?date=#{entry.day.date.iso8601}", method: :get, class: "camouflage s-link" %>
+          <%= link_to entry.day.date.iso8601, entries_path(date: entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>
@@ -35,7 +35,7 @@
     <div class="left">
       <% if index == 0 || entry.member != entries[index - 1].member %>
         <h3 style="margin-top: -0.25rem;">
-          <%= link_to entry.member.name, "/days?member_id=#{entry.member_id}", method: :get, class: "camouflage s-link" %>
+          <%= link_to entry.member.name, entries_path(member_id: entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>

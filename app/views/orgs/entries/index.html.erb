@@ -1,24 +1,38 @@
-<div class="spacing-grid">
-  <div class="left">
-    <h2> Day <%= @day.date.to_s %> </h2>
-  </div>
-  <div class="center">
-    <%= link_to "view all", "/days?date=#{@day.date.iso8601}", method: :get, role: "button", class: "slim" %>
-  </div>
-  <div class="right">
-    <%= link_to "⬅️", "/entries?date=#{(@day.date - 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", "/entries?date=#{(@day.date + 1.day).iso8601}", method: :get, role: "button", class: "slim" %>
-  </div>
-</div>
+<% if @group_by == "date" %>
+  <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode %>
+<% elsif @group_by == "member" %>
+  <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
+<% elsif @group_by == "project" %>
+  <%= render "orgs/entries/entries_nav_by_project", project: @project, mode: @mode %>
+<% else %>
+  group_by '<%= @group_by %>' is invalid
+<% end %>
 
-<ul class="bottom-spacer">
-  <% @entries.each do |entry| %>
-    <li class="nude tight">
-      <%= render "orgs/entries/editable_entry", entry: entry %>
+
+<% if @mode == "edit" %>
+
+  <ul class="bottom-spacer">
+    <% @entries.each do |entry| %>
+      <li class="nude tight">
+        <%= render "orgs/entries/editable_entry", entry: entry %>
+      </li>
+    <% end %>
+
+    <li class="nude">
+      <%= render "orgs/entries/new_entry", org: current_org, member: current_member, day: @day %>
     </li>
-  <% end %>
+  </ul>
 
-  <li class="nude">
-    <%= render "orgs/entries/new_entry", org: current_org, member: current_member, day: @day %>
-  </li>
-</ul>
+<% elsif @mode == "read" %>
+  <ul>
+    <% @entries.each_with_index do |entry, index| %>
+      <li class="nude">
+        <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
+      </li>
+    <% end %>
+  </ul>
+
+<% else %>
+  mode '<%= @mode %>' is invalid
+
+<% end %>

@@ -1,24 +1,11 @@
-<div class="spacing-grid" style="margin-bottom: 0.5rem;">
-  <div class="left">
-    <h2> Entries of <%= @member.name %> </h2>
-  </div>
-  <div class="center">
-    <%- # = link_to "add or edit", "/entries?date=#{@day.date.iso8601}", method: :get, role: "button", class: "slim" %>
-  </div>
-  <div class="right">
-    <% member_index = @members.find_index { |k, _v| k == @member.id } %>
-    <% next_member_id = @members[member_index + 1] ? @members[member_index + 1][0] : @members[0][0] %>
-    <% previous_member_id = @members[member_index - 1] ? @members[member_index - 1][0] : @members[-1][0] %>
+<!-- TODO: unused now ?! then remove !! -->
 
-    <%= link_to "⬅️", "/days?member_id=#{next_member_id}", method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", "/days?member_id=#{previous_member_id}", method: :get, role: "button", class: "slim" %>
-  </div>
-</div>
+<%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
 
 <ul>
   <% @entries.each_with_index do |entry, index| %>
     <li class="nude">
-      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: true, with_member: false %>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member %>
     </li>
   <% end %>
 </ul>

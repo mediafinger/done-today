@@ -24,9 +24,9 @@ Rails.application.routes.draw do
   get "open/:slug_org(/:slug_project)", to: "switch_orgs#switch_to", as: :open
 
   scope module: :orgs, path: "/" do
-    resources :days, only: %i[ index show ]
+    # resources :days, only: %i[ index show ] # TODO: ensure these are unused now
     resources :entries, only: %i[ index create update ]
-    resources :projects, param: :slug, only: %i[ index new create show edit update destroy ]
+    resources :projects, param: :slug, only: %i[ index show ]
 
     get "settings", to: "settings#show"
   end

@@ -8,27 +8,36 @@
 
 <ul>
   <li> User name: <b><%= current_user.name %></b></li>
-  <li> Selected org: <b><%= current_org.name %></b></li>
-  <li> Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
-  <li> Current project: <b><%= current_project.name %></b></li>
-</ul>
-
-<h2>All members of current project '<%= current_project.name %>'</h2>
-
-<ul>
-  <% current_project.members.each do |member| %>
-    <li><%= link_to member.name, "/days?member_id=#{member.id}", method: :get %></li>
+  <% if current_org %>
+    <li>Selected org: <b><%= current_org.name %></b></li>
+  <% end %>
+  <% if current_member %>
+    <li>Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
+  <% end %>
+  <% if current_project %>
+    <li> Current project: <b><%= current_project.name %></b></li>
   <% end %>
 </ul>
 
-<h2>All projects of current organization '<%= current_org.name %>'</h2>
+<% if current_project %>
+  <h2>All members of current project '<%= current_project.name %>'</h2>
 
-<ul>
-  <% current_org.projects.each do |project| %>
-    <li><%= link_to project.name, project_path(project.slug), method: :get %></li>
-  <% end %>
-</ul>
+  <ul>
+    <% current_project.members.each do |member| %>
+      <li><%= link_to member.name, entries_path(member_id: member.id, project_id: current_project.id), method: :get %></li>
+    <% end %>
+  </ul>
+<% end %>
 
+<% if current_org %>
+  <h2>All projects of current organization '<%= current_org.name %>'</h2>
+
+  <ul>
+    <% current_org.projects.each do |project| %>
+      <li><%= link_to project.name, project_path(project.slug), method: :get %></li>
+    <% end %>
+  </ul>
+<% end %>
 
 <h2>Display</h2>
 
