@@ -15,51 +15,35 @@ module Orgs
     #
     # TODO: cleanup, extract, simplify!
     #
+    # Ensure there is always 1 defined project, either current_project or @project from project_id!
+    #
     def index
+      date # to initialize it
+      @group_by = group_by
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
       # TODO: or handle only current_project in this controller and leave the rest for the projects_controller ?!
 
-      @group_by = group_by
-      @mode = params[:mode] || "read"
-      @date = Date.parse(params[:date]) rescue Time.current.to_date
-
-      @project = current_org.projects.find(params[:project_id]) if params[:project_id]
-
-      if params[:member_id] && @project
-        @member = @project.members.find(params[:member_id])
-        @members = @project.members.order(:name).pluck(:id, :name)
-      elsif params[:member_id] && current_project
-        @member = current_project.members.find(params[:member_id]) # TODO: fix NOT FOUND issue
-        @members = current_project.members.order(:name).pluck(:id, :name)
+      if params[:member_id]
+        @member = project.members.find(params[:member_id])
+        @members = project.members.order(:name).pluck(:id, :name)
       end
 
-      days = current_org.days
-      days = days.where(project: @project || current_project)
-
-      # TODO: ensure edit mode always uses current_project OR makes it obvious & switches to @project!!!
-      if @mode == "edit"
+      # TODO: ensure edit mode always uses current_project OR makes it obvious & switches to project!!!
+      if mode == "edit"
         @day =
           days.find_by(date: params[:date]) || days.build(org: current_org, date: params[:date] || Time.current.to_date)
-        @entries = @day.entries.where(member: current_member).order(status: :desc, created_at: :asc)
-      elsif @mode == "read"
-        days = days.where(date: params[:date]) if params[:date]
-        entries = current_org.entries.where(day: days).order(status: :desc, created_at: :asc)
-        entries = entries.where(member: @member) if @member
-        @entries = entries
-      else
-        raise ArgumentError, "invalid mode: #{@mode}"
+
+        @entries =
+          editable_entries(member: current_member, entries: @day.entries)
+            .order(status: :desc, created_at: :asc)
+      elsif mode == "read"
+        date_days = days
+        date_days = date_days.where(date: params[:date]) if params[:date]
+        @entries = current_org.entries.where(day: date_days).order(status: :desc, created_at: :asc)
+        @entries = @entries.where(member: @member) if @member
       end
-    end
-
-    def group_by
-      return params[:group_by] if params[:group_by]
-      return "date" if params[:date]
-      return "member" if params[:member_id]
-      return "project" if params[:project_id] # TODO: use slug
-
-      nil
     end
 
     # create_params[:date] is coming from a hidden form field and contains either
@@ -92,6 +76,59 @@ module Orgs
     end
 
     private
+
+    def mode
+      @mode ||= params[:mode] || "read"
+
+      raise ArgumentError, "invalid mode: #{@mode}" unless %w[read edit].include?(@mode)
+
+      @mode
+    end
+
+    def date
+      @date ||= Date.parse(params[:date]) rescue Time.current.to_date
+    end
+
+    def days
+      @days ||= current_org.days.where(project:)
+    end
+
+    def project
+      @project ||=
+        if params[:project_id]
+          current_org.projects.find(params[:project_id])
+        else
+          current_project
+        end
+
+      raise ArgumentError, "no project given" if @project.blank?
+
+      @project
+    end
+
+    def group_by
+      return params[:group_by] if params[:group_by]
+      return "date" if params[:date]
+      return "member" if params[:member_id]
+      return "project" if params[:project_id] # TODO: use slug
+
+      nil
+    end
+
+    def readable_entries(member:, entries:)
+      participant(member:).readable_entries(relation: entries)
+    end
+
+    def editable_entries(member:, entries:)
+      # TODO: ensure participant.owner can see who's entries they edit
+      # @with_member = participant(member:).roles.include?("owner")
+
+      participant(member:).editable_entries(relation: entries)
+    end
+
+    def participant(member:)
+       @participant ||= member.participations.find_by(project:)
+    end
 
     def create_params
       params.require(:entry).permit(:date, :log, :status)
