@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_22_144558) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_23_001543) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -130,7 +130,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_22_144558) do
     t.string "user_agent"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "project_id"
     t.index ["org_id"], name: "index_sessions_on_org_id"
+    t.index ["project_id"], name: "index_sessions_on_project_id"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
@@ -162,5 +164,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_22_144558) do
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
   add_foreign_key "sessions", "orgs"
+  add_foreign_key "sessions", "projects"
   add_foreign_key "sessions", "users"
 end

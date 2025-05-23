@@ -8,13 +8,24 @@ module ProjectScope
   def switch_current_project(project_id)
     return unless current_member
 
-    Current.project = current_member.projects.find(project_id)
+    project = current_member.projects.find(project_id)
+    refresh_current_project_in_session(project:)
+
+    Current.project
   end
 
   private
 
+  def refresh_current_project_in_session(project:)
+    Current.session.update!(project:)
+
+    Current.project = project
+  end
+
   def current_project
     Current.project ||=
-      switch_current_project(current_member.projects.first.id) if current_member && current_member.projects.count == 1
+      if Current.session&.project && current_member&.projects&.exists?(id: Current.session.project)
+        Current.session.project
+      end # else nil
   end
 end
