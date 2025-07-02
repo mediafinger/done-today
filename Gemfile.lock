@@ -115,7 +115,7 @@ GEM
     factory_bot_rails (6.4.4)
       factory_bot (~> 6.5)
       railties (>= 5.0.0)
-    faker (3.5.1)
+    faker (3.5.2)
       i18n (>= 1.8.11, < 2)
     freezolite (0.6.0)
       require-hooks (~> 0.2)
@@ -413,7 +413,7 @@ DEPENDENCIES
   bundler-audit (~> 0.9)
   factory_bot-awesome_linter (~> 1.0)
   factory_bot_rails (~> 6.2)
-  faker (~> 3.4)
+  faker (~> 3.5)
   freezolite (~> 0.5)
   importmap-rails
   kamal
