@@ -10,7 +10,7 @@ gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "mission_control-jobs", "~> 1.0" # dashboard for SolidQueue jobs
+gem "mission_control-jobs", "~> 1.1" # dashboard for SolidQueue jobs
 gem "pg", "~> 1.1" # Use postgresql as the database for Active Record
 gem "propshaft" # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "puma", ">= 5.0" # Use the Puma web server [https://github.com/puma/puma]
