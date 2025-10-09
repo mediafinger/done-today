@@ -82,7 +82,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    amazing_print (1.8.1)
+    amazing_print (2.0.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
@@ -417,7 +417,7 @@ PLATFORMS
 DEPENDENCIES
   active_record_doctor (~> 1.14)
   active_storage_validations (~> 2.0)
-  amazing_print (~> 1.6)
+  amazing_print (~> 2.0)
   bcrypt (~> 3.1.7)
   bundler-audit (~> 0.9)
   factory_bot-awesome_linter (~> 1.0)
@@ -434,7 +434,7 @@ DEPENDENCIES
   pwned (~> 2.4)
   rack-requestid (~> 0.2)
   rack-timeout (~> 0.7)
-  rails (~> 8.0.2)
+  rails (~> 8.0.3)
   rspec-rails (~> 8.0)
   rubocop-factory_bot
   rubocop-faker
