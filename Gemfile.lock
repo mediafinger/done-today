@@ -44,8 +44,8 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    active_record_doctor (1.15.0)
-      activerecord (>= 4.2.0)
+    active_record_doctor (2.0.1)
+      activerecord (>= 7.0.0)
     active_storage_validations (2.0.4)
       activejob (>= 6.1.4)
       activemodel (>= 6.1.4)
@@ -415,7 +415,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  active_record_doctor (~> 1.14)
+  active_record_doctor (~> 2.0)
   active_storage_validations (~> 2.0)
   amazing_print (~> 1.6)
   bcrypt (~> 3.1.7)
@@ -434,7 +434,7 @@ DEPENDENCIES
   pwned (~> 2.4)
   rack-requestid (~> 0.2)
   rack-timeout (~> 0.7)
-  rails (~> 8.0.2)
+  rails (~> 8.0.3)
   rspec-rails (~> 8.0)
   rubocop-factory_bot
   rubocop-faker
