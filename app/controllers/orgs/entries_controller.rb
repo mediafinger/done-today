@@ -20,6 +20,7 @@ module Orgs
     def index
       date # to initialize it
       @group_by = group_by
+      @scroll_to = params[:scroll_to]
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
@@ -61,7 +62,7 @@ module Orgs
 
       entry.save!
 
-      redirect_to entries_path(date: entry.day.date, mode: "edit")
+      redirect_to entries_path(date: entry.day.date, mode: "edit", scroll_to: "new-entry-field")
     end
 
     def update
@@ -72,7 +73,7 @@ module Orgs
 
       entry.save!
 
-      redirect_to entries_path(date: entry.day.date, mode: "edit")
+      redirect_to entries_path(date: entry.day.date, mode: "edit") # TODO: scroll_to: "entry-id"
     end
 
     private
