@@ -376,10 +376,10 @@ GEM
       railties (>= 6.0.0)
     stringio (3.1.7)
     thor (1.4.0)
-    thruster (0.1.15)
-    thruster (0.1.15-aarch64-linux)
-    thruster (0.1.15-arm64-darwin)
-    thruster (0.1.15-x86_64-linux)
+    thruster (0.1.16)
+    thruster (0.1.16-aarch64-linux)
+    thruster (0.1.16-arm64-darwin)
+    thruster (0.1.16-x86_64-linux)
     timeout (0.4.3)
     tsort (0.2.0)
     turbo-rails (2.0.17)
@@ -434,7 +434,7 @@ DEPENDENCIES
   pwned (~> 2.4)
   rack-requestid (~> 0.2)
   rack-timeout (~> 0.7)
-  rails (~> 8.0.2)
+  rails (~> 8.0.3)
   rspec-rails (~> 8.0)
   rubocop-factory_bot
   rubocop-faker
