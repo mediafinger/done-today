@@ -4,7 +4,7 @@ ruby file: ".ruby-version"
 
 gem "rails", "~> 8.1.3"
 
-gem "active_storage_validations", "~> 2.0" # To validate uploaded files # TODO: update to 2.x
+gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
@@ -28,8 +28,8 @@ gem "turbo-rails" # Hotwire's SPA-like page accelerator [https://turbo.hotwired.
 # gem "image_processing", "~> 1.2"
 
 group :development, :test do
-  gem "active_record_doctor", "~> 1.14", require: false
-  gem "amazing_print", "~> 1.6"
+  gem "active_record_doctor", "~> 2.0", require: false
+  gem "amazing_print", "~> 2.0"
   gem "bundler-audit", "~> 0.9"
   gem "factory_bot-awesome_linter", "~> 1.0"
   gem "factory_bot_rails", "~> 6.2"

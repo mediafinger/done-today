@@ -51,8 +51,8 @@ ActiveRecordDoctor.configure do
   detector :incorrect_length_validation, ignore_attributes: %w[
   ], enabled: false # app only validation sufficient, no need to enforce length in DB
 
-  detector :missing_foreign_keys, ignore_columns: %w[
-    record_histories.user_id
+  detector :missing_foreign_keys, ignore_associations: %w[
+    RecordHistory.user
   ]
 
   detector :missing_non_null_constraint, ignore_columns: %w[
