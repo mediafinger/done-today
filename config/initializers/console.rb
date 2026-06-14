@@ -4,7 +4,7 @@ Rails.application.console do
     # alias class User to USer (my favority fast-typing typo)
     USer = User
 
-    @andy, @rinse = User.find_by(name: %w[andy rinse])
+    @andy, @rinse = User.where(name: %w[andy rinse])
     @zazu         = Org.find_by(name: "zazu")
     @demo         = Project.find_by(name: "demo app")
 

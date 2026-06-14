@@ -31,7 +31,6 @@
   </div>
 
   <div class="right">
-    <% binding%>
     <% member_index = members.find_index { |k, _v| k == member.id } %>
     <% next_member_id = members[member_index + 1] ? members[member_index + 1][0] : members[0][0] %>
     <% previous_member_id = members[member_index - 1] ? members[member_index - 1][0] : members[0][0] %>
