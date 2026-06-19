@@ -38,7 +38,7 @@ RSpec.describe Member do
       member = build(:member, roles: [])
       expect(member).not_to be_valid
 
-      member = build(:member, roles: [ "invalid_role" ])
+      member = build(:member, roles: ["invalid_role"])
       expect(member).not_to be_valid
     end
   end
@@ -54,22 +54,22 @@ RSpec.describe Member do
 
   describe "scopes" do
     let!(:org) { create(:org) }
-    let!(:owner_member) { create(:member, org: org, roles: [ "owner" ]) }
-    let!(:regular_member) { create(:member, org: org, roles: [ "member" ]) }
+    let!(:owner_member) { create(:member, org: org, roles: ["owner"]) }
+    let!(:regular_member) { create(:member, org: org, roles: ["member"]) }
 
     it "filters by includes_a_role_of" do
-      expect(described_class.includes_a_role_of([ "owner" ])).to include(owner_member)
-      expect(described_class.includes_a_role_of([ "owner" ])).not_to include(regular_member)
+      expect(described_class.includes_a_role_of(["owner"])).to include(owner_member)
+      expect(described_class.includes_a_role_of(["owner"])).not_to include(regular_member)
     end
 
     it "filters by includes_all_roles" do
-      expect(described_class.includes_all_roles([ "owner" ])).to include(owner_member)
-      expect(described_class.includes_all_roles([ "owner" ])).not_to include(regular_member)
+      expect(described_class.includes_all_roles(["owner"])).to include(owner_member)
+      expect(described_class.includes_all_roles(["owner"])).not_to include(regular_member)
     end
   end
 
   describe "role management methods" do
-    let(:member) { create(:member, roles: [ "member" ]) }
+    let(:member) { create(:member, roles: ["member"]) }
 
     it "adds role and saves" do
       member.add_role!("owner")
@@ -85,38 +85,39 @@ RSpec.describe Member do
     it "deletes role and saves" do
       member.add_role!("owner")
       member.delete_role!("member")
-      expect(member.reload.roles).to eq([ "owner" ])
+      expect(member.reload.roles).to eq(["owner"])
     end
 
     it "deletes role without saving" do
       member.add_role!("owner")
       member.delete_role("member")
-      expect(member.roles).to eq([ "owner" ])
+      expect(member.roles).to eq(["owner"])
       expect(member).to be_changed
     end
   end
 
-  describe "access methods" do
+  describe "#editable_projects" do
     let(:org) { create(:org) }
-    let(:owner) { create(:member, org: org, roles: [ "owner" ]) }
-    let(:member) { create(:member, org: org, roles: [ "member" ]) }
+    let(:member) { create(:member, org: org, roles: ["member"]) }
     let(:project) { create(:project, org: org) }
 
-    describe "#editable_projects" do
-      it "returns none for member with no participations" do
-        expect(member.editable_projects).to be_empty
-      end
-
-      it "returns project if member has participant role in project" do
-        create(:participant, org: org, project: project, member: member, roles: [ "participant" ])
-        expect(member.editable_projects).to include(project)
-      end
+    it "returns none for member with no participations" do
+      expect(member.editable_projects).to be_empty
     end
 
-    describe "#readable_projects" do
-      it "returns all projects for owners" do
-        expect(owner.readable_projects).to include(project)
-      end
+    it "returns project if member has participant role in project" do
+      create(:participant, org: org, project: project, member: member, roles: ["participant"])
+      expect(member.editable_projects).to include(project)
+    end
+  end
+
+  describe "#readable_projects" do
+    let(:org) { create(:org) }
+    let(:owner) { create(:member, org: org, roles: ["owner"]) }
+    let(:project) { create(:project, org: org) }
+
+    it "returns all projects for owners" do
+      expect(owner.readable_projects).to include(project)
     end
   end
 end

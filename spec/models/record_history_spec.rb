@@ -50,34 +50,42 @@ RSpec.describe RecordHistory do
   end
 
   # BUG #22: Query methods are defined as instance methods instead of class methods
-  describe "query methods (BUG #22)" do
+  describe ".get_history_for_org_record (BUG #22)" do
     let(:org) { create(:org) }
     let(:user) { create(:user) }
     let(:entry) { create(:entry, org: org) }
     let!(:history) { create(:record_history, org: org, record_type: "Entry", record_id: entry.id, user_id: user.id, event: "created") }
 
-    describe ".get_history_for_org_record" do
-      it "returns history for org and record" do
-        pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = described_class.get_history_for_org_record(org: org, record: entry)
-        expect(results).to include(history)
-      end
+    it "returns history for org and record" do
+      pending "Fix bug #22 (defined as instance method instead of class method)"
+      results = described_class.get_history_for_org_record(org: org, record: entry)
+      expect(results).to include(history)
     end
+  end
 
-    describe ".get_history_for_org_events" do
-      it "returns history for org event and class" do
-        pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = described_class.get_history_for_org_events(org: org, event: "created", klass: "Entry")
-        expect(results).to include(history)
-      end
+  describe ".get_history_for_org_events (BUG #22)" do
+    let(:org) { create(:org) }
+    let(:user) { create(:user) }
+    let(:entry) { create(:entry, org: org) }
+    let!(:history) { create(:record_history, org: org, record_type: "Entry", record_id: entry.id, user_id: user.id, event: "created") }
+
+    it "returns history for org event and class" do
+      pending "Fix bug #22 (defined as instance method instead of class method)"
+      results = described_class.get_history_for_org_events(org: org, event: "created", klass: "Entry")
+      expect(results).to include(history)
     end
+  end
 
-    describe ".get_history_for_user_events" do
-      it "returns history for user event and class" do
-        pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = described_class.get_history_for_user_events(user: user, event: "created", klass: "Entry")
-        expect(results).to include(history)
-      end
+  describe ".get_history_for_user_events (BUG #22)" do
+    let(:org) { create(:org) }
+    let(:user) { create(:user) }
+    let(:entry) { create(:entry, org: org) }
+    let!(:history) { create(:record_history, org: org, record_type: "Entry", record_id: entry.id, user_id: user.id, event: "created") }
+
+    it "returns history for user event and class" do
+      pending "Fix bug #22 (defined as instance method instead of class method)"
+      results = described_class.get_history_for_user_events(user: user, event: "created", klass: "Entry")
+      expect(results).to include(history)
     end
   end
 end

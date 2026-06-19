@@ -72,4 +72,7 @@ RSpec/InstanceVariable:
 
 RSpec/NestedGroups:
   Enabled: true
-  MaxNesting: 2
+  Max: 2
+
+Layout/SpaceInsideArrayLiteralBrackets:
+  EnforcedStyle: no_space

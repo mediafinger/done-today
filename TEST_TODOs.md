@@ -18,7 +18,7 @@ Do not cheat by changing the rubocop configuration. It is there to support us!
 - [x] Create Controller Specs (spec/controllers/**/*.rb)
 - [x] Create TEST_PROGRESS.md
 - [x] Run test suite and verify
-- [ ] add missing rspec unit specs
-- [ ] add missing rspec controller specs
-- [ ] Run test suite and verify
-- [ ] run `rake ci` and fix any issues
+- [x] add missing rspec unit specs
+- [x] add missing rspec controller specs
+- [x] Run test suite and verify
+- [x] run `rake ci` and fix any issues

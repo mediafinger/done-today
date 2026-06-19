@@ -10,21 +10,19 @@ RSpec.describe Users::SessionsController do
     end
   end
 
-  describe "POST #create" do
-    context "with valid credentials" do
-      it "starts a new session and redirects" do
-        post :create, params: { email: user.email, password: "password123456" }
-        expect(response).to redirect_to(root_url)
-        expect(cookies.signed[:session_id]).to be_present
-      end
+  describe "POST #create with valid credentials" do
+    it "starts a new session and redirects" do
+      post :create, params: { email: user.email, password: "password123456" }
+      expect(response).to redirect_to(root_url)
+      expect(cookies.signed[:session_id]).to be_present
     end
+  end
 
-    context "with invalid credentials" do
-      it "redirects to login form with alert" do
-        post :create, params: { email: user.email, password: "wrong_password" }
-        expect(response).to redirect_to(new_session_path)
-        expect(flash[:alert]).to eq("Try another email address or password.")
-      end
+  describe "POST #create with invalid credentials" do
+    it "redirects to login form with alert" do
+      post :create, params: { email: user.email, password: "wrong_password" }
+      expect(response).to redirect_to(new_session_path)
+      expect(flash[:alert]).to eq("Try another email address or password.")
     end
   end
 

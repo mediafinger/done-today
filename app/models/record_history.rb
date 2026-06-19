@@ -13,7 +13,7 @@
 #
 class RecordHistory < ApplicationRecord
   validates :changes, presence: true # it's a JSONB column, so the {} fullfills this validation
-  validates :done_by_admin, inclusion: [ true, false ]
+  validates :done_by_admin, inclusion: [true, false]
   validates :event, presence: true
   validates :record_type, presence: true
   validates :record_id, presence: true

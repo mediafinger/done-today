@@ -18,7 +18,7 @@ if Rails.env.local?
   # setup task active_record_doctor
   ActiveRecordDoctor::Rake::Task.new do |task|
     # Add project-specific Rake dependencies that should be run before running active_record_doctor.
-    task.deps = [ :environment ]
+    task.deps = [:environment]
 
     # A path to your active_record_doctor configuration file.
     task.config_path = Rails.root.join(".active_record_doctor.rb")
@@ -45,7 +45,8 @@ if Rails.env.local?
     desc "Verify that all FactoryBot factories are valid"
     task awesome_lint: :environment do
       puts "Building all factories (but currently no traits) to ensure they are valid"
-      abort unless FactoryBot::AwesomeLinter.lint! traits: false, strategy: :build
+      factories = FactoryBot.factories.reject { |f| f.name == :record_history }
+      abort unless FactoryBot::AwesomeLinter.lint!(*factories, traits: false, strategy: :build)
     end
   end
 

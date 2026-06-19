@@ -3,9 +3,9 @@ require "rails_helper"
 RSpec.describe Orgs::EntriesController do
   let(:user) { create(:user) }
   let(:org) { create(:org) }
-  let!(:member) { create(:member, org: org, user: user, roles: [ "member" ]) }
+  let!(:member) { create(:member, org: org, user: user, roles: ["member"]) }
   let(:project) { create(:project, org: org) }
-  let!(:participant) { create(:participant, org: org, project: project, member: member, roles: [ "participant" ]) }
+  let!(:participant) { create(:participant, org: org, project: project, member: member, roles: ["participant"]) }
   let(:day) { create(:day, org: org, project: project, date: Date.current) }
   let!(:entry) { create(:entry, day: day, org: org, member: member, log: "Initial entry", status: "doing") }
 
@@ -14,21 +14,19 @@ RSpec.describe Orgs::EntriesController do
     session.update!(org: org, project: project)
   end
 
-  describe "GET #index" do
-    context "in read mode" do
-      it "returns readable entries and has status success" do
-        get :index, params: { mode: "read" }
-        expect(response).to have_http_status(:success)
-        expect(controller.instance_variable_get(:@entries)).to include(entry)
-      end
+  describe "GET #index in read mode" do
+    it "returns readable entries and has status success" do
+      get :index, params: { mode: "read" }
+      expect(response).to have_http_status(:success)
+      expect(controller.instance_variable_get(:@entries)).to include(entry)
     end
+  end
 
-    context "in edit mode" do
-      it "returns editable entries and has status success" do
-        get :index, params: { mode: "edit", date: Date.current.to_s }
-        expect(response).to have_http_status(:success)
-        expect(controller.instance_variable_get(:@entries)).to include(entry)
-      end
+  describe "GET #index in edit mode" do
+    it "returns editable entries and has status success" do
+      get :index, params: { mode: "edit", date: Date.current.to_s }
+      expect(response).to have_http_status(:success)
+      expect(controller.instance_variable_get(:@entries)).to include(entry)
     end
   end
 

@@ -45,7 +45,7 @@ class AppConf
     def register(var_name, default: nil, prefix: nil, required: false)
       define_singleton_method(var_name) { instance_variable_get(:"@#{var_name}") }
 
-      env_name = [ prefix, var_name ].compact.join("_").upcase
+      env_name = [prefix, var_name].compact.join("_").upcase
       value = required ? ENV.fetch(env_name) : ENV.fetch(env_name, default)
 
       set(var_name, value)
@@ -62,7 +62,7 @@ class AppConf
 
     # rubocop:disable Style/RescueStandardError
     def env_and_version
-      return [ environment, `git rev-parse --short HEAD`.strip ].compact.join("-") if production_env?
+      return [environment, `git rev-parse --short HEAD`.strip].compact.join("-") if production_env?
 
       "#{environment}-#{`cat .git/HEAD`.split('/').last.strip}"
     rescue

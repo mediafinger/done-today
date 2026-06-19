@@ -14,7 +14,7 @@ FactoryBot.define do
     org
     user
     sequence(:name) { |n| "Member Name #{n}" }
-    roles { [ "member" ] }
+    roles { ["member"] }
   end
 
   factory :project do
@@ -26,7 +26,7 @@ FactoryBot.define do
     org
     project
     member
-    roles { [ "participant" ] }
+    roles { ["participant"] }
   end
 
   factory :day do
