@@ -1,9 +1,10 @@
 require "rails_helper"
 
-RSpec.describe RecordHistory, type: :model do
+RSpec.describe RecordHistory do
   before do
     pending "RecordHistory has column 'changes' causing ActiveRecord::DangerousAttributeError (BUG #22 / Bug #5)"
   end
+
   describe "validations" do
     it "validates presence of event" do
       history = build(:record_history, event: nil)
@@ -49,7 +50,7 @@ RSpec.describe RecordHistory, type: :model do
   end
 
   # BUG #22: Query methods are defined as instance methods instead of class methods
-  describe "query methods (BUG #22)", type: :model do
+  describe "query methods (BUG #22)" do
     let(:org) { create(:org) }
     let(:user) { create(:user) }
     let(:entry) { create(:entry, org: org) }
@@ -58,7 +59,7 @@ RSpec.describe RecordHistory, type: :model do
     describe ".get_history_for_org_record" do
       it "returns history for org and record" do
         pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = RecordHistory.get_history_for_org_record(org: org, record: entry)
+        results = described_class.get_history_for_org_record(org: org, record: entry)
         expect(results).to include(history)
       end
     end
@@ -66,7 +67,7 @@ RSpec.describe RecordHistory, type: :model do
     describe ".get_history_for_org_events" do
       it "returns history for org event and class" do
         pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = RecordHistory.get_history_for_org_events(org: org, event: "created", klass: "Entry")
+        results = described_class.get_history_for_org_events(org: org, event: "created", klass: "Entry")
         expect(results).to include(history)
       end
     end
@@ -74,7 +75,7 @@ RSpec.describe RecordHistory, type: :model do
     describe ".get_history_for_user_events" do
       it "returns history for user event and class" do
         pending "Fix bug #22 (defined as instance method instead of class method)"
-        results = RecordHistory.get_history_for_user_events(user: user, event: "created", klass: "Entry")
+        results = described_class.get_history_for_user_events(user: user, event: "created", klass: "Entry")
         expect(results).to include(history)
       end
     end

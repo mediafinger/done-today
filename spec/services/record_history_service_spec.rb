@@ -12,7 +12,7 @@ RSpec.describe RecordHistoryService, type: :service do
 
     it "creates a new RecordHistory with correct attributes" do
       expect {
-        RecordHistoryService.call(
+        described_class.call(
           record: entry,
           org: org,
           user: user,

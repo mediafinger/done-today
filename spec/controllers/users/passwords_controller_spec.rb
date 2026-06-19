@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Users::PasswordsController, type: :controller do
+RSpec.describe Users::PasswordsController do
   let!(:user) { create(:user) }
 
   describe "GET #new" do

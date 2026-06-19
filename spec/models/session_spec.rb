@@ -1,17 +1,17 @@
 require "rails_helper"
 
-RSpec.describe Session, type: :model do
+RSpec.describe Session do
   describe "associations" do
     it "has expected associations" do
-      org_assoc = Session.reflect_on_association(:org)
+      org_assoc = described_class.reflect_on_association(:org)
       expect(org_assoc.macro).to eq(:belongs_to)
       expect(org_assoc.options[:optional]).to be true
 
-      proj_assoc = Session.reflect_on_association(:project)
+      proj_assoc = described_class.reflect_on_association(:project)
       expect(proj_assoc.macro).to eq(:belongs_to)
       expect(proj_assoc.options[:optional]).to be true
 
-      user_assoc = Session.reflect_on_association(:user)
+      user_assoc = described_class.reflect_on_association(:user)
       expect(user_assoc.macro).to eq(:belongs_to)
     end
   end

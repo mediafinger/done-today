@@ -11,46 +11,46 @@ FactoryBot.define do
   end
 
   factory :member do
-    association :org
-    association :user
+    org
+    user
     sequence(:name) { |n| "Member Name #{n}" }
-    roles { ["member"] }
+    roles { [ "member" ] }
   end
 
   factory :project do
-    association :org
+    org
     sequence(:name) { |n| "Project #{n}" }
   end
 
   factory :participant do
-    association :org
-    association :project
-    association :member
-    roles { ["participant"] }
+    org
+    project
+    member
+    roles { [ "participant" ] }
   end
 
   factory :day do
-    association :org
-    association :project
+    org
+    project
     date { Date.current }
   end
 
   factory :entry do
-    association :day
+    day
     org { day.org }
-    association :member
+    member
     log { "Working on test suite" }
     status { "doing" }
   end
 
   factory :session do
-    association :user
+    user
     ip_address { "127.0.0.1" }
     user_agent { "RSpec Test User Agent" }
   end
 
   factory :integration do
-    association :org
+    org
     integration_type { "notification" }
     service { "slack" }
     credentials { { "webhook_url" => "https://hooks.slack.com/services/123" } }
@@ -58,13 +58,13 @@ FactoryBot.define do
   end
 
   factory :project_integration do
-    association :org
-    association :project
-    association :integration
+    org
+    project
+    integration
   end
 
   factory :record_history do
-    association :org
+    org
     done_by_admin { false }
     sequence(:user_id) { |n| SecureRandom.uuid }
     event { "created" }

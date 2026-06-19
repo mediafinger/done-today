@@ -1,16 +1,16 @@
 require "rails_helper"
 
-RSpec.describe Participant, type: :model do
+RSpec.describe Participant do
   describe "associations" do
     it "has expected associations" do
-      org_assoc = Participant.reflect_on_association(:org)
+      org_assoc = described_class.reflect_on_association(:org)
       expect(org_assoc.macro).to eq(:belongs_to)
 
-      proj_assoc = Participant.reflect_on_association(:project)
+      proj_assoc = described_class.reflect_on_association(:project)
       expect(proj_assoc.macro).to eq(:belongs_to)
       expect(proj_assoc.options[:inverse_of]).to eq(:participants)
 
-      memb_assoc = Participant.reflect_on_association(:member)
+      memb_assoc = described_class.reflect_on_association(:member)
       expect(memb_assoc.macro).to eq(:belongs_to)
       expect(memb_assoc.options[:inverse_of]).to eq(:participations)
     end
@@ -18,7 +18,7 @@ RSpec.describe Participant, type: :model do
 
   describe "validations" do
     it "validates inclusion of roles" do
-      participant = build(:participant, roles: ["invalid_role"])
+      participant = build(:participant, roles: [ "invalid_role" ])
       expect(participant).not_to be_valid
     end
   end
@@ -34,12 +34,12 @@ RSpec.describe Participant, type: :model do
   end
 
   describe "scopes" do
-    let!(:participant1) { create(:participant, roles: ["owner"]) }
-    let!(:participant2) { create(:participant, roles: ["observer"]) }
+    let!(:participant1) { create(:participant, roles: [ "owner" ]) }
+    let!(:participant2) { create(:participant, roles: [ "observer" ]) }
 
     it "filters by includes_a_role_of" do
-      expect(Participant.includes_a_role_of(["owner"])).to include(participant1)
-      expect(Participant.includes_a_role_of(["owner"])).not_to include(participant2)
+      expect(described_class.includes_a_role_of([ "owner" ])).to include(participant1)
+      expect(described_class.includes_a_role_of([ "owner" ])).not_to include(participant2)
     end
   end
 
@@ -52,16 +52,16 @@ RSpec.describe Participant, type: :model do
 
     describe "#editable_entries" do
       it "allows owner to edit all project entries" do
-        participant = create(:participant, org: org, project: project, member: member, roles: ["owner"])
+        participant = create(:participant, org: org, project: project, member: member, roles: [ "owner" ])
         expect(participant.editable_entries).to include(entry)
       end
 
       it "allows participant to edit only their own entries" do
-        participant = create(:participant, org: org, project: project, member: member, roles: ["participant"])
+        participant = create(:participant, org: org, project: project, member: member, roles: [ "participant" ])
         expect(participant.editable_entries).to include(entry)
 
         other_member = create(:member, org: org)
-        participant_other = create(:participant, org: org, project: project, member: other_member, roles: ["participant"])
+        participant_other = create(:participant, org: org, project: project, member: other_member, roles: [ "participant" ])
         expect(participant_other.editable_entries).not_to include(entry)
       end
     end

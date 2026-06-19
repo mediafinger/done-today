@@ -1,11 +1,11 @@
 require "rails_helper"
 
-RSpec.describe Orgs::EntriesController, type: :controller do
+RSpec.describe Orgs::EntriesController do
   let(:user) { create(:user) }
   let(:org) { create(:org) }
-  let!(:member) { create(:member, org: org, user: user, roles: ["member"]) }
+  let!(:member) { create(:member, org: org, user: user, roles: [ "member" ]) }
   let(:project) { create(:project, org: org) }
-  let!(:participant) { create(:participant, org: org, project: project, member: member, roles: ["participant"]) }
+  let!(:participant) { create(:participant, org: org, project: project, member: member, roles: [ "participant" ]) }
   let(:day) { create(:day, org: org, project: project, date: Date.current) }
   let!(:entry) { create(:entry, day: day, org: org, member: member, log: "Initial entry", status: "doing") }
 

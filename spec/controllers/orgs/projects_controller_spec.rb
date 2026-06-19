@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Orgs::ProjectsController, type: :controller do
+RSpec.describe Orgs::ProjectsController do
   let(:user) { create(:user) }
   let(:org) { create(:org) }
   let!(:member) { create(:member, org: org, user: user) }

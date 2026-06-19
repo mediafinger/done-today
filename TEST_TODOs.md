@@ -7,7 +7,8 @@ As the TECHNICAL_DEBT.md file outlines, there are some bugs in the code. When wr
 Do not change any code, except creating the tests.  
 Please document the progress and any issues like pending tests in a file called TEST_PROGRESS.md.
 
-The Rakefile defines a task `rake ci` which runs a few tools. Run it every time before finishing and fix all the issues.
+The Rakefile defines a task `rake ci` which runs a few tools. Run it every time before finishing and fix all the issues.  
+Do not cheat by changing the rubocop configuration. It is there to support us!
 
 - [x] Move and clean up org_scope_helper.rb
 - [x] Configure rails_helper.rb (Pwned stubs & sign_in helpers)

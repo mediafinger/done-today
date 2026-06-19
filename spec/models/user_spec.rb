@@ -1,22 +1,22 @@
 require "rails_helper"
 
-RSpec.describe User, type: :model do
+RSpec.describe User do
   describe "associations" do
     it "has many memberships" do
-      assoc = User.reflect_on_association(:memberships)
+      assoc = described_class.reflect_on_association(:memberships)
       expect(assoc.macro).to eq(:has_many)
       expect(assoc.options[:class_name]).to eq("Member")
       expect(assoc.options[:dependent]).to eq(:destroy)
     end
 
     it "has many orgs through memberships" do
-      assoc = User.reflect_on_association(:orgs)
+      assoc = described_class.reflect_on_association(:orgs)
       expect(assoc.macro).to eq(:has_many)
       expect(assoc.options[:through]).to eq(:memberships)
     end
 
     it "has many sessions" do
-      assoc = User.reflect_on_association(:sessions)
+      assoc = described_class.reflect_on_association(:sessions)
       expect(assoc.macro).to eq(:has_many)
       expect(assoc.options[:dependent]).to eq(:destroy)
     end
@@ -24,13 +24,13 @@ RSpec.describe User, type: :model do
 
   describe "normalizations" do
     it "downcases and strips email" do
-      user = User.new(email: "  Test.Email@Example.Com  ", password: "password123456", name: "Andy")
+      user = described_class.new(email: "  Test.Email@Example.Com  ", password: "password123456", name: "Andy")
       user.valid?
       expect(user.email).to eq("test.email@example.com")
     end
 
     it "strips name" do
-      user = User.new(email: "test@example.com", password: "password123456", name: "  Andy  ")
+      user = described_class.new(email: "test@example.com", password: "password123456", name: "  Andy  ")
       user.valid?
       expect(user.name).to eq("Andy")
     end

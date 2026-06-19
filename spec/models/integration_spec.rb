@@ -1,16 +1,16 @@
 require "rails_helper"
 
-RSpec.describe Integration, type: :model do
+RSpec.describe Integration do
   describe "associations" do
     it "has expected associations" do
-      org_assoc = Integration.reflect_on_association(:org)
+      org_assoc = described_class.reflect_on_association(:org)
       expect(org_assoc.macro).to eq(:belongs_to)
 
-      pi_assoc = Integration.reflect_on_association(:project_integrations)
+      pi_assoc = described_class.reflect_on_association(:project_integrations)
       expect(pi_assoc.macro).to eq(:has_many)
       expect(pi_assoc.options[:dependent]).to eq(:destroy)
 
-      projects_assoc = Integration.reflect_on_association(:projects)
+      projects_assoc = described_class.reflect_on_association(:projects)
       expect(projects_assoc.macro).to eq(:has_many)
       expect(projects_assoc.options[:through]).to eq(:project_integrations)
     end

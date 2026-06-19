@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe SwitchOrgsController, type: :controller do
+RSpec.describe SwitchOrgsController do
   let(:user) { create(:user) }
   let(:org) { create(:org) }
   let(:project) { create(:project, org: org) }

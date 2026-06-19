@@ -1,18 +1,18 @@
 require "rails_helper"
 
-RSpec.describe Entry, type: :model do
+RSpec.describe Entry do
   describe "associations" do
     it "has expected associations" do
-      day_assoc = Entry.reflect_on_association(:day)
+      day_assoc = described_class.reflect_on_association(:day)
       expect(day_assoc.macro).to eq(:belongs_to)
 
-      org_assoc = Entry.reflect_on_association(:org)
+      org_assoc = described_class.reflect_on_association(:org)
       expect(org_assoc.macro).to eq(:belongs_to)
 
-      member_assoc = Entry.reflect_on_association(:member)
+      member_assoc = described_class.reflect_on_association(:member)
       expect(member_assoc.macro).to eq(:belongs_to)
 
-      proj_assoc = Entry.reflect_on_association(:project)
+      proj_assoc = described_class.reflect_on_association(:project)
       expect(proj_assoc.macro).to eq(:has_one)
       expect(proj_assoc.options[:through]).to eq(:day)
     end

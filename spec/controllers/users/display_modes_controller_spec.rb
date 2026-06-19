@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Users::DisplayModesController, type: :controller do
+RSpec.describe Users::DisplayModesController do
   let(:user) { create(:user) }
 
   before do

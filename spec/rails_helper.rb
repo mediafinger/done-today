@@ -73,7 +73,7 @@ RSpec.configure do |config|
   # behaviour is considered legacy and will be removed in a future version.
   #
   # To enable this behaviour uncomment the line below.
-  # config.infer_spec_type_from_file_location!
+  config.infer_spec_type_from_file_location!
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
@@ -86,7 +86,7 @@ RSpec.configure do |config|
   config.include SpecAuthHelper, type: :request
   config.include FactoryBot::Syntax::Methods
 
-  config.before(:each) do
+  config.before do
     # Stub Pwned API calls to avoid external network dependencies
     allow(Pwned::Password).to receive(:new).and_return(double(pwned_count: 0, pwned?: false))
   end

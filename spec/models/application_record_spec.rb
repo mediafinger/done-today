@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe ApplicationRecord, type: :model do
+RSpec.describe ApplicationRecord do
   let(:org) { create(:org) }
   let(:user) { create(:user) }
   let(:project) { build(:project, org: org) }
