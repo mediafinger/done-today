@@ -39,18 +39,14 @@ Layout/LineLength:
     - app/views/**/*.rb
   Max: 125
 
+Layout/SpaceInsideArrayLiteralBrackets:
+  EnforcedStyle: no_space
+
 Metrics:
   Enabled: false
 
-Style/FrozenStringLiteralComment:
+RSpec/ContextWording:
   Enabled: true
-  EnforcedStyle: never
-
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
-
-RSpec/MultipleExpectations:
-  Enabled: false
 
 RSpec/ExampleLength:
   Enabled: false
@@ -58,21 +54,25 @@ RSpec/ExampleLength:
 RSpec/IndexedLet:
   Enabled: false
 
-RSpec/MultipleMemoizedHelpers:
-  Enabled: false
+RSpec/InstanceVariable:
+  Enabled: true
 
 RSpec/LetSetup:
   Enabled: false
 
-RSpec/ContextWording:
-  Enabled: true
+RSpec/MultipleExpectations:
+  Enabled: false
 
-RSpec/InstanceVariable:
-  Enabled: true
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
 
 RSpec/NestedGroups:
   Enabled: true
   Max: 2
 
-Layout/SpaceInsideArrayLiteralBrackets:
-  EnforcedStyle: no_space
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: never
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
