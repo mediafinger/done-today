@@ -35,6 +35,15 @@ begin
 rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
+
+module SpecAuthHelper
+  def sign_in(user)
+    session = user.sessions.create!(ip_address: "127.0.0.1", user_agent: "RSpec")
+    cookies.signed[:session_id] = session.id
+    session
+  end
+end
+
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
@@ -73,4 +82,12 @@ RSpec.configure do |config|
 
   config.include Authentication, type: :controller
   config.include RequestContext, type: :controller
+  config.include SpecAuthHelper, type: :controller
+  config.include SpecAuthHelper, type: :request
+  config.include FactoryBot::Syntax::Methods
+
+  config.before(:each) do
+    # Stub Pwned API calls to avoid external network dependencies
+    allow(Pwned::Password).to receive(:new).and_return(double(pwned_count: 0, pwned?: false))
+  end
 end

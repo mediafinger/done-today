@@ -62,9 +62,19 @@ module Orgs
 
       entry.save!
 
+      # TODO: scan log for #tags
+      # TODO: add tagged_entry with org_id, entry_id, #tag (no tag table, store as plain text)
+      # TODO: maybe store day_id, project_id and member_id for faster querying
+      # TODO: add autocomplete of #tags per org or project
+      # IDEA: add query to display all entries with a certain tag
+      # IDEA: add query to display all tags of an org / project / day / member (and combinations)
+      # IDEA: display how often a tag is used over time (per project and/or member)
+
       redirect_to entries_path(date: entry.day.date, mode: "edit", scroll_to: "new-entry-field")
     end
 
+    # TODO: move entry in status 'todo' to another/current day
+    #
     def update
       entry = current_project.entries.find(params[:id])
 
