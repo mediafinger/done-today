@@ -12,27 +12,29 @@
 #   might be sane to remove all Changes older than 30.days or so.
 #
 class RecordHistory < ApplicationRecord
-  validates :changes, presence: true # it's a JSONB column, so the {} fullfills this validation
   validates :done_by_admin, inclusion: [true, false]
   validates :event, presence: true
-  validates :record_type, presence: true
+  validates :record_changes, presence: true, unless: -> { record_changes.is_a?(Hash) } # it's a JSONB column, so {} is valid (but blank)
   validates :record_id, presence: true
+  validates :record_type, presence: true
   validates :org_id, presence: true
   validates :user_id, presence: true
 
+  class << self
+    def get_history_for_org_record(org:, record:)
+      where(org_id: org.id, record_type: record.class.name, record_id: record.id)
+    end
+
+    def get_history_for_org_events(org:, event:, klass:)
+      where(org_id: org.id, event:, record_type: klass)
+    end
+
+    def get_history_for_user_events(user:, event:, klass:)
+      where(user_id: user.id, event:, record_type: klass)
+    end
+  end
+
   def readonly?
     created_at.present?
-  end
-
-  def get_history_for_org_record(org:, record:)
-    where(org:, record_type: record.class, record_id: record.id)
-  end
-
-  def get_history_for_org_events(org:, event:, klass:)
-    where(org:, event:, record_type: klass)
-  end
-
-  def get_history_for_user_events(user:, event:, klass:)
-    where(user:, event:, record_type: klass)
   end
 end

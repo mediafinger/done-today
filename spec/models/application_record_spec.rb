@@ -5,9 +5,6 @@ RSpec.describe ApplicationRecord do
   let(:user) { create(:user) }
   let(:project) { build(:project, org: org) }
 
-  before do
-    pending "RecordHistory has column 'changes' causing ActiveRecord::DangerousAttributeError (BUG #22 / Bug #5)"
-  end
 
   describe "#create_with_history" do
     it "saves the record and creates history when org and user are provided in params" do
@@ -22,11 +19,10 @@ RSpec.describe ApplicationRecord do
       expect(history.record_id).to eq(project.id)
     end
 
-    it "raises ArgumentError due to signature mismatch (BUG #5) if org/user omitted" do
-      pending "Fix bug #5 (RecordHistoryService requires named parameters org: and user:, but create_with_history doesn't pass them by default)"
+    it "raises ArgumentError if org/user omitted" do
       expect {
         project.create_with_history(project)
-      }.to change(RecordHistory, :count).by(1)
+      }.to raise_error(ArgumentError)
     end
   end
 

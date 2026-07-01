@@ -64,12 +64,12 @@ FactoryBot.define do
   end
 
   factory :record_history do
-    org
+    org_id { create(:org).id }
     done_by_admin { false }
     sequence(:user_id) { |n| SecureRandom.uuid }
     event { "created" }
     sequence(:record_id) { |n| SecureRandom.uuid }
     record_type { "Entry" }
-    changes { {} }
+    record_changes { {} }
   end
 end

@@ -54,11 +54,14 @@ Consistent with instructions to test correct behavior while marking buggy featur
 * **Bug Reference:** `TECHNICAL_DEBT.md` Bug #22
 * **Issue:** `get_history_for_org_record`, `get_history_for_org_events`, and `get_history_for_user_events` call `where` internally but are defined as instance methods. They should be class methods.
 * **Testing:** Written to expect class method behavior, marked as pending.
+* [x] fixed, ensure tests work now
 
 ### 2. `RecordHistoryService.call` Keyword Arguments (`ApplicationRecord` spec)
 * **Bug Reference:** `TECHNICAL_DEBT.md` Bug #5
 * **Issue:** `ApplicationRecord#create_with_history` (and update/destroy wrappers) does not forward `org:` and `user:` arguments automatically, but `RecordHistoryService.call` defines them as mandatory keywords.
 * **Testing:** Written to expect automated history tracking wrapper calls to work, marked as pending.
+* not a bug, as org_id and user_id are stored without an AR relation
+* [x] treat as fixed and adapt tests if necessary
 
 ### 3. `SwitchOrgsController#switch_to` lacks membership validation (`SwitchOrgsController` spec)
 * **Bug Reference:** `TECHNICAL_DEBT.md` Bug #11

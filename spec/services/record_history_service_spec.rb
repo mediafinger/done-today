@@ -6,10 +6,6 @@ RSpec.describe RecordHistoryService, type: :service do
   let(:entry) { create(:entry, org: org) }
 
   describe ".call" do
-    before do
-      pending "RecordHistory has column 'changes' causing ActiveRecord::DangerousAttributeError (BUG #22 / Bug #5)"
-    end
-
     it "creates a new RecordHistory with correct attributes" do
       expect {
         described_class.call(
