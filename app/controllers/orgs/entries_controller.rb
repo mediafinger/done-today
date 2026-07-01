@@ -1,5 +1,5 @@
 module Orgs
-  class EntriesController < ApplicationController
+  class EntriesController < AppOrgBaseController
     # when no day for the selected date exists yet, we initialize a new day,
     #   so the user can start typing a log immediately
     #
@@ -118,6 +118,9 @@ module Orgs
     end
 
     def group_by
+      # TODO: whitelist group_by contents to avoid rendering arbitrary user input!
+      # raise ArgumentError, "invalid group_by: #{params[:group_by]}" unless %w[ ... ].include?(params[:group_by])
+
       return params[:group_by] if params[:group_by]
       return "date" if params[:date]
       return "member" if params[:member_id]

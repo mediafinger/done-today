@@ -1,5 +1,5 @@
 module Orgs
-  class ProjectsController < ApplicationController
+  class ProjectsController < AppOrgBaseController
     def show
       # TODO: only display:
       #  * projects the member is participant of

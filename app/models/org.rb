@@ -14,6 +14,12 @@ class Org < ApplicationRecord
 
   private
 
+  # TODO:
+  # Catch raise conditions issue, by catching the potential DB exception for a duplicate slug and handle it with a retry
+  # The exists? → create sequence has a TOCTOU (time-of-check, time-of-use) race.
+  # Two concurrent requests could check, both find the slug available, and one will fail on the unique DB index.
+  # The DB constraint catches it, but the exception is unhandled.
+
   def set_slug
     new_slug = name.parameterize
 

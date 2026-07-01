@@ -4,78 +4,6 @@ Analysis of bugs, security concerns, code smells, and incomplete features in the
 
 ---
 
-## 🐛 Bugs
-
-### 1. Typo breaks scroll-to-new-entry feature
-**FIXED**
-
-**File:** [_new_entry.html.erb](file:///Users/andy/Dropbox/www/2025/done_today/app/views/orgs/entries/_new_entry.html.erb#L21)
-
-`@scoll_to` is a typo — it should be `@scroll_to`. The scroll-to-new-entry JavaScript never works.
-
-```diff
--document.location.hash="#<%= @scoll_to %>";
-+document.location.hash="#<%= @scroll_to %>";
-```
-
-### 2. Stale `binding` call left in production view
-**FIXED**
-
-**File:** [_entries_nav_by_member.html.erb](file:///Users/andy/Dropbox/www/2025/done_today/app/views/orgs/entries/_entries_nav_by_member.html.erb#L34)
-
-Line 34 contains `<% binding%>`. This is a leftover debug statement. In development with `web-console`, this opens a REPL; in production, it's a no-op but is confusing and wasteful.
-
-### 3. Dockerfile uses hardcoded Ruby 3.4.7 instead of 4.0.2
-**FIXED**
-
-**File:** [Dockerfile](file:///Users/andy/Dropbox/www/2025/done_today/Dockerfile#L11)
-
-The `ARG RUBY_VERSION=3.4.7` does not match the project's [.ruby-version](file:///Users/andy/Dropbox/www/2025/done_today/.ruby-version) (`ruby-4.0.2`). Deploying this Dockerfile will build against the wrong Ruby version.
-
-```diff
--ARG RUBY_VERSION=3.4.7
-+ARG RUBY_VERSION=4.0.2
-```
-
-### 4. Rubocop `TargetRubyVersion` is stale
-**FIXED**
-
-**File:** [.rubocop.yml](file:///Users/andy/Dropbox/www/2025/done_today/.rubocop.yml#L21)
-
-`TargetRubyVersion: 3.4` should be updated to `4.0` to match the current Ruby version. Rubocop may miss new syntax or generate false positives.
-
-### 5. `RecordHistoryService.call` signature mismatch
-**File:** [record_history_service.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/services/record_history_service.rb#L3) vs. [application_record.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/models/application_record.rb#L6)
-
-`RecordHistoryService.call` requires named parameters `org:` and `user:`, but `ApplicationRecord#create_with_history` forwards only `record:` and `event:` plus arbitrary `**history_params`. If callers don't explicitly pass `org:` and `user:`, the service will raise `ArgumentError` at runtime. There appear to be no callers yet (the controllers call `.save!` directly), so this is latent.
-
-### 6. `console.rb` uses incorrect `find_by` for multiple records
-**FIXED**
-
-**File:** [console.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/initializers/console.rb#L7)
-
-```ruby
-@andy, @rinse = User.find_by(name: %w[andy rinse])
-```
-
-`find_by` returns a **single record** (the first match), not an array. This should be `User.where(name: %w[andy rinse])` to properly assign both variables. Currently `@rinse` is always `nil`.
-
-### 7. CSS syntax error: missing semicolon
-**FIXED**
-
-**File:** [general.css](file:///Users/andy/Dropbox/www/2025/done_today/app/assets/stylesheets/general.css#L169)
-
-```css
-.slim-summary {
-  ...
-  max-width: 80%     /* ← missing semicolon */
-  overflow: hidden;
-```
-
-The missing semicolon after `max-width: 80%` will cause `overflow: hidden` to be silently ignored by browsers.
-
----
-
 ## 🔒 Security Concerns
 
 ### 8. Content Security Policy is entirely disabled
@@ -158,20 +86,10 @@ Every action body is commented out. The controller still has routes (commented o
 
 `index`, `create`, and `destroy` are empty method bodies. `update` performs validation and role manipulation but never calls `member.save` — changes are computed and then discarded.
 
-### 20. Org controllers don't inherit from `AppOrgBaseController`
-**File:** [app_org_base_controller.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/app_org_base_controller.rb)
-
-`AppOrgBaseController` exists to enforce `require_member` via `before_action`, but no controller inherits from it. All Orgs controllers inherit directly from `ApplicationController`, bypassing the membership check.
-
 ### 21. `ApplicationHelper` includes concerns designed for controllers
 **File:** [application_helper.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/helpers/application_helper.rb)
 
 The helper includes `Authentication`, `OrgScope`, and `ProjectScope` — concerns with `before_action` hooks, `redirect_to` calls, and controller-specific logic. These modules assume a controller context (`request`, `cookies`, `session`, `redirect_to`) that does not exist in helper/view contexts. The `helper_method` declarations in the concerns already make the reader methods available to views without this include.
-
-### 22. `RecordHistory` query methods should be class methods
-**File:** [record_history.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/models/record_history.rb#L27-L37)
-
-`get_history_for_org_record`, `get_history_for_org_events`, and `get_history_for_user_events` call `where(...)` but are defined as **instance** methods. They will fail with `NoMethodError` because `where` is a class-level method. They should be `def self.get_history_...` or extracted as scopes.
 
 ### 23. `@entries.size` triggers full table count in `ProjectsController`
 **File:** [projects_controller.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/orgs/projects_controller.rb#L9)
@@ -182,7 +100,7 @@ The helper includes `Authentication`, `OrgScope`, and `ProjectScope` — concern
 
 This issues a `SELECT COUNT(*)` that can be expensive. If only used for "has entries?", prefer `.any?`; if displayed, consider caching or using `counter_cache`.
 
-### 24. View renders user-controlled `@mode` and `@group_by` unescaped
+### 24. View renders user-controlled `@group_by` unescaped
 **File:** [index.html.erb](file:///Users/andy/Dropbox/www/2025/done_today/app/views/orgs/entries/index.html.erb#L8)
 
 ```erb
@@ -195,11 +113,6 @@ While `@group_by` comes from `params[:group_by]` and Rails auto-escapes ERB outp
 **File:** [entry.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/models/entry.rb#L27-L37)
 
 All three methods use `Time.current.to_date` which depends on `Time.zone`. The `# TODO: timezone correction` comments acknowledge this but no timezone tracking exists for users or orgs.
-
-### 26. `Day` model lacks uniqueness validation at Rails level
-**File:** [day.rb](file:///Users/andy/Dropbox/www/2025/done_today/app/models/day.rb)
-
-There is a unique DB index on `[project_id, date]` but no matching `validates :date, uniqueness: { scope: :project_id }` in the model. This means uniqueness violations will raise `ActiveRecord::RecordNotUnique` instead of a user-friendly validation error.
 
 ### 27. N+1 queries in org switcher partial
 **File:** [_org_switcher.html.erb](file:///Users/andy/Dropbox/www/2025/done_today/app/views/shared_partials/_org_switcher.html.erb#L12)
@@ -214,15 +127,6 @@ new_slug = "#{new_slug}-#{rand(99)}" while Org.exists?(slug: new_slug)
 ```
 
 The `exists?` → `create` sequence has a TOCTOU (time-of-check, time-of-use) race. Two concurrent requests could check, both find the slug available, and one will fail on the unique DB index. The DB constraint catches it, but the exception is unhandled.
-
----
-
-## 🧪 Testing Gaps
-
-### 29. Zero test coverage
-**Files:** [spec/](file:///Users/andy/Dropbox/www/2025/done_today/spec), [test/](file:///Users/andy/Dropbox/www/2025/done_today/test)
-
-There are **no spec files** (`find spec -name "*_spec.rb"` returns nothing) and no test files (only a mailer preview exists). The RSpec infrastructure is configured in [rails_helper.rb](file:///Users/andy/Dropbox/www/2025/done_today/spec/rails_helper.rb) and FactoryBot is in the Gemfile, but no factories or specs have been written. The `rake ci` task will pass vacuously.
 
 ---
 

@@ -1,5 +1,5 @@
 module Orgs
-  class DaysController < ApplicationController
+  class DaysController < AppOrgBaseController
     #
     # TODO: check if it was completely replaced by the entries controller
     #

@@ -42,6 +42,8 @@ class SwitchOrgsController < ApplicationController
 
   # GET /open/:slug_org/:slug_project
   #
+  # the org record (and its projects) is fetched for non-members => information leakage via timing/exceptions (OK for now)
+  #
   def switch_to
     org = Org.find_by!(slug: params[:slug_org])
     member = current_user.memberships.find_by(org:)

@@ -1,5 +1,5 @@
 module Orgs
-  class SettingsController < ApplicationController
+  class SettingsController < AppOrgBaseController
     def show
     end
 

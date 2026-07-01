@@ -1,5 +1,5 @@
 module Orgs
-  class MembersController < ApplicationController
+  class MembersController < AppOrgBaseController
     #
     # TODO: before_action :authenticate_owner!, except: [:index]
     #

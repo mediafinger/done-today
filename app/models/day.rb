@@ -6,7 +6,7 @@ class Day < ApplicationRecord
 
   before_validation :set_org
 
-  validates :date, presence: true
+  validates :date, presence: true, uniqueness: { scope: :project_id }
 
   private
 
