@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -31,15 +31,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_120000) do
 
   create_table "entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "day_end_minutes"
     t.uuid "day_id", null: false
+    t.integer "day_start_minutes"
+    t.integer "duration_minutes"
+    t.integer "from_minutes"
     t.text "log", null: false
     t.uuid "member_id", null: false
     t.uuid "org_id", null: false
     t.enum "status", default: "doing", null: false, enum_type: "entry_status"
+    t.text "tags", default: [], null: false, array: true
+    t.integer "to_minutes"
     t.datetime "updated_at", null: false
-    t.index ["day_id"], name: "index_entries_on_day_id"
+    t.index ["day_id", "from_minutes"], name: "index_entries_on_day_id_and_from_minutes"
     t.index ["member_id"], name: "index_entries_on_member_id"
     t.index ["org_id"], name: "index_entries_on_org_id"
+    t.index ["tags"], name: "index_entries_on_tags", using: :gin
   end
 
   create_table "integrations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

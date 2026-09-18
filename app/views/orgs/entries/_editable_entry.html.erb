@@ -1,14 +1,33 @@
-<%# locals: (entry:) %>
+<%# locals: (entry:, unlocked: false) %>
 
-<%= form_with(model: entry, method: :patch) do |form| %>
-  <div role="group">
-    <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>
+<li class="nude tight" id="<%= dom_id(entry) %>">
+  <%= form_with(model: entry, method: :patch, data: {
+        controller: "entry-form",
+        action: "keydown.esc->entry-form#revert submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
+      }) do |form| %>
 
-    <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
-        status on its own and threw away whatever had been typed into the field. %>
-    <% Entry::STATES.each do |state| %>
-      <%= form.button state, name: "entry[status]", value: state,
-            class: "btn-tdd #{entry.status == state ? "btn-#{state}" : 'btn-inactive'}" %>
+    <%= hidden_field_tag :unlocked, "1" if unlocked %>
+
+    <% if entry.errors.any? %>
+      <small class="error"><%= entry.errors.full_messages.to_sentence %></small>
     <% end %>
-  </div>
-<% end %>
+
+    <div role="group">
+      <%# The field saves itself when it loses focus, and ESC puts the old value back. %>
+      <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500,
+            id: dom_id(entry, :log),
+            data: { entry_form_target: "log",
+                    action: "focus->entry-form#clearStatusPress blur->entry-form#saveIfChanged" } %>
+
+      <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
+          status on its own and threw away whatever had been typed into the field.
+          The mousedown tells the field's blur handler to stand down, so one click
+          stays one PATCH. %>
+      <% Entry::STATES.each do |state| %>
+        <%= form.button state, name: "entry[status]", value: state,
+              class: "btn-tdd #{entry.status == state ? "btn-#{state}" : 'btn-inactive'}",
+              data: { action: "mousedown->entry-form#noteStatusPress" } %>
+      <% end %>
+    </div>
+  <% end %>
+</li>

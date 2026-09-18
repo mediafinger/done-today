@@ -22,7 +22,6 @@ module Orgs
     def index
       date # to initialize it
       @group_by = group_by
-      @scroll_to = params[:scroll_to]
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
@@ -36,6 +35,11 @@ module Orgs
       # TODO: ensure edit mode always uses current_project OR makes it obvious & switches to project!!!
       if mode == "edit"
         @day = days.find_by(date:) || days.build(org: current_org, date:)
+        @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
+
+        # a past day is read-only until it is unlocked on purpose -- see #unlocked?
+        @unlockable = date.past?
+        @locked = @unlockable && !@unlocked
 
         @entries =
           editable_entries(member: current_member, entries: @day.entries)
@@ -60,7 +64,7 @@ module Orgs
     #   Therefore we need to find or create a day for the given date.
     #
     def create
-      entry = Entry.new(
+      @entry = Entry.new(
         org: current_org,
         member: current_member,
         day: current_project.days.find_or_create_by!(org: current_org, date: create_params[:date]),
@@ -68,29 +72,50 @@ module Orgs
         status: create_params[:status] || "todo", # TODO
       )
 
-      if entry.save
-        redirect_to entries_path(date: entry.day.date, mode: "edit", scroll_to: "new-entry-field")
-      else
-        redirect_to entries_path(date: entry.day.date, mode: "edit"), alert: entry.errors.full_messages.to_sentence
-      end
+      saved = @entry.save
+
+      # on success the form starts over with a blank entry, on failure it keeps
+      #   what was typed so the error can be corrected instead of retyped
+      @new_entry = saved ? Entry.new(org: current_org, member: current_member, day: @entry.day) : @entry
+
+      respond_to_save(saved, entry: @entry)
     end
 
     def update
-      entry = current_project.entries.find(params[:id])
+      @entry = current_project.entries.find(params[:id])
 
       # `key?`, not `present?`: a submitted-but-blank log has to reach the validations
       #   rather than being silently dropped
-      entry.status = update_params[:status] if update_params.key?(:status)
-      entry.log    = update_params[:log]    if update_params.key?(:log)
+      @entry.status = update_params[:status] if update_params.key?(:status)
+      @entry.log    = update_params[:log]    if update_params.key?(:log)
 
-      if entry.save
-        redirect_to entries_path(date: entry.day.date, mode: "edit") # TODO: scroll_to: "entry-id"
-      else
-        redirect_to entries_path(date: entry.day.date, mode: "edit"), alert: entry.errors.full_messages.to_sentence
-      end
+      respond_to_save(@entry.save, entry: @entry)
     end
 
     private
+
+    def set_unlocked
+      @unlocked = params[:unlocked].present?
+    end
+
+    # Saving happens on every blur now, so a full-page redirect per field exit would
+    #   jump the page and throw the caret away. The Turbo Stream swaps just the entry
+    #   that changed; the redirect stays as the no-JS fallback.
+    #
+    def respond_to_save(saved, entry:)
+      respond_to do |format|
+        format.turbo_stream { render status: saved ? :ok : :unprocessable_content }
+        format.html do
+          path = entries_path(date: entry.day.date, mode: "edit", unlocked: (@unlocked || nil))
+
+          if saved
+            redirect_to path
+          else
+            redirect_to path, alert: entry.errors.full_messages.to_sentence
+          end
+        end
+      end
+    end
 
     def mode
       @mode ||= params[:mode] || "read"
