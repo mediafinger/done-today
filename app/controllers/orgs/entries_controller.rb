@@ -33,16 +33,22 @@ module Orgs
 
       # TODO: ensure edit mode always uses current_project OR makes it obvious & switches to project!!!
       if mode == "edit"
-        @day =
-          days.find_by(date: params[:date]) || days.build(org: current_org, date: params[:date] || Time.current.to_date)
+        @day = days.find_by(date:) || days.build(org: current_org, date:)
 
         @entries =
           editable_entries(member: current_member, entries: @day.entries)
+            .includes(:member, day: :project)
             .order(status: :desc, created_at: :asc)
       elsif mode == "read"
         date_days = days
-        date_days = date_days.where(date: params[:date]) if params[:date]
-        @entries = current_org.entries.where(day: date_days).order(status: :desc, created_at: :asc)
+        date_days = date_days.where(date:) if params[:date].present?
+
+        @entries =
+          current_org.entries
+            .where(day: date_days)
+            .includes(:member, day: :project)
+            .order(status: :desc, created_at: :asc)
+
         @entries = @entries.where(member: @member) if @member
       end
     end
@@ -60,20 +66,26 @@ module Orgs
         status: create_params[:status] || "todo", # TODO
       )
 
-      entry.save!
-
-      redirect_to entries_path(date: entry.day.date, mode: "edit", scroll_to: "new-entry-field")
+      if entry.save
+        redirect_to entries_path(date: entry.day.date, mode: "edit", scroll_to: "new-entry-field")
+      else
+        redirect_to entries_path(date: entry.day.date, mode: "edit"), alert: entry.errors.full_messages.to_sentence
+      end
     end
 
     def update
       entry = current_project.entries.find(params[:id])
 
-      entry.status = update_params[:status]  if update_params[:status].present?
-      entry.log    = update_params[:log]     if update_params[:log].present?
+      # `key?`, not `present?`: a submitted-but-blank log has to reach the validations
+      #   rather than being silently dropped
+      entry.status = update_params[:status] if update_params.key?(:status)
+      entry.log    = update_params[:log]    if update_params.key?(:log)
 
-      entry.save!
-
-      redirect_to entries_path(date: entry.day.date, mode: "edit") # TODO: scroll_to: "entry-id"
+      if entry.save
+        redirect_to entries_path(date: entry.day.date, mode: "edit") # TODO: scroll_to: "entry-id"
+      else
+        redirect_to entries_path(date: entry.day.date, mode: "edit"), alert: entry.errors.full_messages.to_sentence
+      end
     end
 
     private
@@ -86,8 +98,17 @@ module Orgs
       @mode
     end
 
+    # the parsed date is the single source of truth -- the raw param used to be read
+    #   again further down, so an unparseable date silently produced an empty day
+    #   instead of falling back to today
+    #
     def date
-      @date ||= Date.parse(params[:date]) rescue Time.current.to_date
+      @date ||=
+        begin
+          params[:date].present? ? Date.parse(params[:date]) : Time.zone.today
+        rescue Date::Error
+          Time.zone.today
+        end
     end
 
     def days
@@ -113,7 +134,7 @@ module Orgs
       return "member" if params[:member_id]
       return "project" if params[:project_id] # TODO: use slug
 
-      nil
+      "date" # a bare /entries shows today
     end
 
     def readable_entries(member:, entries:)

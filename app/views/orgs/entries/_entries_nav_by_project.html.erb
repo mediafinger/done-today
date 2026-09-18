@@ -1,0 +1,31 @@
+<%# locals: (project:, mode:) %>
+
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> Entries of <%= project.name %> </h2>
+  </div>
+
+  <div class="center">
+    <% if mode == "read" %>
+
+      <% if project.participants.find_by(member: current_member) && project != current_project %>
+        <%= link_to "Switch to project '#{project.name}' to add or edit", open_path(project.org.slug, project.slug), method: :get, role: "button", class: "slim" %>
+      <% elsif current_project %>
+        <%= link_to "add or edit", entries_path(date: Time.zone.today, mode: "edit"), method: :get, role: "button", class: "slim" %>
+      <% end %>
+
+    <% elsif mode == "edit" %>
+      <%= link_to "view all", entries_path(project_id: project.id, mode: "read"), method: :get, role: "button", class: "slim" %>
+
+    <% else %>
+      mode '<%= mode %>' is invalid
+
+    <% end %>
+  </div>
+
+  <div class="right">
+    <%= link_to "all projects", projects_path, method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>

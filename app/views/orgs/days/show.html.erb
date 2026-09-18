@@ -1,9 +1,0 @@
-<%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode %>
-
-<ul>
-  <% @entries.each_with_index do |entry, index| %>
-    <li class="nude">
-      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: false, with_member: true %>
-    </li>
-  <% end %>
-</ul>

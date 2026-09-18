@@ -31,7 +31,7 @@ class Member < ApplicationRecord
 
     if roles.include?("owner") || roles.include?("member")
       editorship = participations.includes_a_role_of(%w[owner participant])
-      projects = projects.where(id: editorship.pluck(:project_id))
+      projects.where(id: editorship.select(:project_id))
     else
       projects.none
     end
@@ -44,7 +44,7 @@ class Member < ApplicationRecord
     if roles.include?("owner")
       projects
     elsif roles.include?("member")
-      projects = projects.where(id: projects)
+      projects.where(id: participations.select(:project_id))
     else
       projects.none
     end
