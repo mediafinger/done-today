@@ -1,5 +1,5 @@
 module Orgs
-  class ProjectsController < ApplicationController
+  class ProjectsController < AppOrgBaseController
     def show
       # TODO: only display:
       #  * projects the member is participant of
@@ -33,11 +33,7 @@ module Orgs
     end
 
     def index
-      if current_org
-        @projects = current_org.projects.order(:name)
-      else
-        redirect_to root_path, notice: "Select an org first"
-      end
+      @projects = current_org.projects.order(:name) # require_member guarantees the org
     end
   end
 end
