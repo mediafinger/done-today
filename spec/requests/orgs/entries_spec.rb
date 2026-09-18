@@ -40,7 +40,7 @@ RSpec.describe "Orgs::Entries" do
   end
 
   describe "the editable entry form" do
-    before { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
 
     it "renders the status controls as submit buttons inside the form" do
       get entries_path(mode: "edit")
@@ -52,6 +52,27 @@ RSpec.describe "Orgs::Entries" do
       get entries_path(mode: "edit")
 
       expect(response.body).not_to include("entry%5Bstatus%5D")
+    end
+
+    it "gives every entry a stable dom id so a Turbo Stream can address it" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(%(id="#{ActionView::RecordIdentifier.dom_id(entry)}"))
+    end
+
+    it "gives each log field its own id instead of repeating entry_log" do
+      create(:entry, day: entry.day, member:, log: "A second entry")
+
+      get entries_path(mode: "edit")
+
+      expect(response.body.scan(%(id="entry_log")).count).to eq(0)
+    end
+
+    it "focuses the new entry field without an inline script" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).not_to include("document.location.hash")
+      expect(response.body).to include(%(data-controller="autofocus"))
     end
   end
 
@@ -100,6 +121,45 @@ RSpec.describe "Orgs::Entries" do
 
       expect(entry.reload.log).to eq("Wrote some code")
       expect(flash[:alert]).to be_present
+    end
+  end
+
+  describe "Turbo Stream responses" do
+    let(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    it "replaces just the edited entry instead of redirecting the whole page" do
+      patch entry_path(entry), params: { entry: { log: "Saved on blur" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq(Mime[:turbo_stream])
+      expect(response.body).to include(%(target="#{ActionView::RecordIdentifier.dom_id(entry)}"))
+      expect(response.body).to include("Saved on blur")
+    end
+
+    it "reports an invalid update in place, keeping what was typed" do
+      patch entry_path(entry), params: { entry: { log: "x" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include(%(value="x"))
+      expect(entry.reload.log).to eq("Wrote some code")
+    end
+
+    it "inserts a created entry above the input field and blanks the field" do
+      post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Typed and blurred" } },
+        as: :turbo_stream
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(%(action="before" target="new-entry"))
+      expect(response.body).to include(%(action="replace" target="new-entry"))
+      expect(response.body).to include("Typed and blurred")
+    end
+
+    it "reports an invalid create without throwing the text away" do
+      post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "x" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).not_to include(%(action="before" target="new-entry"))
+      expect(response.body).to include(%(value="x"))
     end
   end
 end
