@@ -1,5 +1,7 @@
 module Orgs
-  class EntriesController < ApplicationController
+  class EntriesController < AppOrgBaseController
+    before_action :require_project
+
     # when no day for the selected date exists yet, we initialize a new day,
     #   so the user can start typing a log immediately
     #
@@ -115,17 +117,16 @@ module Orgs
       @days ||= current_org.days.where(project:)
     end
 
+    # Returns nil rather than raising: `require_project` turns "no project" into a
+    #   redirect, and an ArgumentError here would just be a 500 on the way there.
+    #
     def project
       @project ||=
-        if params[:project_id]
-          current_org.projects.find(params[:project_id])
+        if params[:project_id].present?
+          current_org&.projects&.find(params[:project_id])
         else
           current_project
         end
-
-      raise ArgumentError, "no project given" if @project.blank?
-
-      @project
     end
 
     def group_by
