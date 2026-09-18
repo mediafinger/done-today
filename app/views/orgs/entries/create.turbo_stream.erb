@@ -1,7 +1,11 @@
 <%# A new entry goes in above the input field, and the input field starts over blank. %>
 
 <% if @entry.persisted? %>
-  <%= turbo_stream.before "new-entry", partial: "orgs/entries/editable_entry", locals: { entry: @entry } %>
+  <%= turbo_stream.before "new-entry",
+        partial: "orgs/entries/editable_entry",
+        locals: { entry: @entry, unlocked: @unlocked } %>
 <% end %>
 
-<%= turbo_stream.replace "new-entry", partial: "orgs/entries/new_entry", locals: { entry: @new_entry } %>
+<%= turbo_stream.replace "new-entry",
+      partial: "orgs/entries/new_entry",
+      locals: { entry: @new_entry, unlocked: @unlocked } %>

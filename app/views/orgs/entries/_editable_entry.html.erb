@@ -1,10 +1,12 @@
-<%# locals: (entry:) %>
+<%# locals: (entry:, unlocked: false) %>
 
 <li class="nude tight" id="<%= dom_id(entry) %>">
   <%= form_with(model: entry, method: :patch, data: {
         controller: "entry-form",
         action: "keydown.esc->entry-form#revert submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
       }) do |form| %>
+
+    <%= hidden_field_tag :unlocked, "1" if unlocked %>
 
     <% if entry.errors.any? %>
       <small class="error"><%= entry.errors.full_messages.to_sentence %></small>

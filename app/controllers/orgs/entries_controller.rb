@@ -1,5 +1,10 @@
 module Orgs
   class EntriesController < ApplicationController
+    # The unlock toggle lives in the URL, so it covers every entry of the day at once
+    #   and is gone again as soon as the user navigates away.
+    #
+    before_action :set_unlocked
+
     # when no day for the selected date exists yet, we initialize a new day,
     #   so the user can start typing a log immediately
     #
@@ -34,6 +39,10 @@ module Orgs
       if mode == "edit"
         @day = days.find_by(date:) || days.build(org: current_org, date:)
         @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
+
+        # a past day is read-only until it is unlocked on purpose -- see #unlocked?
+        @unlockable = date.past?
+        @locked = @unlockable && !@unlocked
 
         @entries =
           editable_entries(member: current_member, entries: @day.entries)
@@ -88,6 +97,10 @@ module Orgs
 
     private
 
+    def set_unlocked
+      @unlocked = params[:unlocked].present?
+    end
+
     # Saving happens on every blur now, so a full-page redirect per field exit would
     #   jump the page and throw the caret away. The Turbo Stream swaps just the entry
     #   that changed; the redirect stays as the no-JS fallback.
@@ -96,7 +109,7 @@ module Orgs
       respond_to do |format|
         format.turbo_stream { render status: saved ? :ok : :unprocessable_content }
         format.html do
-          path = entries_path(date: entry.day.date, mode: "edit")
+          path = entries_path(date: entry.day.date, mode: "edit", unlocked: (@unlocked || nil))
 
           if saved
             redirect_to path
