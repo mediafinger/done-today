@@ -79,7 +79,7 @@ class AppConf
 
   register :done_host, default: "done.test", required: production_env?
   register :done_name, default: "done"
-  register :done_port, default: environment == "test" ? 3001 : 3000
+  register :done_port, default: environment == "test" ? 3334 : 3333
   register :done_version, default: env_and_version
 
   # Database setup

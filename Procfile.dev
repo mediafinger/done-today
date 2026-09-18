@@ -1,0 +1,3 @@
+web: bin/rails server -p $DONE_PORT
+# jobs: bin/jobs
+log: tail -f log/development.log
