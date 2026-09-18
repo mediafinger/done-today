@@ -1,0 +1,5 @@
+<%# `method: :morph` rather than a plain replace: idiomorph keeps the caret in the
+    field, which matters when the save was triggered by Enter rather than by blur. %>
+
+<%= turbo_stream.replace dom_id(@entry), method: :morph,
+      partial: "orgs/entries/editable_entry", locals: { entry: @entry } %>

@@ -1,14 +1,23 @@
 <%# locals: (entry:) %>
 
-<%= form_with(model: entry, method: :patch) do |form| %>
-  <div role="group">
-    <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>
-
-    <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
-        status on its own and threw away whatever had been typed into the field. %>
-    <% Entry::STATES.each do |state| %>
-      <%= form.button state, name: "entry[status]", value: state,
-            class: "btn-tdd #{entry.status == state ? "btn-#{state}" : 'btn-inactive'}" %>
+<li class="nude tight" id="<%= dom_id(entry) %>">
+  <%= form_with(model: entry, method: :patch) do |form| %>
+    <% if entry.errors.any? %>
+      <small class="error"><%= entry.errors.full_messages.to_sentence %></small>
     <% end %>
-  </div>
-<% end %>
+
+    <div role="group">
+      <%# an id per entry, not the shared `entry_log` that form_with would infer:
+          the Turbo Stream response has to address exactly this field %>
+      <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500,
+            id: dom_id(entry, :log) %>
+
+      <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
+          status on its own and threw away whatever had been typed into the field. %>
+      <% Entry::STATES.each do |state| %>
+        <%= form.button state, name: "entry[status]", value: state,
+              class: "btn-tdd #{entry.status == state ? "btn-#{state}" : 'btn-inactive'}" %>
+      <% end %>
+    </div>
+  <% end %>
+</li>

@@ -1,18 +1,18 @@
-<%# locals: (org:, member:, day:, scroll_to: nil) %>
+<%# locals: (entry:) %>
 
-<% new_entry = Entry.new(org:, member:, day:) %>
+<li class="nude" id="new-entry">
+  <%= form_with(model: entry, method: :post) do |form| %>
+    <% if entry.errors.any? %>
+      <small class="error"><%= entry.errors.full_messages.to_sentence %></small>
+    <% end %>
 
-<%= form_with(model: new_entry, method: :post) do |form| %>
-  <div id="new-entry-field" role="group">
-    <%= form.text_field :log, required: true, autofocus: true, placeholder: "What have you done today?", value: new_entry.log, minlength: 3, maxlength: 500 %>
-    <%= form.hidden_field :date, value: day.date %>
-  </div>
-<% end %>
-
-<% if scroll_to %>
-<script type="text/javascript">
-// <!--
-document.location.hash="#<%= scroll_to %>";
-// -->
-</script>
-<% end %>
+    <div role="group">
+      <%# `autofocus` alone only fires on a full page load -- the autofocus controller
+          also catches the Turbo Stream that re-renders this form after a create. %>
+      <%= form.text_field :log, required: true, autofocus: true, value: entry.log,
+            placeholder: "What have you done today?", minlength: 3, maxlength: 500,
+            id: dom_id(entry, :log), data: { controller: "autofocus" } %>
+      <%= form.hidden_field :date, value: entry.day.date %>
+    </div>
+  <% end %>
+</li>

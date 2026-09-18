@@ -11,24 +11,18 @@
 
 <% if @mode == "edit" %>
 
-  <ul class="bottom-spacer">
+  <ul class="bottom-spacer" id="editable-entries">
     <% @entries.each do |entry| %>
-      <li class="nude tight">
-        <%= render "orgs/entries/editable_entry", entry: entry %>
-      </li>
+      <%= render "orgs/entries/editable_entry", entry: entry %>
     <% end %>
 
-    <li class="nude">
-      <%= render "orgs/entries/new_entry", org: current_org, member: current_member, day: @day, scroll_to: @scroll_to %>
-    </li>
+    <%= render "orgs/entries/new_entry", entry: @new_entry %>
   </ul>
 
 <% elsif @mode == "read" %>
-  <ul>
+  <ul id="entries">
     <% @entries.each_with_index do |entry, index| %>
-      <li class="nude">
-        <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
-      </li>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
     <% end %>
   </ul>
 

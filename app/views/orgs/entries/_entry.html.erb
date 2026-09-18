@@ -5,6 +5,7 @@
   first_of_group = ->(attribute) { index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
 %>
 
+<li class="nude" id="<%= dom_id(entry) %>">
 <div class="entry-grid" style="<%= entry_grid_style(meta_columns:) %>">
 
   <% if with_date %>
@@ -50,3 +51,4 @@
   </div>
 
 </div>
+</li>
