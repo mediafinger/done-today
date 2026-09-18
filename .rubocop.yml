@@ -57,3 +57,8 @@ RSpec/ExampleLength:
 
 RSpec/MultipleExpectations:
   Max: 5
+
+# A rake task is described by its name -- there is no class to point the cop at.
+RSpec/DescribeClass:
+  Exclude:
+    - spec/tasks/**/*
