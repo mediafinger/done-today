@@ -10,6 +10,8 @@ ActiveRecordDoctor.configure do
     pg_search_documents
     solid_cable_messages
     solid_cache_entries
+    solid_queue_batch_executions
+    solid_queue_batches
     solid_queue_blocked_executions
     solid_queue_claimed_executions
     solid_queue_failed_executions
@@ -33,6 +35,8 @@ ActiveRecordDoctor.configure do
     SolidCable::Message
     SolidCache::Entry
     SolidQueue::Job
+    SolidQueue::Batch
+    SolidQueue::BatchExecution
     SolidQueue::BlockedExecution
     SolidQueue::ClaimedExecution
     SolidQueue::FailedExecution
