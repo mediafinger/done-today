@@ -9,7 +9,7 @@ class Entry < ApplicationRecord
 
   before_validation :set_org
 
-  validates :log, presence: true
+  validates :log, presence: true, length: { in: 3..500 } # the entry form sets the same bounds
   validates :status, presence: true, inclusion: { in: STATES }
 
   def todo?
