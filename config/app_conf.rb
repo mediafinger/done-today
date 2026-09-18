@@ -60,15 +60,25 @@ class AppConf
       is?(:environment, :staging) || is?(:environment, :production)
     end
 
-    # rubocop:disable Style/RescueStandardError
+    # `cat .git/HEAD` broke in a git worktree, where .git is a file rather than a
+    #   directory, printing "cat: .git/HEAD: Not a directory" on every boot.
+    #   `git rev-parse` handles worktrees and submodules on its own.
+    #
     def env_and_version
-      return [ environment, `git rev-parse --short HEAD`.strip ].compact.join("-") if production_env?
+      ref = production_env? ? git_output("rev-parse --short HEAD") : git_output("rev-parse --abbrev-ref HEAD")
 
-      "#{environment}-#{`cat .git/HEAD`.split('/').last.strip}"
-    rescue
+      [ environment, ref ].compact.join("-")
+    rescue StandardError
       environment
     end
-    # rubocop:enable Style/RescueStandardError
+
+    private
+
+    def git_output(args)
+      output = `git #{args} 2>/dev/null`.strip
+
+      output.empty? ? nil : output
+    end
   end
 
   # keep this register on top of all other commands
@@ -81,6 +91,8 @@ class AppConf
   register :done_name, default: "done"
   register :done_port, default: environment == "test" ? 3334 : 3333
   register :done_version, default: env_and_version
+  # entry dates are local dates, so "today" has to be resolved in a fixed zone
+  register :timezone, default: "Europe/Berlin"
 
   # Database setup
   register :done_db_host, default: "localhost", required: production_env?

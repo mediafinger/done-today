@@ -1,24 +1,18 @@
-<!--
-  Expects the following local variables:
-
-  * org
-  * member
-  * day
--->
+<%# locals: (org:, member:, day:, scroll_to: nil) %>
 
 <% new_entry = Entry.new(org:, member:, day:) %>
 
-<%= form_with(model: new_entry, data: { turbo_method: :post }) do |form| %>
+<%= form_with(model: new_entry, method: :post) do |form| %>
   <div id="new-entry-field" role="group">
     <%= form.text_field :log, required: true, autofocus: true, placeholder: "What have you done today?", value: new_entry.log, minlength: 3, maxlength: 500 %>
-    <%= form.hidden_field :date, value: @day.date %>
+    <%= form.hidden_field :date, value: day.date %>
   </div>
 <% end %>
 
-<% if @scroll_to %>
+<% if scroll_to %>
 <script type="text/javascript">
 // <!--
-document.location.hash="#<%= @scroll_to %>";
+document.location.hash="#<%= scroll_to %>";
 // -->
 </script>
 <% end %>

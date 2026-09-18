@@ -1,15 +1,14 @@
-<!--
-  Expects the following local variables:
+<%# locals: (entry:) %>
 
-  * entry
--->
-
-<%= form_with(model: entry, data: { turbo_method: :patch }) do |form| %>
+<%= form_with(model: entry, method: :patch) do |form| %>
   <div role="group">
     <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500 %>
-    <%- # TODO: prevent losing edited log, when clicking on button instead of enter %>
-    <%= link_to "todo", entry_path(entry, entry: { status: "todo" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.todo? ? 'btn-todo' : 'btn-inactive'} btn-tdd" %>
-    <%= link_to "doing", entry_path(entry, entry: { status: "doing" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.doing? ? 'btn-doing' : 'btn-inactive'} btn-tdd" %>
-    <%= link_to "done", entry_path(entry, entry: { status: "done" }), data: { turbo_method: :patch }, role: "button", class: "#{entry.done? ? 'btn-done' : 'btn-inactive'} btn-tdd" %>
+
+    <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
+        status on its own and threw away whatever had been typed into the field. %>
+    <% Entry::STATES.each do |state| %>
+      <%= form.button state, name: "entry[status]", value: state,
+            class: "btn-tdd #{entry.status == state ? "btn-#{state}" : 'btn-inactive'}" %>
+    <% end %>
   </div>
 <% end %>

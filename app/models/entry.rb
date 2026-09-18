@@ -24,16 +24,19 @@ class Entry < ApplicationRecord
     status == "done"
   end
 
+  # `Time.zone` is pinned to AppConf.timezone, so these agree with the date the
+  #   user sees in the navigation regardless of the server's own zone
+  #
   def today?
-    Time.current.to_date == day.date # TODO: timezone correction
+    Time.zone.today == day.date
   end
 
   def future?
-    Time.current.to_date < day.date # TODO: timezone correction
+    Time.zone.today < day.date
   end
 
   def past?
-    Time.current.to_date > day.date # TODO: timezone correction
+    Time.zone.today > day.date
   end
 
   private

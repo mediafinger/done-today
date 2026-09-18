@@ -1,40 +1,36 @@
-<!--
-  Expects the following local variables:
+<%# locals: (entry:, entries:, index:, with_date: false, with_project: false, with_member: false) %>
 
-  * entry
-  * entries
-  * index
-  * with_member (boolean)
-  * with_date (boolean)
--->
+<%
+  meta_columns = [ with_date, with_project, with_member ].count(true)
+  first_of_group = ->(attribute) { index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
+%>
 
-<% grid_columns = 2 + (defined?(with_date) && with_date ? 1 : 0) + (defined?(with_project) && with_project ? 1 : 0) + (defined?(with_member) && with_member ? 1 : 0) %>
-<div class="left-aligned-grid-<%= grid_columns %>">
+<div class="entry-grid" style="<%= entry_grid_style(meta_columns:) %>">
 
-  <% if defined?(with_date) && with_date %>
+  <% if with_date %>
     <div class="left">
-      <% if index == 0 || entry.day != entries[index - 1].day %>
-        <h3 style="margin-top: -0.25rem;">
+      <% if first_of_group.call(:day) %>
+        <h3 class="entry-group-heading">
           <%= link_to entry.day.date.iso8601, entries_path(date: entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>
   <% end %>
 
-  <% if defined?(with_project) && with_project %>
+  <% if with_project %>
     <div class="left">
-      <% if index == 0 || entry.project != entries[index - 1].project %>
-        <h3 style="margin-top: -0.25rem;">
+      <% if first_of_group.call(:project) %>
+        <h3 class="entry-group-heading">
           <%= link_to entry.project.name, project_path(entry.day.project.slug), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
     </div>
   <% end %>
 
-  <% if defined?(with_member) && with_member %>
+  <% if with_member %>
     <div class="left">
-      <% if index == 0 || entry.member != entries[index - 1].member %>
-        <h3 style="margin-top: -0.25rem;">
+      <% if first_of_group.call(:member) %>
+        <h3 class="entry-group-heading">
           <%= link_to entry.member.name, entries_path(member_id: entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
         </h3>
       <% end %>
@@ -45,12 +41,12 @@
     <%= entry.log %>
   </div>
 
-  <!-- TODO set disabled: true on links and adapt colors to pop more -->
+  <!-- read-only status: the same three states as the editable entry, without the form -->
 
   <div class="right">
-    <%= link_to "todo", "", method: nil, role: "button", class: "slim #{entry.todo? ? 'btn-todo' : 'btn-inactive'}" %>
-    <%= link_to "doing", "", method: nil, role: "button", class: "slim #{entry.doing? ? 'btn-doing' : 'btn-inactive'}" %>
-    <%= link_to "done", "", method: nil, role: "button", class: "slim #{entry.done? ? 'btn-done' : 'btn-inactive'}" %>
+    <% Entry::STATES.each do |state| %>
+      <span role="button" class="slim <%= entry.status == state ? "btn-#{state}" : 'btn-inactive' %>"><%= state %></span>
+    <% end %>
   </div>
 
 </div>

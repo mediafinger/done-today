@@ -120,32 +120,18 @@ ul {
   margin-top: 10%;
 }
 
-.left-aligned-grid-2 {
+/* One rule for the entry list. The column tracks vary with the meta columns that
+   are shown (date / project / member) and are composed by EntriesHelper#entry_grid_style,
+   so adding a column no longer needs a new .left-aligned-grid-N rule. */
+.entry-grid {
+  align-items: start;
   display: grid;
-  grid-template-columns: minmax(32rem, 75%) minmax(8rem, 25%);
   gap: 0.5rem;
-  width: 100%
+  width: 100%;
 }
 
-.left-aligned-grid-3 {
-  display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(28rem, 65%) minmax(8rem, 25%);
-  gap: 0.5rem;
-  width: 100%
-}
-
-.left-aligned-grid-4 {
-  display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(24rem, 55%) minmax(8rem, 25%);
-  gap: 0.5rem;
-  width: 100%
-}
-
-.left-aligned-grid-5 {
-  display: grid;
-  grid-template-columns: minmax(4rem, 10%) minmax(4rem, 10%) minmax(4rem, 10%) minmax(20rem, 45%) minmax(8rem, 25%);
-  gap: 0.5rem;
-  width: 100%
+.entry-group-heading {
+  margin-top: -0.25rem;
 }
 
 .spacing-grid {

@@ -1,10 +1,4 @@
-<!--
-  Expects the following local variables:
-
-  * member
-  * members
-  * mode read | edit
--->
+<%# locals: (member:, members:, mode:) %>
 
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
@@ -18,7 +12,7 @@
       <% if @project && @project.participants.find_by(member: current_member) && @project != current_project %>
         <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
       <% elsif current_project %>
-        <%= link_to "add or edit", entries_path(date: Time.current.to_date, mode: "edit"), method: :get, role: "button", class: "slim" %>
+        <%= link_to "add or edit", entries_path(date: Time.zone.today, mode: "edit"), method: :get, role: "button", class: "slim" %>
       <% end %>
 
     <% elsif mode == "edit" %>

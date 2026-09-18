@@ -39,6 +39,22 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "the editable entry form" do
+    before { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    it "renders the status controls as submit buttons inside the form" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(%(<button name="entry[status]" type="submit" value="done"))
+    end
+
+    it "no longer links the status to a PATCH url that drops the typed log" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).not_to include("entry%5Bstatus%5D")
+    end
+  end
+
   describe "POST /entries" do
     it "creates an entry on the given day" do
       expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" } } }
