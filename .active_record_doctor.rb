@@ -60,8 +60,8 @@ ActiveRecordDoctor.configure do
   ]
 
   detector :missing_presence_validation, ignore_attributes: %w[
-
-  ]
+    RecordHistory.record_changes
+  ] # NOT NULL with a {} default, and an empty diff is valid data -- presence would reject it
 
   detector :short_primary_key_type, ignore_tables: %w[
 

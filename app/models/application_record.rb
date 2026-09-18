@@ -1,22 +1,29 @@
 class ApplicationRecord < ActiveRecord::Base
   primary_abstract_class
 
-  def create_with_history(record, history_params = {})
+  # The history is written from Current.org / Current.user, so these are only usable
+  #   inside a request. Pass `org:` / `user:` explicitly from jobs and the console.
+  #
+  def create_with_history(**history_params)
+    save_with_history(:created, **history_params)
+  end
+
+  def update_with_history(**history_params)
+    save_with_history(:updated, **history_params)
+  end
+
+  def destroy_with_history(**history_params)
     transaction do
-      record.save && RecordHistoryService.call(record:, event: :created, **history_params)
+      RecordHistoryService.call(record: self, event: :deleted, **history_params)
+      destroy
     end
   end
 
-  def update_with_history(record, history_params = {})
-    transaction do
-      record.save && RecordHistoryService.call(record:, event: :updated, **history_params)
-    end
-  end
+  private
 
-  def destroy_with_history(record, history_params = {})
+  def save_with_history(event, **history_params)
     transaction do
-      RecordHistoryService.call(record:, event: :deleted, **history_params)
-      record.destroy! # TODO: refactor controller actions to not raise
+      save && RecordHistoryService.call(record: self, event:, **history_params)
     end
   end
 end
