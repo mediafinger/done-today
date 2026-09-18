@@ -54,6 +54,15 @@ RSpec.describe "Orgs::Entries" do
       expect(response.body).not_to include("entry%5Bstatus%5D")
     end
 
+    it "wires the entry-form controller up to the field and to the status buttons" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(%(data-controller="entry-form"))
+      expect(response.body).to include("keydown.esc-&gt;entry-form#revert")
+      expect(response.body).to include("blur-&gt;entry-form#saveIfChanged")
+      expect(response.body).to include("mousedown-&gt;entry-form#noteStatusPress")
+    end
+
     it "gives every entry a stable dom id so a Turbo Stream can address it" do
       get entries_path(mode: "edit")
 
