@@ -48,3 +48,12 @@ Style/FrozenStringLiteralComment:
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+
+# The RSpec defaults (1 expectation, 5 lines per example) force one example per
+# assertion. That reads worse than grouping the assertions that describe a single
+# behaviour, so both are relaxed rather than disabled.
+RSpec/ExampleLength:
+  Max: 15
+
+RSpec/MultipleExpectations:
+  Max: 5
