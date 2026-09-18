@@ -4,11 +4,11 @@ Rails.application.console do
     # alias class User to USer (my favority fast-typing typo)
     USer = User
 
-    @andy, @rinse = User.where(name: %w[andy rinse])
-    @zazu         = Org.find_by(name: "zazu")
-    @demo         = Project.find_by(name: "demo app")
+    @andy = User.find_by(name: "andy")
+    @lyvo = Org.find_by(name: "Lyvo")
+    @demo = Project.find_by(name: "2026 V1")
 
-    puts "Zazu development console - initialized @andy @rinse @zazu @demo"
+    puts "Done today development console - initialized @andy @lyvo @demo"
     puts "don't forget about `show_cmds`"
   end
 end

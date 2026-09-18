@@ -10,47 +10,52 @@ puts "Deleting all uploaded files"
 
 # clear DB before populating it
 
-puts "Removing all records from the database"
+# puts "Removing all records from the database"
 
-(ActiveRecord::Base.connection.tables - %w[ar_internal_metadata schema_migrations]).each do |table|
-  ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table} RESTART IDENTITY CASCADE;")
-end
+# (ActiveRecord::Base.connection.tables - %w[ar_internal_metadata schema_migrations]).each do |table|
+#   ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table} RESTART IDENTITY CASCADE;")
+# end
 
 
 puts "Creating Orgs"
 
-org = Org.create!(name: "zazu")
+org = Org.create!(name: "Demo")
+lyvo = Org.create!(name: "Lyvo")
 
 
 puts "Creating Users"
 
-shared_user_params = { password: "foobar12345+" } # , verified: true }
+shared_user_params = { password: "foobar1234" } # , verified: true }
 
 andy = User.create!(email: "andy@example.com", name: "andy", **shared_user_params)
-rinse = User.create!(email: "rinse@example.com", name: "rinse", **shared_user_params)
+doro = User.create!(email: "doro@example.com", name: "doro", **shared_user_params)
 
 
 puts "Creating Memberships"
 
 owner = Member.create!(user: andy, org:, roles: %w[owner member])
-member = Member.create!(user: rinse, org:, roles: %w[member])
+owner = Member.create!(user: andy, org: lyvo, roles: %w[owner member])
+member = Member.create!(user: doro, org:, roles: %w[member])
 
 
 puts "Creating Projects"
 
-project = Project.create!(name: "demo app", org:)
+project = Project.create!(name: "example project", org:)
+project_lvyo = Project.create!(name: "2026 V1", org: lyvo)
 
 
 puts "Creating Participations"
 
 Participant.create!(org:, project:, member: owner)
 Participant.create!(org:, project:, member: member)
+Participant.create!(org: lyvo, project: project_lvyo, member: owner)
 
 
 puts "Creating Days"
 
 (1.week.ago.to_date..Date.tomorrow).to_a.each do |date|
   Day.create!(org:, project:, date:)
+  Day.create!(org: lyvo, project: project_lvyo, date:)
 end
 
 
