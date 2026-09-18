@@ -85,6 +85,45 @@ For auditing operations within organizations, we implement a lightweight event-l
    bin/rails server
    ```
 
+### Database Backups
+
+`bin/rails db:seed` truncates every table, and the development database is where the
+real logging happens -- so backups are not optional here. Seeding now refuses to run
+against a non-empty database unless `SEED_FORCE=1` is set.
+
+```bash
+rake db:backup          # dump to ~/db_backups/done_today (override with DONE_BACKUP_DIR)
+rake db:backup:verify   # restore the newest dump into a scratch DB, then drop it
+rake db:backup:list     # what is on disk
+```
+
+The scripts behind those tasks are plain bash and plain `pg_dump`, on purpose: a
+backup has to keep working on the day the app does not boot.
+
+- [script/db_backup.sh](script/db_backup.sh) writes a compressed custom-format dump to
+  a `.part` file, checks it with `pg_restore --list`, and only then moves it into
+  place. An unverified dump is not a backup.
+- [script/db_restore.sh](script/db_restore.sh) defaults to restoring into a throwaway
+  database and dropping it again, which is the "does this actually load?" path.
+  Restoring over a real database needs `--force` **and** typing the database name.
+- [script/install_backup_schedule.sh](script/install_backup_schedule.sh) installs a
+  launchd agent that runs the backup nightly:
+
+  ```bash
+  script/install_backup_schedule.sh --at 03:00
+  script/install_backup_schedule.sh --status
+  script/install_backup_schedule.sh --uninstall
+  ```
+
+  launchd rather than cron, because cron silently skips a run if the machine was
+  asleep while launchd fires it on wake. Not a SolidQueue recurring task either: that
+  only runs while `bin/jobs` is up, and a backup must not depend on the app being up.
+
+Retention is left to the backup folder. Set `DONE_BACKUP_KEEP_DAYS` if you would
+rather the script prune old dumps itself.
+
+---
+
 ### Deployment
 Deployments are managed via **Kamal v2** (configured in [deploy.yml](file:///Users/andy/Dropbox/www/2025/done_today/config/deploy.yml)):
 - Solid Queue is configured to run inside the Puma process in production (`SOLID_QUEUE_IN_PUMA: true`) to minimize host resource consumption and simplify container setups.
