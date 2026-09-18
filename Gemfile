@@ -9,6 +9,12 @@ gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
+# Pinned below 3.0: json 3 dropped the second positional argument from JSON.parse, while
+#   ActiveSupport::JSON.decode still calls `::JSON.parse(json, options)` with a positional
+#   hash. Under Ruby 4 that is an ArgumentError, which breaks dumping any jsonb column
+#   that has a default -- schema.rb silently loses those tables. Lift once Rails ships
+#   an ActiveSupport that calls JSON.parse with keywords.
+gem "json", "~> 2.19"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "mission_control-jobs", "~> 1.0" # dashboard for SolidQueue jobs
 gem "pg", "~> 1.1" # Use postgresql as the database for Active Record
