@@ -1,4 +1,4 @@
-<%# locals: (date:, mode:) %>
+<%# locals: (date:, mode:, unlockable: false, unlocked: false) %>
 
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
@@ -17,6 +17,16 @@
 
     <% elsif mode == "edit" %>
       <%= link_to "view all", entries_path(date: date, mode: "read"), method: :get, role: "button", class: "slim" %>
+
+      <%# A past day is read-only until it is unlocked on purpose -- the toggle covers
+          the whole day, and leaving the page drops it again. %>
+      <% if unlockable %>
+        <% if unlocked %>
+          <%= link_to "🔓 lock again", entries_path(date: date, mode: "edit"), method: :get, role: "button", class: "slim" %>
+        <% else %>
+          <%= link_to "🔒 unlock to edit", entries_path(date: date, mode: "edit", unlocked: "1"), method: :get, role: "button", class: "slim" %>
+        <% end %>
+      <% end %>
 
     <% else %>
       mode '<%= mode %>' is invalid

@@ -85,6 +85,48 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "past days" do
+    let!(:old_entry) { create(:entry, day: create(:day, project:, date: Time.zone.yesterday), member:) }
+
+    it "renders a past day read-only and offers to unlock it" do
+      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit")
+
+      expect(response.body).not_to include(%(data-controller="entry-form"))
+      expect(response.body).to include(old_entry.log)
+      expect(response.body).to include("unlock to edit")
+    end
+
+    it "does not offer a new entry field while the day is locked" do
+      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit")
+
+      expect(response.body).not_to include(%(id="new-entry"))
+    end
+
+    it "edits the day once it has been unlocked" do
+      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit", unlocked: "1")
+
+      expect(response.body).to include(%(data-controller="entry-form"))
+      expect(response.body).to include(%(id="new-entry"))
+      expect(response.body).to include("lock again")
+    end
+
+    it "keeps today editable without unlocking" do
+      create(:entry, day: create(:day, project:, date: Time.zone.today), member:)
+
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(%(data-controller="entry-form"))
+      expect(response.body).not_to include("unlock to edit")
+    end
+
+    it "keeps a future day editable without unlocking" do
+      get entries_path(date: Time.zone.tomorrow.iso8601, mode: "edit")
+
+      expect(response.body).to include(%(id="new-entry"))
+      expect(response.body).not_to include("unlock to edit")
+    end
+  end
+
   describe "POST /entries" do
     it "creates an entry on the given day" do
       expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" } } }
@@ -130,6 +172,12 @@ RSpec.describe "Orgs::Entries" do
 
       expect(entry.reload.log).to eq("Wrote some code")
       expect(flash[:alert]).to be_present
+    end
+
+    it "stays on the unlocked past day instead of locking it again" do
+      patch entry_path(entry), params: { entry: { log: "Fixed it after all" }, unlocked: "1" }
+
+      expect(response).to redirect_to(entries_path(date: entry.day.date, mode: "edit", unlocked: true))
     end
   end
 

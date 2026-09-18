@@ -1,5 +1,5 @@
 <% if @group_by == "date" %>
-  <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode %>
+  <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked %>
 <% elsif @group_by == "member" %>
   <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
 <% elsif @group_by == "project" %>
@@ -11,12 +11,24 @@
 
 <% if @mode == "edit" %>
 
-  <ul class="bottom-spacer" id="editable-entries">
-    <% @entries.each do |entry| %>
-      <%= render "orgs/entries/editable_entry", entry: entry %>
-    <% end %>
+  <% if @locked %>
+    <p class="s-link">
+      This day is in the past and is locked, so a stray keystroke cannot rewrite it. Use "unlock to edit" above to change it.
+    </p>
+  <% end %>
 
-    <%= render "orgs/entries/new_entry", entry: @new_entry %>
+  <ul class="bottom-spacer" id="editable-entries">
+    <% if @locked %>
+      <% @entries.each_with_index do |entry, index| %>
+        <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index %>
+      <% end %>
+    <% else %>
+      <% @entries.each do |entry| %>
+        <%= render "orgs/entries/editable_entry", entry: entry, unlocked: @unlocked %>
+      <% end %>
+
+      <%= render "orgs/entries/new_entry", entry: @new_entry, unlocked: @unlocked %>
+    <% end %>
   </ul>
 
 <% elsif @mode == "read" %>
