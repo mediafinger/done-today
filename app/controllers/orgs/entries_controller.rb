@@ -58,6 +58,9 @@ module Orgs
         date_days = days
         date_days = date_days.where(date:) if params[:date].present?
 
+        # start@ / end@ only add up within a single day
+        @with_time_summary = params[:date].present?
+
         @entries =
           current_org.entries
             .where(day: date_days)
