@@ -59,6 +59,8 @@ button {
 .btn-disabled {
   cursor: default;
   pointer-events: none;
+  border-color: #f0f0f0 !important;
+  color: #f0f0f0 !important;
 }
 
 .btn-disabled.btn-todo {
@@ -90,5 +92,5 @@ button {
 .btn-compact {
   font-size: 0.8em;
   line-height: 1.75 !important;
-  padding: 0 0.5rem !important;
+  padding: 0.5rem 0.5rem !important;
 }
