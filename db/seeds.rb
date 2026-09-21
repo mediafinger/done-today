@@ -2,6 +2,26 @@ exit unless %w[development].include? AppConf.environment
 
 require "faker"
 
+# This file TRUNCATEs every table before inserting anything, so `bin/rails db:seed`
+#   destroys whatever is in the development database -- which is where the real
+#   day-to-day logging happens. That has cost real data once.
+#
+# It now refuses to run against a database that already holds records unless
+#   SEED_FORCE=1 is set explicitly.
+#
+existing_records = Org.count + User.count + Entry.count
+
+if existing_records.positive? && ENV["SEED_FORCE"] != "1"
+  abort <<~REFUSED
+
+    Refusing to seed: the database holds #{existing_records} records, and seeding truncates every table.
+
+      back it up first:    rake db:backup
+      check it restores:   rake db:backup:verify
+      then, on purpose:    SEED_FORCE=1 bin/rails db:seed
+
+  REFUSED
+end
 
 puts "Deleting all uploaded files"
 
