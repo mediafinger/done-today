@@ -1,4 +1,4 @@
-<%# locals: (entries:, with_tags: true) %>
+<%# locals: (entries:, project:, with_tags: true) %>
 
 <%# One time line per member, since everyone in the project shares the day, then
     all tags of the day in a single line. Renders nothing for a day without markup. %>
@@ -26,7 +26,7 @@
     <% if tags.any? %>
       <p class="tag-info">
         <% tags.each do |tag| %>
-          <span class="tag">#<%= tag %></span>
+          <%= tag_link(tag, project:) %>
         <% end %>
       </p>
     <% end %>
