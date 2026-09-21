@@ -29,3 +29,7 @@
 
 en:
   hello: "Hello world"
+
+  controllers:
+    no_org_selected: "Select an org first"
+    no_project_selected: "Select a project first"
