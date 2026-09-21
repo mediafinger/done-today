@@ -88,5 +88,5 @@ jobs:
 
       - name: Run the test suite
         run: |
-          rake ci
+          bundle exec rake ci
           # run: bin/rspec --exclude-pattern "spec/{system,controllers}/**/*_spec.rb"
