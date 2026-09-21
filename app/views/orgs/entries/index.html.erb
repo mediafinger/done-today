@@ -2,6 +2,8 @@
   <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked %>
 <% elsif @group_by == "member" %>
   <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
+<% elsif @group_by == "tag" %>
+  <%= render "orgs/entries/entries_nav_by_tag", tag: @tag, project: @project %>
 <% elsif @group_by == "project" %>
   <%= render "orgs/entries/entries_nav_by_project", project: @project, mode: @mode %>
 <% else %>
@@ -25,13 +27,17 @@
   </ul>
 
 <% elsif @mode == "read" %>
-  <%= render "orgs/entries/time_summary", entries: @entries if @with_time_summary %>
+  <%= render "orgs/entries/time_summary", entries: @entries, project: @project if @with_time_summary %>
 
   <ul id="entries">
     <% @entries.each_with_index do |entry, index| %>
-      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project, grouped: @group_by != "tag" %>
     <% end %>
   </ul>
+
+  <% if @group_by == "tag" && @entries.none? %>
+    <p>No entries are tagged #<%= @tag %> yet.</p>
+  <% end %>
 
 <% else %>
   mode '<%= @mode %>' is invalid

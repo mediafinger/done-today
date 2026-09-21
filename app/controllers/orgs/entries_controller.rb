@@ -29,6 +29,7 @@ module Orgs
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
+      @with_project = false if tag # the tag page names its project in the headline
       # TODO: or handle only current_project in this controller and leave the rest for the projects_controller ?!
 
       if params[:member_id]
@@ -59,13 +60,19 @@ module Orgs
         date_days = date_days.where(date:) if params[:date].present?
 
         # start@ / end@ only add up within a single day
-        @with_time_summary = params[:date].present?
+        @with_time_summary = @group_by == "date" && params[:date].present?
 
+        @entries = current_org.entries.where(day: date_days).includes(:member, day: :project)
         @entries =
-          current_org.entries
-            .where(day: date_days)
-            .includes(:member, day: :project)
-            .order(status: :desc, created_at: :asc)
+          if tag
+            # a tag's history spans many days and reads newest first
+            @entries
+              .where("entries.tags @> ARRAY[?]::text[]", tag)
+              .joins(:day)
+              .order(Day.arel_table[:date].desc, created_at: :desc)
+          else
+            @entries.order(status: :desc, created_at: :asc)
+          end
 
         @entries = @entries.where(member: @member) if @member
       end
@@ -129,8 +136,10 @@ module Orgs
       end
     end
 
+    # The tag page lists entries of many days, which are never edited together.
+    #
     def mode
-      @mode ||= params[:mode] || "read"
+      @mode ||= tag ? "read" : (params[:mode] || "read")
 
       raise ArgumentError, "invalid mode: #{@mode}" unless %w[read edit].include?(@mode)
 
@@ -148,6 +157,15 @@ module Orgs
         rescue Date::Error
           Time.zone.today
         end
+    end
+
+    # EntryLog stores tags downcased, so `?tag=Handover` and `?tag=%23handover` both
+    #   find what `#handover` was written as.
+    #
+    def tag
+      return @tag if defined?(@tag)
+
+      @tag = params[:tag].to_s.delete_prefix("#").downcase.presence
     end
 
     def days
@@ -168,6 +186,7 @@ module Orgs
 
     def group_by
       return params[:group_by] if params[:group_by]
+      return "tag" if tag
       return "date" if params[:date]
       return "member" if params[:member_id]
       return "project" if params[:project_id] # TODO: use slug

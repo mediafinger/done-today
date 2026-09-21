@@ -208,6 +208,105 @@ RSpec.describe "Orgs::Entries" do
 
       expect(response.body).not_to include("time-summary")
     end
+
+    it "links the tags of the tag line to their overview page" do
+      log("handed over #Handover")
+
+      link = read_day.at_css(".tag-info a.tag")
+
+      expect(link.text).to eq("#handover")
+      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read"))
+    end
+
+    it "links the tags inside a log, keeping how they were written" do
+      log("reviewed #PR123 today")
+
+      link = read_day.at_css("#entries a.tag")
+
+      expect(link.text).to eq("#PR123")
+      expect(link["href"]).to eq(entries_path(tag: "pr123", mode: "read"))
+    end
+
+    it "still escapes the rest of the log" do
+      log("<b>bold</b> #tagged")
+
+      read_day
+
+      expect(response.body).to include("&lt;b&gt;bold&lt;/b&gt;")
+      expect(response.body).not_to include("<b>bold</b>")
+    end
+  end
+
+  describe "GET /entries?tag=" do
+    let(:colleague) { create(:participant, project:).member }
+
+    def entry_on(date, log, by: member, status: "done")
+      day = Day.find_or_create_by!(project:, date: Date.parse(date))
+      create(:entry, day:, member: by, log:, status:)
+    end
+
+    def read_tag(tag, **params)
+      get entries_path(tag:, mode: "read", **params)
+      Nokogiri::HTML(response.body)
+    end
+
+    # the date and member heading of every listed line
+    def lines(page)
+      page.css("#entries li").map { |line| line.css(".entry-group-heading").map { it.text.squish } }
+    end
+
+    it "names the project and the tag in the headline" do
+      expect(read_tag("handover").at_css(".spacing-grid h2").text.squish).to eq("#{project.name} #handover")
+    end
+
+    it "lists the tagged entries newest first, with date and member on every line" do
+      entry_on("2026-09-01", "first #handover")
+      entry_on("2026-09-03", "third #handover", by: colleague)
+      entry_on("2026-09-03", "fourth #handover", by: colleague)
+      entry_on("2026-09-02", "untagged")
+
+      page = read_tag("handover")
+
+      expect(page.css("#entries li").map { it.text.squish }).to all(include("handover"))
+      expect(lines(page)).to eq([
+        [ "2026-09-03", colleague.name ],
+        [ "2026-09-03", colleague.name ],
+        [ "2026-09-01", member.name ]
+      ])
+      expect(page.at_css("#entries").text).to match(/fourth.*third.*first/m)
+    end
+
+    it "shows the status of each entry" do
+      entry_on("2026-09-01", "waiting #handover", status: "todo")
+
+      expect(read_tag("handover").at_css("#entries .btn-todo").text).to eq("todo")
+    end
+
+    it "leaves out entries of other projects" do
+      other = create(:participant, project: create(:project, org:), member:).project
+      create(:entry, day: create(:day, project: other), member:, log: "elsewhere #handover")
+
+      expect(read_tag("handover").at_css("#entries").text).not_to include("elsewhere")
+    end
+
+    it "finds the tag however it is written in the URL" do
+      entry_on("2026-09-01", "done #Handover")
+
+      expect(lines(read_tag("#HandOver")).size).to eq(1)
+    end
+
+    it "stays read-only, even when asked to edit" do
+      entry_on(Time.zone.today.iso8601, "today #handover")
+
+      page = read_tag("handover", mode: "edit")
+
+      expect(page.at_css("form")).to be_nil
+      expect(page.to_html).not_to include("add or edit")
+    end
+
+    it "says so when nothing carries the tag" do
+      expect(read_tag("nothing").text).to include("No entries are tagged #nothing yet.")
+    end
   end
 
   describe "POST /entries" do

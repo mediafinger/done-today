@@ -14,6 +14,29 @@ module EntriesHelper
     "grid-template-columns: #{tracks.join(' ')};"
   end
 
+  # Links a tag to the page listing its entries. The project only goes into the URL
+  #   when it is not the current one -- the tag page falls back to that anyway.
+  #
+  def tag_link(tag, project:, label: "##{tag}")
+    project_id = project.id unless project == current_project
+
+    link_to label, entries_path(tag:, mode: "read", project_id:), class: "tag"
+  end
+
+  # The log with its #tags linked. Walks the segments EntryLog tokenized, so a
+  #   linked tag is exactly what was stored as one; every other segment goes through
+  #   safe_join and is escaped -- the log itself is never marked html_safe.
+  #
+  def render_log(entry)
+    safe_join(
+      entry.parsed.segments.map do |segment|
+        type, raw = segment.first, segment.last
+
+        type == :tag ? tag_link(segment[1].downcase, project: entry.day.project, label: raw) : raw
+      end
+    )
+  end
+
   # Minutes since midnight as a clock time: 570 => "09:30". Hours run past 23
   #   on purpose (`end@25:30`, see EntryLog::MAX_HOUR), so they are not wrapped.
   #
