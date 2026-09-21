@@ -9,6 +9,8 @@
 </ul>
 
 <% @days.each do |day| %>
+  <%= render "orgs/entries/time_summary", entries: day.entries, project: @project, with_tags: false, date: day.date %>
+
   <ul>
     <% day.entries.each_with_index do |entry, index| %>
       <li class="nude">
