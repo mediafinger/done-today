@@ -30,14 +30,20 @@ RSpec.describe "Orgs::Projects" do
       lines = show_project.css(".time-info").map { it.text.squish }
 
       expect(lines).to eq([
-        "2026-09-02 Anna 08:00 – 09:30 · 1h30m total",
-        "2026-09-01 Anna 09:00 – 17:00 · 1h break · 7h total",
-        "2026-09-01 Zoe 10:00 – 12:30 · 2h30m total"
+        "2026-09-02 Anna 1h30m total",
+        "2026-09-01 Anna 7h total",
+        "2026-09-01 Zoe 2h30m total"
       ])
     end
 
     it "shows no time line for a day without time markup" do
       entry_on("2026-09-01", "wrote some code #handover")
+
+      expect(show_project.at_css(".time-info")).to be_nil
+    end
+
+    it "shows no time line while a member's day has no end yet" do
+      entry_on("2026-09-01", "start@09:00")
 
       expect(show_project.at_css(".time-info")).to be_nil
     end

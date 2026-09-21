@@ -9,7 +9,7 @@
 </ul>
 
 <% @days.each do |day| %>
-  <%= render "orgs/entries/time_summary", entries: day.entries, project: @project, with_tags: false, date: day.date %>
+  <%= render "orgs/projects/day_totals", day: %>
 
   <ul>
     <% day.entries.each_with_index do |entry, index| %>
