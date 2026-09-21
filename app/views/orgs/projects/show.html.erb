@@ -9,12 +9,12 @@
 </ul>
 
 <% @days.each do |day| %>
-  <%= render "orgs/projects/day_totals", day: %>
+  <% totals = TimeSummary.by_member(day.entries).to_h { |member, summary| [ member.id, summary.total_minutes ] }.compact %>
 
   <ul>
     <% day.entries.each_with_index do |entry, index| %>
       <li class="nude">
-        <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member %>
+        <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member, totals: %>
       </li>
     <% end %>
   </ul>
