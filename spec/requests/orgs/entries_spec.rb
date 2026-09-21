@@ -127,6 +127,89 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "the time and tag information of a day" do
+    let(:day) { create(:day, project:, date: Date.new(2026, 9, 21)) }
+
+    def log(text, status: "done")
+      create(:entry, day:, member:, log: text, status:)
+    end
+
+    def read_day
+      get entries_path(date: day.date.iso8601, mode: "read")
+      Nokogiri::HTML(response.body)
+    end
+
+    it "shows start, end, breaks and the total above the entries" do
+      log("start@09:00")
+      log("#break for~30m")
+      log("end@17:30")
+
+      page = read_day
+      info = page.at_css(".time-summary .time-info").text.squish
+
+      expect(info).to eq("#{member.name} 09:00 – 17:30 · 30m break · 8h total")
+      expect(response.body.index("time-summary")).to be < response.body.index(%(id="entries"))
+    end
+
+    it "shows an open end while the day is still running" do
+      log("start@09:00")
+
+      expect(read_day.at_css(".time-info").text.squish).to eq("#{member.name} 09:00 – …")
+    end
+
+    it "lists every tag of the day in one line" do
+      log("start@09:00 #Handover")
+      log("paired on #PR123 and #handover")
+
+      expect(read_day.css(".tag-info .tag").map(&:text)).to eq(%w[#handover #pr123])
+    end
+
+    it "colours the time red while a time entry is todo" do
+      log("start@09:00", status: "doing")
+      log("end@17:00", status: "todo")
+
+      expect(read_day.at_css(".time-info")["class"]).to include("time-todo")
+    end
+
+    it "colours the time yellow while a time entry is doing" do
+      log("start@09:00", status: "doing")
+      log("end@17:00")
+
+      expect(read_day.at_css(".time-info")["class"]).to include("time-doing")
+    end
+
+    it "keeps the time uncoloured once every time entry is done" do
+      log("start@09:00")
+      log("unrelated", status: "todo")
+
+      expect(read_day.at_css(".time-info")["class"]).not_to match(/time-(todo|doing)/)
+    end
+
+    it "keeps the members' times apart" do
+      colleague = create(:participant, project:).member
+      log("start@09:00")
+      create(:entry, day:, member: colleague, log: "start@11:00")
+
+      expect(read_day.css(".time-info").map { it.text.squish }).to contain_exactly(
+        "#{member.name} 09:00 – …", "#{colleague.name} 11:00 – …"
+      )
+    end
+
+    it "leaves out the block on a day without markup" do
+      log("wrote some code")
+
+      expect(read_day.at_css(".time-summary")).to be_nil
+    end
+
+    it "does not add up start and end times across days" do
+      log("start@09:00")
+
+      get entries_path(mode: "read")
+
+      expect(response.body).not_to include("time-summary")
+    end
+  end
+
   describe "POST /entries" do
     it "creates an entry on the given day" do
       expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" } } }

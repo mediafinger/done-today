@@ -134,6 +134,24 @@ ul {
   margin-top: -0.25rem;
 }
 
+/* The derived time and tag information above a day's entries. The status colours
+   match .btn-todo / .btn-doing, so an unfinished time entry reads the same here. */
+.time-summary p {
+  margin-bottom: 0.25rem;
+}
+
+.time-summary {
+  margin-bottom: 1rem;
+}
+
+.time-todo {
+  color: red;
+}
+
+.time-doing {
+  color: gold;
+}
+
 .spacing-grid {
   display: grid;
   grid-template-columns: minmax(8rem, 25%) minmax(1rem, 50%) minmax(6rem, 25%);
