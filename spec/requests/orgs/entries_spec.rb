@@ -259,7 +259,7 @@ RSpec.describe "Orgs::Entries" do
       expect(read_tag("handover").at_css(".spacing-grid h2").text.squish).to eq("#{project.name} #handover")
     end
 
-    it "lists the tagged entries newest first, with date and member on every line" do
+    it "lists the tagged entries newest first, showing date and member only where they change" do
       entry_on("2026-09-01", "first #handover")
       entry_on("2026-09-03", "third #handover", by: colleague)
       entry_on("2026-09-03", "fourth #handover", by: colleague)
@@ -270,7 +270,7 @@ RSpec.describe "Orgs::Entries" do
       expect(page.css("#entries li").map { it.text.squish }).to all(include("handover"))
       expect(lines(page)).to eq([
         [ "2026-09-03", colleague.name ],
-        [ "2026-09-03", colleague.name ],
+        [],
         [ "2026-09-01", member.name ]
       ])
       expect(page.at_css("#entries").text).to match(/fourth.*third.*first/m)

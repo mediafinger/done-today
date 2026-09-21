@@ -1,11 +1,8 @@
-<%# locals: (entry:, entries:, index:, with_date: false, with_project: false, with_member: false, grouped: true) %>
-
-<%# `grouped` shows a date / project / member only where it changes from the line
-    above. The tag page turns it off, as its lines jump between days and members. %>
+<%# locals: (entry:, entries:, index:, with_date: false, with_project: false, with_member: false) %>
 
 <%
   meta_columns = [ with_date, with_project, with_member ].count(true)
-  first_of_group = ->(attribute) { !grouped || index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
+  first_of_group = ->(attribute) { index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
 %>
 
 <li class="nude" id="<%= dom_id(entry) %>">
