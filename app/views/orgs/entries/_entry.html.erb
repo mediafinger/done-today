@@ -75,7 +75,7 @@
   <!-- read-only status: the same three states as the editable entry, without the form -->
   <div class="right">
     <% Entry::STATES.each do |state| %>
-      <span role="button" class="slim <%= entry.status == state ? "btn-#{state}" : 'btn-inactive' %>"><%= state %></span>
+      <span role="button" class="btn-compact <%= entry.status == state ? "btn-#{state}" : 'btn-inactive' %>"><%= state %></span>
     <% end %>
   </div>
 
