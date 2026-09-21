@@ -276,6 +276,19 @@ RSpec.describe "Orgs::Entries" do
       expect(page.at_css("#entries").text).to match(/fourth.*third.*first/m)
     end
 
+    it "puts the headings of a group on a row of their own, above its entries" do
+      entry_on("2026-09-01", "first #handover")
+      entry_on("2026-09-01", "second #handover")
+
+      page = read_tag("handover")
+      heading_rows = page.css("#entries .entry-heading-row")
+
+      expect(heading_rows.map { it.text.squish }).to eq([ "2026-09-01 #{member.name}" ])
+      expect(heading_rows.css(".btn-done")).to be_empty
+      expect(page.css("#entries .entry-grid:not(.entry-heading-row)").map { it.text.squish })
+        .to all(match(/handover todo doing done\z/))
+    end
+
     it "shows the status of each entry" do
       entry_on("2026-09-01", "waiting #handover", status: "todo")
 

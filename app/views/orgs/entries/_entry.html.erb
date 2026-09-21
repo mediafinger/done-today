@@ -6,47 +6,66 @@
 <%
   meta_columns = [ with_date, with_project, with_member, !totals.nil? ].count(true)
   first_of_group = ->(attribute) { index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
+
+  show_date = with_date && first_of_group.call(:day)
+  show_project = with_project && first_of_group.call(:project)
+  show_member = with_member && first_of_group.call(:member)
+  total = totals[entry.member_id] if totals && first_of_group.call(:member)
 %>
 
 <li class="nude" id="<%= dom_id(entry) %>">
+
+<%# The first entry of a group puts its headings on a row of their own, which
+    separates the groups visually; the log and status follow on the next row. %>
+<% if show_date || show_project || show_member || total %>
+  <div class="entry-grid entry-heading-row" style="<%= entry_grid_style(meta_columns:) %>">
+
+    <% if with_date %>
+      <div class="left">
+        <% if show_date %>
+          <h3 class="entry-group-heading">
+            <%= link_to entry.day.date.iso8601, entries_path(date: entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+          </h3>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if with_project %>
+      <div class="left">
+        <% if show_project %>
+          <h3 class="entry-group-heading">
+            <%= link_to entry.project.name, project_path(entry.day.project.slug), method: :get, class: "camouflage s-link" %>
+          </h3>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if with_member %>
+      <div class="left">
+        <% if show_member %>
+          <h3 class="entry-group-heading">
+            <%= link_to entry.member.name, entries_path(member_id: entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+          </h3>
+        <% end %>
+      </div>
+    <% end %>
+
+<!-- # BEWARE: totals is no heading, the AI just placed it here, mis-using an established pattern -->
+    <% if totals %>
+      <div class="left entry-total">
+        <% if total %>
+          (<%= format_minutes(total) %>)
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
+<% end %>
+
 <div class="entry-grid" style="<%= entry_grid_style(meta_columns:) %>">
 
-  <% if with_date %>
-    <div class="left">
-      <% if first_of_group.call(:day) %>
-        <h3 class="entry-group-heading">
-          <%= link_to entry.day.date.iso8601, entries_path(date: entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
-        </h3>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if with_project %>
-    <div class="left">
-      <% if first_of_group.call(:project) %>
-        <h3 class="entry-group-heading">
-          <%= link_to entry.project.name, project_path(entry.day.project.slug), method: :get, class: "camouflage s-link" %>
-        </h3>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if with_member %>
-    <div class="left">
-      <% if first_of_group.call(:member) %>
-        <h3 class="entry-group-heading">
-          <%= link_to entry.member.name, entries_path(member_id: entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
-        </h3>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if totals %>
-    <div class="left">
-      <% if first_of_group.call(:member) && totals[entry.member_id] %>
-        <h3 class="entry-group-heading">(<%= format_minutes(totals[entry.member_id]) %>)</h3>
-      <% end %>
-    </div>
+  <% meta_columns.times do %>
+    <div></div>
   <% end %>
 
   <div class="left">
@@ -54,7 +73,6 @@
   </div>
 
   <!-- read-only status: the same three states as the editable entry, without the form -->
-
   <div class="right">
     <% Entry::STATES.each do |state| %>
       <span role="button" class="slim <%= entry.status == state ? "btn-#{state}" : 'btn-inactive' %>"><%= state %></span>

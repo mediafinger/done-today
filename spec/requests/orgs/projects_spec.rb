@@ -19,9 +19,13 @@ RSpec.describe "Orgs::Projects" do
   end
 
   describe "GET /projects/:slug" do
-    # the date, member and total headings of all rows, in order
-    def headings(page)
-      page.css(".entry-group-heading").map { it.text.squish }
+    # the rows that separate the groups, holding date, member and total
+    def heading_rows(page)
+      page.css(".entry-heading-row").map { it.text.squish }
+    end
+
+    def totals(page)
+      page.css(".entry-total").map { it.text.squish }.compact_blank
     end
 
     it "shows the total time per day next to the member, without an extra line" do
@@ -33,23 +37,23 @@ RSpec.describe "Orgs::Projects" do
       entry_on("2026-09-02", "start@08:00 end@09:30")
 
       page = show_project
-      pairs = headings(page).each_cons(2).to_a
 
-      expect(pairs).to include([ "Anna", "(1h30m)" ], [ "Anna", "(7h)" ], [ "Zoe", "(2h30m)" ])
-      expect(headings(page).grep(/\A\(/).size).to eq(3)
+      expect(heading_rows(page)).to contain_exactly(
+        "2026-09-02 Anna (1h30m)", a_string_ending_with("Anna (7h)"), a_string_ending_with("Zoe (2h30m)")
+      )
       expect(page.at_css(".time-info")).to be_nil
     end
 
     it "shows no total for a day without time markup" do
       entry_on("2026-09-01", "wrote some code #handover")
 
-      expect(headings(show_project).grep(/\A\(/)).to be_empty
+      expect(totals(show_project)).to be_empty
     end
 
     it "shows no total while a member's day has no end yet" do
       entry_on("2026-09-01", "start@09:00")
 
-      expect(headings(show_project).grep(/\A\(/)).to be_empty
+      expect(totals(show_project)).to be_empty
     end
 
     it "does not repeat the tag line of the day page" do
