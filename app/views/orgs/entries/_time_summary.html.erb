@@ -1,19 +1,17 @@
-<%# locals: (entries:, project:, with_tags: true, date: nil) %>
+<%# locals: (entries:, project:) %>
 
 <%# One time line per member, since everyone in the project shares the day, then
-    all tags of the day in a single line. Renders nothing for a day without markup.
-    `date` labels each line where several days are listed one after another. %>
+    all tags of the day in a single line. Renders nothing for a day without markup. %>
 
 <%
   summaries = TimeSummary.by_member(entries).select { |_member, summary| summary.times? }
-  tags = with_tags ? TimeSummary.new(entries).tags : []
+  tags = TimeSummary.new(entries).tags
 %>
 
 <% if summaries.any? || tags.any? %>
   <div class="time-summary">
     <% summaries.each do |member, summary| %>
       <p class="time-info <%= "time-#{summary.status}" if summary.status %>">
-        <% if date %><%= date.iso8601 %><% end %>
         <strong><%= member.name %></strong>
         <%= format_clock(summary.start_minutes) %> – <%= format_clock(summary.end_minutes) %>
         <% if summary.break_minutes.positive? %>
