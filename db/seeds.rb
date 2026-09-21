@@ -81,9 +81,9 @@ end
 
 puts "Creating Entries"
 
-Day.find_each do |day|
-  Entry.create!(day:, org:, member: owner, log: Faker::Lorem.paragraph, status: Entry::STATES.sample)
-  Entry.create!(day:, org:, member: member, log: Faker::Lorem.paragraph, status: Entry::STATES.sample)
+Day.where(project:).find_each do |day|
+  Entry.create!(day:, member: owner, log: Faker::Lorem.paragraph, status: Entry::STATES.sample)
+  Entry.create!(day:, member: member, log: Faker::Lorem.paragraph, status: Entry::STATES.sample)
 end
 
 
