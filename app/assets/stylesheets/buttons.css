@@ -58,3 +58,12 @@ button {
   line-height: 80% !important;
   max-width: fit-content;
 }
+
+/* The read-only status of an entry: no higher than the line of text next to it
+   (0.8em x 1.75 plus the borders is about the log's 1.5em), so a row is only as
+   tall as its log. */
+.btn-compact {
+  font-size: 0.8em;
+  line-height: 1.75 !important;
+  padding: 0 0.5rem !important;
+}
