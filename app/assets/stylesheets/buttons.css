@@ -54,6 +54,31 @@ button {
   color: white !important;
 }
 
+/* A status that cannot be changed here: lighter colours than the buttons of the
+   edit view, and no hover, so it does not look clickable. */
+.btn-disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.btn-disabled.btn-todo {
+  background-color: #f7b5b5 !important;
+  border-color: #f7b5b5 !important;
+  color: darkred !important;
+}
+
+.btn-disabled.btn-doing {
+  background-color: #f8e892 !important;
+  border-color: #f8e892 !important;
+  color: #6b5800 !important;
+}
+
+.btn-disabled.btn-done {
+  background-color: #a9d8a9 !important;
+  border-color: #a9d8a9 !important;
+  color: darkgreen !important;
+}
+
 .slim {
   line-height: 80% !important;
   max-width: fit-content;
