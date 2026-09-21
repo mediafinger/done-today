@@ -46,9 +46,14 @@ module Orgs
         @locked = @unlockable && !@unlocked
 
         @entries =
-          editable_entries(member: current_member, entries: @day.entries)
-            .includes(:member, day: :project)
-            .order(status: :desc, created_at: :asc)
+          if @day.persisted?
+                      editable_entries(member: current_member, entries: @day.entries)
+                        .includes(:member, day: :project)
+                        .order(status: :desc, created_at: :asc)
+          else
+                      @day.entries
+          end
+
       elsif mode == "read"
         date_days = days
         date_days = date_days.where(date:) if params[:date].present?

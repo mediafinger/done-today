@@ -10,13 +10,6 @@
 
 
 <% if @mode == "edit" %>
-
-  <% if @locked %>
-    <p class="s-link">
-      This day is in the past and is locked, so a stray keystroke cannot rewrite it. Use "unlock to edit" above to change it.
-    </p>
-  <% end %>
-
   <ul class="bottom-spacer" id="editable-entries">
     <% if @locked %>
       <% @entries.each_with_index do |entry, index| %>
