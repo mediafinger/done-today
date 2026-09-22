@@ -417,6 +417,7 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin-24
+  arm64-darwin-25
   x86_64-linux
   x86_64-linux-gnu
   x86_64-linux-musl
@@ -459,7 +460,7 @@ DEPENDENCIES
   web-console
 
 RUBY VERSION
-   ruby 4.0.2p0
+   ruby 4.0.6p0
 
 BUNDLED WITH
    2.7.2
