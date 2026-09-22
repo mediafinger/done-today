@@ -55,4 +55,21 @@ module EntriesHelper
 
     rest.zero? ? "#{hours}h" : "#{hours}h#{rest}m"
   end
+
+  # An ISO calendar week, labelled with its week-based year: the week of
+  #   2027-01-01 is "2026 / w53", as that Friday still belongs to 2026's last week.
+  #
+  def week_label(date)
+    date.strftime("%G / w%V")
+  end
+
+  # The heading of a period on the project page: a week links to its entries.
+  #
+  def period_heading(period, view:, project:)
+    case view
+    when "weeks"
+      link_to week_label(period.start), entries_path(week: period.start.strftime(PeriodSummary::WEEK_PARAM), project_id: project.id),
+        method: :get, class: "camouflage s-link"
+    end
+  end
 end

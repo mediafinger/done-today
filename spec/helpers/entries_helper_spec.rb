@@ -15,6 +15,20 @@ RSpec.describe EntriesHelper do
     end
   end
 
+  describe "#week_label" do
+    it "names the ISO week and its year" do
+      expect(helper.week_label(Date.new(2026, 9, 22))).to eq("2026 / w39")
+    end
+
+    it "pads the week number" do
+      expect(helper.week_label(Date.new(2026, 1, 28))).to eq("2026 / w05")
+    end
+
+    it "takes the year the week belongs to, not the calendar year" do
+      expect(helper.week_label(Date.new(2027, 1, 1))).to eq("2026 / w53")
+    end
+  end
+
   describe "#format_minutes" do
     it "writes a duration the way for~ reads it" do
       expect([ 90, 60, 45, 0 ].map { helper.format_minutes(it) }).to eq(%w[1h30m 1h 45m 0m])

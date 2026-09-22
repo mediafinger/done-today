@@ -249,6 +249,53 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "GET /entries?week=" do
+    def entry_on(date, log)
+      day = Day.find_or_create_by!(project:, date: Date.parse(date))
+      create(:entry, day:, member:, log:)
+    end
+
+    def read_week(week, **params)
+      get entries_path(week:, project_id: project.id, **params)
+      Nokogiri::HTML(response.body)
+    end
+
+    it "lists the entries of the ISO week, newest day first" do
+      entry_on("2026-09-13", "sunday before")
+      entry_on("2026-09-14", "monday of w38")
+      entry_on("2026-09-20", "sunday of w38")
+      entry_on("2026-09-21", "monday after")
+
+      text = read_week("2026-W38").at_css("#entries").text
+
+      expect(text).to match(/sunday of w38.*monday of w38/m)
+      expect(text).not_to include("before")
+      expect(text).not_to include("after")
+    end
+
+    it "names the project and the week in the headline, without a project column" do
+      entry_on("2026-09-14", "monday of w38")
+
+      page = read_week("2026-W38")
+
+      expect(page.at_css(".spacing-grid h2").text.squish).to eq("#{project.name} 2026 / w38")
+      expect(page.css("#entries .entry-group-heading").map { it.text.squish }).to eq([ "2026-09-14", member.name ])
+    end
+
+    it "stays read-only, even when asked to edit" do
+      entry_on("2026-09-14", "monday of w38")
+
+      expect(read_week("2026-W38", mode: "edit").at_css("form")).to be_nil
+    end
+
+    it "ignores a week it cannot read instead of failing" do
+      read_week("2026-W99")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("w99")
+    end
+  end
+
   describe "GET /entries?tag=" do
     let(:colleague) { create(:participant, project:).member }
 

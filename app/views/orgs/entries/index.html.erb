@@ -4,6 +4,8 @@
   <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
 <% elsif @group_by == "tag" %>
   <%= render "orgs/entries/entries_nav_by_tag", tag: @tag, project: @project %>
+<% elsif @group_by == "week" %>
+  <%= render "orgs/entries/entries_nav_by_week", week: @week, project: @project %>
 <% elsif @group_by == "project" %>
   <%= render "orgs/entries/entries_nav_by_project", project: @project, mode: @mode %>
 <% else %>

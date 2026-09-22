@@ -1,5 +1,12 @@
 <h2><%= @project.name %></h2>
 
+<div class="project-views">
+  <% Orgs::ProjectsController::VIEWS.each do |view| %>
+    <%= link_to view, project_path(@project.slug, view: (view unless view == "days")), method: :get, role: "button",
+          class: "slim #{'btn-inactive' unless view == @view}", aria: { current: ("page" if view == @view) } %>
+  <% end %>
+</div>
+
 <ul class="bottom-spacer">
   <li class="nude">The participants</li>
   <% @project.participants.each do |participant| %>
@@ -8,14 +15,18 @@
   <li class="nude">Have added <%= @entries_count %> entries since <%= @project.created_at.to_date %></li>
 </ul>
 
-<% @days.each do |day| %>
-  <% totals = TimeSummary.by_member(day.entries).to_h { |member, summary| [ member.id, summary.total_minutes ] }.compact %>
+<% if @view == "days" %>
+  <% @days.each do |day| %>
+    <% totals = TimeSummary.by_member(day.entries).to_h { |member, summary| [ member.id, summary.total_minutes ] }.compact %>
 
-  <ul>
-    <% day.entries.each_with_index do |entry, index| %>
-      <li class="nude">
-        <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member, totals: %>
-      </li>
-    <% end %>
-  </ul>
+    <ul>
+      <% day.entries.each_with_index do |entry, index| %>
+        <li class="nude">
+          <%= render "orgs/entries/entry", entry: entry, entries: day.entries, index: index, with_date: @with_date, with_project: @with_project, with_member: @with_member, totals: %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+<% else %>
+  <%= render "orgs/projects/periods", periods: @periods, view: @view, project: @project %>
 <% end %>
