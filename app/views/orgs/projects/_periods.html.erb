@@ -10,7 +10,7 @@
 
     <ul>
       <% period.rows.each do |row| %>
-        <li class="nude">
+        <li class="nude left-spacer">
           <%= link_to row.member.name, entries_path(member_id: row.member.id, project_id: project.id), method: :get, class: "camouflage" %>
           <% if row.total_minutes %>
             (<%= format_minutes(row.total_minutes) %>)

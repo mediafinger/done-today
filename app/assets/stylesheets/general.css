@@ -112,6 +112,10 @@ ul {
   margin-bottom: 10%;
 }
 
+.left-spacer {
+  margin-left: 3.6rem !important;
+}
+
 .hgap {
   margin-right: 10%;
 }
