@@ -49,11 +49,7 @@ module EntriesHelper
   # A duration in the notation `for~` accepts: 90 => "1h30m", 60 => "1h", 45 => "45m".
   #
   def format_minutes(minutes)
-    hours, rest = minutes.divmod(60)
-
-    return "#{rest}m" if hours.zero?
-
-    rest.zero? ? "#{hours}h" : "#{hours}h#{rest}m"
+    TimeSummary.format_minutes(minutes)
   end
 
   # An ISO calendar week, labelled with its week-based year: the week of

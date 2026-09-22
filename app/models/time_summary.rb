@@ -23,6 +23,18 @@ class TimeSummary
       .map { |member, member_entries| [ member, new(member_entries) ] }
   end
 
+  # A duration in the notation `for~` accepts: 90 => "1h30m", 60 => "1h", 45 => "45m".
+  #   Lives here rather than in the helper alone, so TimeValidation can word its
+  #   messages the same way the pages do.
+  #
+  def self.format_minutes(minutes)
+    hours, rest = minutes.divmod(60)
+
+    return "#{rest}m" if hours.zero?
+
+    rest.zero? ? "#{hours}h" : "#{hours}h#{rest}m"
+  end
+
   # Each member's total per day, for lists that span several days:
   #   { [day_id, member_id] => minutes }, leaving out the days without a total.
   #

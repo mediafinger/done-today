@@ -139,6 +139,40 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "the time issues of a day in edit mode" do
+    let(:day) { create(:day, project:, date: Time.zone.yesterday) }
+
+    def edit_day
+      get entries_path(date: day.date.iso8601, mode: "edit", unlocked: "1")
+      Nokogiri::HTML(response.body)
+    end
+
+    it "explains the issues in a box above the entries" do
+      create(:entry, day:, member:, log: "start@09:00 kickoff")
+      create(:entry, day:, member:, log: "end@25:00 for~40h wrapped up", status: "todo")
+
+      box = edit_day.at_css("#time-issues")
+
+      expect(box.css("li").map { it.text.squish }).to eq([
+        "#{member.name} for~40h exceeds 24h",
+        "#{member.name} end@25:00 for~40h is still marked as todo"
+      ])
+      expect(response.body.index("time-issues")).to be < response.body.index(%(id="editable-entries"))
+    end
+
+    it "shows no box while the day adds up" do
+      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
+
+      expect(edit_day.at_css("#time-issues")).to be_nil
+    end
+
+    it "shows no box for a day that has no entries yet" do
+      get entries_path(date: "2026-03-01", mode: "edit")
+
+      expect(response.body).not_to include("time-issues")
+    end
+  end
+
   describe "the time and tag information of a day" do
     let(:day) { create(:day, project:, date: Date.new(2026, 9, 21)) }
 

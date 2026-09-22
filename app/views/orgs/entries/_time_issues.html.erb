@@ -1,0 +1,19 @@
+<%# locals: (issues:) %>
+
+<%# What the project's "validate times" found for this day, so it can be fixed here.
+    Renders nothing while the day adds up. %>
+
+<% if issues.present? %>
+  <div class="time-issues" id="time-issues">
+    <strong>These times do not add up:</strong>
+
+    <ul>
+      <% issues.each do |issue| %>
+        <li class="nude">
+          <span class="issue-member"><%= issue.member.name %></span>
+          <%= issue.message %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

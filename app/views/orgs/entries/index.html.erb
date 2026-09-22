@@ -14,6 +14,8 @@
 
 
 <% if @mode == "edit" %>
+  <%= render "orgs/entries/time_issues", issues: @issues %>
+
   <ul class="bottom-spacer" id="editable-entries">
     <% if @locked %>
       <% @entries.each_with_index do |entry, index| %>

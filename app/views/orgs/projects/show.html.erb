@@ -5,6 +5,8 @@
     <%= link_to view, project_path(@project.slug, view: (view unless view == "days")), method: :get, role: "button",
           class: "slim #{'btn-inactive' unless view == @view}", aria: { current: ("page" if view == @view) } %>
   <% end %>
+
+  <%= link_to "validate times", validate_times_project_path(@project.slug), method: :get, role: "button", class: "slim" %>
 </div>
 
 <ul class="bottom-spacer">
