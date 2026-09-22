@@ -9,10 +9,13 @@
     <h2> <%= project.name %> <%= week_label(week) %> </h2>
   </div>
 
-  <div class="center"></div>
+  <div class="center">
+    <%= link_to "weeks", project_path(project.slug, view: "weeks"), method: :get, role: "button", class: "slim" %>
+  </div>
 
   <div class="right">
-    <%= link_to "weeks", project_path(project.slug, view: "weeks"), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", entries_path(week: week_param(week - 1.week), project_id: project.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", entries_path(week: week_param(week + 1.week), project_id: project.id), method: :get, role: "button", class: "slim" %>
   </div>
 
 </div>

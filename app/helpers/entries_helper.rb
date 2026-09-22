@@ -63,13 +63,19 @@ module EntriesHelper
     date.strftime("%G / w%V")
   end
 
+  # The same week the way `?week=` takes it: "2026-W39".
+  #
+  def week_param(date)
+    date.strftime(PeriodSummary::WEEK_PARAM)
+  end
+
   # The heading of a period on the project page: a week links to its entries,
   #   a month is just its name.
   #
   def period_heading(period, view:, project:)
     case view
     when "weeks"
-      link_to week_label(period.start), entries_path(week: period.start.strftime(PeriodSummary::WEEK_PARAM), project_id: project.id),
+      link_to week_label(period.start), entries_path(week: week_param(period.start), project_id: project.id),
         method: :get, class: "camouflage s-link"
     when "months"
       tag.span(period.start.strftime("%Y - %m"), class: "s-link")

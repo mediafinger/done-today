@@ -282,6 +282,16 @@ RSpec.describe "Orgs::Entries" do
       expect(page.css("#entries .entry-group-heading").map { it.text.squish }).to eq([ "2026-09-14", member.name ])
     end
 
+    it "links to the previous and the next week, across the turn of the year" do
+      arrows = read_week("2026-W53").css(".spacing-grid .right a")
+
+      expect(arrows.map(&:text)).to eq(%w[⬅️ ➡️])
+      expect(arrows.map { it["href"] }).to eq([
+        entries_path(week: "2026-W52", project_id: project.id),
+        entries_path(week: "2027-W01", project_id: project.id)
+      ])
+    end
+
     it "stays read-only, even when asked to edit" do
       entry_on("2026-09-14", "monday of w38")
 
