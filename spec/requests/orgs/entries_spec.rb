@@ -48,6 +48,18 @@ RSpec.describe "Orgs::Entries" do
       expect(response.body).to include(%(<button name="entry[status]" type="submit" value="done"))
     end
 
+    # ENTER submits a form through its first submit button. When that was the "todo"
+    #   status button, every ENTER in the log field reset the status to todo.
+    it "makes a button without a status the one ENTER submits through" do
+      get entries_path(mode: "edit")
+
+      form = Nokogiri::HTML(response.body).at_css("##{ActionView::RecordIdentifier.dom_id(entry)} form")
+      default_button = form.at_css("button[type=submit]")
+
+      expect(default_button["name"]).to be_nil
+      expect(form.css("button[name='entry[status]']").size).to eq(Entry::STATES.size)
+    end
+
     it "no longer links the status to a PATCH url that drops the typed log" do
       get entries_path(mode: "edit")
 
@@ -347,6 +359,14 @@ RSpec.describe "Orgs::Entries" do
       patch entry_path(entry), params: { entry: { log: "Rewrote a spec" } }
 
       expect(entry.reload.log).to eq("Rewrote a spec")
+    end
+
+    it "keeps the status when only the log is submitted" do
+      entry.update!(status: "done")
+
+      patch entry_path(entry), params: { entry: { log: "Rewrote a spec" } }
+
+      expect(entry.reload.status).to eq("done")
     end
 
     it "updates the status" do

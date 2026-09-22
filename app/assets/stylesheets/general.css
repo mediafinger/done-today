@@ -134,6 +134,21 @@ ul {
   margin-top: -0.25rem;
 }
 
+/* The button ENTER submits a form through (see _editable_entry.html.erb). Moved out
+   of sight rather than `display: none`, so the browser still treats it as the
+   form's default button. */
+.default-submit {
+  border: 0 !important;
+  clip-path: inset(50%);
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden;
+  padding: 0 !important;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px !important;
+}
+
 /* The derived time and tag information above a day's entries. The status colours
    match .btn-todo / .btn-doing, so an unfinished time entry reads the same here. */
 .time-summary p {
