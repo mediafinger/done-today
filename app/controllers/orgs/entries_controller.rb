@@ -29,7 +29,7 @@ module Orgs
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
-      @with_project = false if tag # the tag page names its project in the headline
+      @with_project = false if tag || week # these pages name their project in the headline
       # TODO: or handle only current_project in this controller and leave the rest for the projects_controller ?!
 
       if params[:member_id]
@@ -58,6 +58,7 @@ module Orgs
       elsif mode == "read"
         date_days = days
         date_days = date_days.where(date:) if params[:date].present?
+        date_days = date_days.where(date: week..(week + 6.days)) if week
 
         # start@ / end@ only add up within a single day
         @with_time_summary = @group_by == "date" && params[:date].present?
@@ -70,6 +71,9 @@ module Orgs
               .where("entries.tags @> ARRAY[?]::text[]", tag)
               .joins(:day)
               .order(Day.arel_table[:date].desc, created_at: :desc)
+          elsif week
+            # newest day first, like the project page the week is linked from
+            @entries.joins(:day).order(Day.arel_table[:date].desc, status: :desc, created_at: :asc)
           else
             @entries.order(status: :desc, created_at: :asc)
           end
@@ -136,10 +140,10 @@ module Orgs
       end
     end
 
-    # The tag page lists entries of many days, which are never edited together.
+    # The tag and week pages list entries of many days, which are never edited together.
     #
     def mode
-      @mode ||= tag ? "read" : (params[:mode] || "read")
+      @mode ||= tag || week ? "read" : (params[:mode] || "read")
 
       raise ArgumentError, "invalid mode: #{@mode}" unless %w[read edit].include?(@mode)
 
@@ -168,6 +172,19 @@ module Orgs
       @tag = params[:tag].to_s.delete_prefix("#").downcase.presence
     end
 
+    # The Monday of the ISO week in `?week=2026-W39`, or nil for none or an invalid one.
+    #
+    def week
+      return @week if defined?(@week)
+
+      @week =
+        begin
+          Date.strptime(params[:week], PeriodSummary::WEEK_PARAM) if params[:week].present?
+        rescue Date::Error
+          nil
+        end
+    end
+
     def days
       @days ||= current_org.days.where(project:)
     end
@@ -187,6 +204,7 @@ module Orgs
     def group_by
       return params[:group_by] if params[:group_by]
       return "tag" if tag
+      return "week" if week
       return "date" if params[:date]
       return "member" if params[:member_id]
       return "project" if params[:project_id] # TODO: use slug

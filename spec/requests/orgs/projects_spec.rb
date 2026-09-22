@@ -80,4 +80,62 @@ RSpec.describe "Orgs::Projects" do
       expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read", project_id: other.id))
     end
   end
+
+  describe "GET /projects/:slug?view=weeks" do
+    def show_weeks
+      get project_path(project.slug, view: "weeks")
+      Nokogiri::HTML(response.body)
+    end
+
+    before do
+      member.update!(name: "Zoe")
+      anna = create(:participant, project:, member: create(:member, org:, name: "Anna")).member
+      entry_on("2026-09-21", "start@09:00 #handover")
+      entry_on("2026-09-21", "#break for~30m")
+      entry_on("2026-09-21", "end@17:30 reviewed #PR123")
+      entry_on("2026-09-23", "wrote code #handover", by: anna)
+      entry_on("2026-09-14", "start@10:00 end@12:00")
+    end
+
+    it "puts each week on its own line, newest first, linked to the week's entries" do
+      headings = show_weeks.css(".period h3 a")
+
+      expect(headings.map(&:text)).to eq([ "2026 / w39", "2026 / w38" ])
+      expect(headings.first["href"]).to eq(entries_path(week: "2026-W39", project_id: project.id))
+    end
+
+    it "lists the members of the week alphabetically, with their total and tags" do
+      lines = show_weeks.css(".period").first.css("li").map { it.text.squish }
+
+      expect(lines).to eq([ "Anna #handover", "Zoe (8h) #break #handover #pr123" ])
+    end
+
+    it "links the members and their tags" do
+      line = show_weeks.css(".period").first.css("li").last
+
+      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.css("a.tag").map { it["href"] }).to eq(
+        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+      )
+    end
+
+    it "shows neither the logs nor any status buttons" do
+      page = show_weeks
+
+      expect(page.text).not_to include("reviewed")
+      expect(page.css("#{Entry::STATES.map { ".btn-#{it}" }.join(', ')}")).to be_empty
+    end
+
+    it "marks the current view in the switcher" do
+      expect(show_weeks.at_css(".project-views [aria-current=page]").text).to eq("weeks")
+    end
+  end
+
+  it "falls back to the days for an unknown view" do
+    entry_on("2026-09-21", "wrote some code")
+
+    get project_path(project.slug, view: "decades")
+
+    expect(response.body).to include("wrote some code")
+  end
 end

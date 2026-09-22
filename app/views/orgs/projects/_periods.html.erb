@@ -1,0 +1,24 @@
+<%# locals: (periods:, view:, project:) %>
+
+<%# One block per week: the heading on its own line, then one line per member who
+    added entries in it -- their total time and their tags, no logs, no statuses. %>
+
+<% periods.each do |period| %>
+  <div class="period">
+    <h3 class="entry-group-heading"><%= period_heading(period, view:, project:) %></h3>
+
+    <ul>
+      <% period.rows.each do |row| %>
+        <li class="nude">
+          <%= link_to row.member.name, entries_path(member_id: row.member.id, project_id: project.id), method: :get, class: "camouflage" %>
+          <% if row.total_minutes %>
+            (<%= format_minutes(row.total_minutes) %>)
+          <% end %>
+          <% row.tags.each do |tag| %>
+            <%= tag_link(tag, project:) %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

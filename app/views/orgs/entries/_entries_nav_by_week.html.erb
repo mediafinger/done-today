@@ -1,0 +1,18 @@
+<%# locals: (week:, project:) %>
+
+<%# Read-only like the tag page: a week spans many days, and a day is only ever
+    edited on its own page. `week` is its Monday. %>
+
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> <%= project.name %> <%= week_label(week) %> </h2>
+  </div>
+
+  <div class="center"></div>
+
+  <div class="right">
+    <%= link_to "weeks", project_path(project.slug, view: "weeks"), method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>
