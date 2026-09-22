@@ -146,8 +146,16 @@ RSpec.describe "Orgs::Projects" do
       entry_on("2026-08-31", "start@10:00 end@12:00 #onboarding")
     end
 
-    it "puts each month on its own line, newest first" do
-      expect(show_months.css(".period h3").map { it.text.squish }).to eq([ "2026 - 09", "2026 - 08" ])
+    it "puts each month on its own line, newest first, with its first and last calendar week" do
+      expect(show_months.css(".period h3").map { it.text.squish }).to eq([ "2026-09 (w36 - w40)", "2026-08 (w31 - w36)" ])
+    end
+
+    it "links the month's first and last calendar week to their entries" do
+      links = show_months.css(".period h3").first.css("a")
+
+      expect(links.map { it["href"] }).to eq([
+        entries_path(week: "2026-W36", project_id: project.id), entries_path(week: "2026-W40", project_id: project.id)
+      ])
     end
 
     it "lists the members of the month alphabetically, with their total and the month's tags" do

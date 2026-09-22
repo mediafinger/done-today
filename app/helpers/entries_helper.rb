@@ -70,7 +70,8 @@ module EntriesHelper
   end
 
   # The heading of a period on the project page: a week links to its entries,
-  #   a month is just its name.
+  #   a month names itself and links its first and last calendar week --
+  #   "2026-09 (w36 - w40)".
   #
   def period_heading(period, view:, project:)
     case view
@@ -78,7 +79,12 @@ module EntriesHelper
       link_to week_label(period.start), entries_path(week: week_param(period.start), project_id: project.id),
         method: :get, class: "camouflage s-link"
     when "months"
-      tag.span(period.start.strftime("%Y - %m"), class: "s-link")
+      weeks = [ period.start, period.start.end_of_month ].map do |date|
+        # no `s-link` of their own: its 65% font size would shrink them a second time
+        link_to date.strftime("w%V"), entries_path(week: week_param(date), project_id: project.id), method: :get, class: "camouflage"
+      end
+
+      tag.span(safe_join([ period.start.strftime("%Y-%m"), " (", weeks.first, " - ", weeks.last, ")" ]), class: "s-link")
     end
   end
 end
