@@ -1,6 +1,6 @@
 module Orgs
   class ProjectsController < AppOrgBaseController
-    VIEWS = %w[days weeks].freeze
+    VIEWS = %w[days weeks months].freeze
 
     def show
       # TODO: only display:
@@ -22,7 +22,7 @@ module Orgs
             .includes(entries: :member)
             .order("days.date desc", "entries.status desc", "entries.member_id asc", "entries.created_at asc")
       else
-        # the week view sums up each member's time and tags instead of listing entries
+        # the week and month views sum up each member's time and tags instead of listing entries
         @periods = PeriodSummary.public_send(@view, @project.entries.includes(:member, :day))
       end
 

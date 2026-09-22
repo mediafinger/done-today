@@ -131,6 +131,48 @@ RSpec.describe "Orgs::Projects" do
     end
   end
 
+  describe "GET /projects/:slug?view=months" do
+    def show_months
+      get project_path(project.slug, view: "months")
+      Nokogiri::HTML(response.body)
+    end
+
+    before do
+      member.update!(name: "Zoe")
+      anna = create(:participant, project:, member: create(:member, org:, name: "Anna")).member
+      entry_on("2026-09-01", "start@09:00 end@17:00 #handover")
+      entry_on("2026-09-30", "start@09:00 #break for~1h end@12:00 reviewed #PR123")
+      entry_on("2026-09-15", "wrote code #roadmap", by: anna)
+      entry_on("2026-08-31", "start@10:00 end@12:00 #onboarding")
+    end
+
+    it "puts each month on its own line, newest first" do
+      expect(show_months.css(".period h3").map { it.text.squish }).to eq([ "2026 - 09", "2026 - 08" ])
+    end
+
+    it "lists the members of the month alphabetically, with their total and the month's tags" do
+      lines = show_months.css(".period").first.css("li").map { it.text.squish }
+
+      expect(lines).to eq([ "Anna #roadmap", "Zoe (10h) #break #handover #pr123" ])
+    end
+
+    it "links the members and their tags" do
+      line = show_months.css(".period").first.css("li").last
+
+      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.css("a.tag").map { it["href"] }).to eq(
+        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+      )
+    end
+
+    it "shows neither the logs nor any status buttons" do
+      page = show_months
+
+      expect(page.text).not_to include("reviewed")
+      expect(page.css("#{Entry::STATES.map { ".btn-#{it}" }.join(', ')}")).to be_empty
+    end
+  end
+
   it "falls back to the days for an unknown view" do
     entry_on("2026-09-21", "wrote some code")
 
