@@ -1,16 +1,20 @@
 <%# locals: (entry:, entries:, index:, with_date: false, with_project: false, with_member: false, totals: nil) %>
 
-<%# `totals` maps member ids to the minutes they worked on the entry's day, and
-    adds a column showing them next to the member. %>
+<%# `totals` maps [day id, member id] to the minutes the member worked that day
+    (TimeSummary.day_totals), and adds a column showing them next to the member
+    on the first line of each day and member. %>
 
 <%
   meta_columns = [ with_date, with_project, with_member, !totals.nil? ].count(true)
   first_of_group = ->(attribute) { index.zero? || entry.public_send(attribute) != entries[index - 1].public_send(attribute) }
 
+  # a new day starts a new group, so its first line names the member again
+  first_of_member = first_of_group.call(:day) || first_of_group.call(:member)
+
   show_date = with_date && first_of_group.call(:day)
   show_project = with_project && first_of_group.call(:project)
-  show_member = with_member && first_of_group.call(:member)
-  total = totals[entry.member_id] if totals && first_of_group.call(:member)
+  show_member = with_member && first_of_member
+  total = totals[[ entry.day_id, entry.member_id ]] if totals && first_of_member
 %>
 
 <li class="nude" id="<%= dom_id(entry) %>">

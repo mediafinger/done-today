@@ -273,6 +273,16 @@ RSpec.describe "Orgs::Entries" do
       expect(text).not_to include("after")
     end
 
+    it "shows each member's total on the first line of every day" do
+      entry_on("2026-09-15", "start@09:00 end@14:30")
+      entry_on("2026-09-15", "wrote code")
+      entry_on("2026-09-14", "start@10:00 end@12:00")
+
+      rows = read_week("2026-W38").css("#entries .entry-heading-row").map { it.text.squish }
+
+      expect(rows).to eq([ "2026-09-15 #{member.name} (5h30m)", "2026-09-14 #{member.name} (2h)" ])
+    end
+
     it "names the project and the week in the headline, without a project column" do
       entry_on("2026-09-14", "monday of w38")
 
