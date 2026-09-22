@@ -31,6 +31,27 @@ RSpec.describe PeriodSummary do
     end
   end
 
+  describe ".months" do
+    it "groups by calendar month, newest month first, each starting on the 1st" do
+      entry("2026-08-31", "log a")
+      entry("2026-09-01", "log b")
+      entry("2026-09-30", "log c")
+
+      months = described_class.months(project.entries.includes(:member, :day))
+
+      expect(months.map(&:start)).to eq([ Date.new(2026, 9, 1), Date.new(2026, 8, 1) ])
+    end
+
+    it "adds up a member's day totals over the whole month" do
+      entry("2026-09-01", "start@09:00 end@17:00")
+      entry("2026-09-30", "start@09:00 end@10:30")
+
+      months = described_class.months(project.entries.includes(:member, :day))
+
+      expect(months.first.rows.first.total_minutes).to eq(570)
+    end
+  end
+
   describe "#rows" do
     it "has one row per member, in alphabetical order regardless of case" do
       entry("2026-09-21", "log a", by: bert)
