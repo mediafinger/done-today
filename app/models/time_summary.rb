@@ -23,6 +23,16 @@ class TimeSummary
       .map { |member, member_entries| [ member, new(member_entries) ] }
   end
 
+  # Each member's total per day, for lists that span several days:
+  #   { [day_id, member_id] => minutes }, leaving out the days without a total.
+  #
+  def self.day_totals(entries)
+    entries
+      .group_by { |entry| [ entry.day_id, entry.member_id ] }
+      .transform_values { |day_entries| new(day_entries).total_minutes }
+      .compact
+  end
+
   def initialize(entries)
     @entries = entries.to_a
   end

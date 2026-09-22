@@ -17,7 +17,7 @@
 
 <% if @view == "days" %>
   <% @days.each do |day| %>
-    <% totals = TimeSummary.by_member(day.entries).to_h { |member, summary| [ member.id, summary.total_minutes ] }.compact %>
+    <% totals = TimeSummary.day_totals(day.entries) %>
 
     <ul>
       <% day.entries.each_with_index do |entry, index| %>

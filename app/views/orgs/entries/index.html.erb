@@ -33,7 +33,7 @@
 
   <ul id="entries">
     <% @entries.each_with_index do |entry, index| %>
-      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project, totals: @totals %>
     <% end %>
   </ul>
 

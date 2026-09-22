@@ -94,6 +94,25 @@ RSpec.describe TimeSummary do
     end
   end
 
+  describe ".day_totals" do
+    it "keys each member's total by day and member, leaving out days without one" do
+      zoe = create(:member, org: day.org, name: "Zoe")
+      next_day = create(:day, project: day.project, date: day.date + 1)
+      entry("start@09:00")
+      entry("#break for~30m")
+      entry("end@12:00")
+      entry("start@10:00 end@11:00", by: zoe)
+      create(:entry, day: next_day, member:, log: "start@08:00 end@09:15")
+      create(:entry, day: next_day, member: zoe, log: "no times here")
+
+      expect(described_class.day_totals(Entry.includes(:member))).to eq(
+        [ day.id, member.id ] => 150,
+        [ day.id, zoe.id ] => 60,
+        [ next_day.id, member.id ] => 75
+      )
+    end
+  end
+
   describe ".by_member" do
     it "keeps the members' times apart, ordered by name" do
       anna = create(:member, org: day.org, name: "Anna")

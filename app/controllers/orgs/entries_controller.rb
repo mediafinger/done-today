@@ -79,6 +79,9 @@ module Orgs
           end
 
         @entries = @entries.where(member: @member) if @member
+
+        # the week page shows each member's day total, like the project page
+        @totals = TimeSummary.day_totals(@entries) if week
       end
     end
 
