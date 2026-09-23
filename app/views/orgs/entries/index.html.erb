@@ -14,7 +14,7 @@
 
 
 <% if @mode == "edit" %>
-  <%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes if @validated %>
+  <%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes, asked: @asked_to_validate if @issues %>
 
   <ul class="bottom-spacer" id="editable-entries">
     <% if @locked %>

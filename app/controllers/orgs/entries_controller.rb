@@ -56,7 +56,7 @@ module Orgs
           end
 
         @validatable = @entries.any?
-        validate_day if @validatable && params[:validate].present?
+        validate_day if @validatable
 
       elsif mode == "read"
         date_days = days
@@ -123,13 +123,14 @@ module Orgs
 
     private
 
-    # The check runs on demand, and only over what this member logged here today:
-    #   the entries of other participants are theirs to correct.
+    # Checks what this member logged here today -- the entries of other participants
+    #   are theirs to correct. Issues are always worth showing; the all-clear only
+    #   answers the button, as a day nobody asked about does not need praising.
     #
     def validate_day
       own_entries = @day.entries.where(member: current_member).includes(:member, day: :project).to_a
 
-      @validated = true
+      @asked_to_validate = params[:validate].present?
       @issues = TimeValidation.new(own_entries).issues
       @validated_minutes = TimeSummary.new(own_entries).total_minutes
     end

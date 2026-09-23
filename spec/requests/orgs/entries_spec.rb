@@ -164,8 +164,17 @@ RSpec.describe "Orgs::Entries" do
       expect(edit_day.at_css("a[href*='validate']")).to be_nil
     end
 
-    it "checks nothing until it is asked to" do
+    it "explains the issues without being asked" do
       create(:entry, day:, member:, log: "start@09:00 kickoff")
+
+      page = edit_day
+
+      expect(page.at_css("#time-issues").text).to include("has no end@")
+      expect(page.at_css("#validation-ok")).to be_nil
+    end
+
+    it "keeps quiet about a day that adds up until the button is pressed" do
+      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
 
       page = edit_day
 
