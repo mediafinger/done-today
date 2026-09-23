@@ -181,6 +181,56 @@ RSpec.describe "Orgs::Projects" do
     end
   end
 
+  describe "GET /projects/:slug/validate_times" do
+    def validate
+      get validate_times_project_path(project.slug)
+      Nokogiri::HTML(response.body)
+    end
+
+    it "offers the check from the project page" do
+      expect(show_project.at_css(%(a[href="#{validate_times_project_path(project.slug)}"])).text).to eq("validate times")
+    end
+
+    it "lists the days that do not add up, newest first, with the reason" do
+      entry_on("2026-09-21", "start@09:00 kickoff")
+      entry_on("2026-09-20", "end@17:00 wrapped up")
+      entry_on("2026-09-19", "start@09:00 end@17:00 a sound day")
+
+      blocks = validate.css(".period").map { it.text.squish }
+
+      expect(blocks).to eq([
+        "2026-09-21 #{member.name} start@09:00 has no end@",
+        "2026-09-20 #{member.name} end@17:00 has no start@"
+      ])
+    end
+
+    it "links each day to its unlocked edit page" do
+      entry_on("2026-09-21", "start@09:00 kickoff")
+
+      expect(validate.at_css(".period h3 a")["href"])
+        .to eq(entries_path(date: "2026-09-21", mode: "edit", unlocked: "1", project_id: project.id))
+    end
+
+    it "reports a day without any time markup" do
+      entry_on("2026-09-21", "wrote some code")
+
+      expect(validate.at_css(".period").text.squish).to include("no time information given")
+    end
+
+    it "says so when every day adds up" do
+      entry_on("2026-09-21", "start@09:00 end@17:00 a sound day")
+
+      expect(validate.text).to include("Every day with entries adds up.")
+    end
+
+    it "leaves out the days of other projects" do
+      other = create(:participant, project: create(:project, org:), member:).project
+      create(:entry, day: create(:day, project: other, date: Date.new(2026, 9, 21)), member:, log: "start@09:00 elsewhere")
+
+      expect(validate.text).to include("Every day with entries adds up.")
+    end
+  end
+
   it "falls back to the days for an unknown view" do
     entry_on("2026-09-21", "wrote some code")
 

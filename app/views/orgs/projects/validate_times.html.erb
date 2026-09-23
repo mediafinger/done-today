@@ -1,0 +1,36 @@
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+  <div class="left">
+    <h2> <%= @project.name %> times </h2>
+  </div>
+
+  <div class="center"></div>
+
+  <div class="right">
+    <%= link_to "project", project_path(@project.slug), method: :get, role: "button", class: "slim" %>
+  </div>
+</div>
+
+<%# Every day that cannot add up, newest first. The date opens the day unlocked for
+    editing, which is where the same issues are listed again above the entries. %>
+
+<% if @days_with_issues.any? %>
+  <% @days_with_issues.each do |day, issues| %>
+    <div class="period">
+      <h3 class="entry-group-heading">
+        <%= link_to day.date.iso8601, entries_path(date: day.date, mode: "edit", unlocked: "1", project_id: @project.id),
+              method: :get, class: "camouflage s-link" %>
+      </h3>
+
+      <ul>
+        <% issues.each do |issue| %>
+          <li class="nude left-spacer">
+            <span class="issue-member"><%= issue.member.name %></span>
+            <%= issue.message %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+<% else %>
+  <p>Every day with entries adds up.</p>
+<% end %>

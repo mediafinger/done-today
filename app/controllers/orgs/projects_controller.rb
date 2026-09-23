@@ -44,6 +44,22 @@ module Orgs
       @projects = current_org.projects.order(:name) # require_member guarantees the org
     end
 
+    # Checks the time markup of every day that has entries, so the days that cannot
+    #   add up can be corrected before anyone reads a total off them.
+    #
+    def validate_times
+      @project = current_org.projects.find_by!(slug: params[:slug])
+
+      @days_with_issues =
+        @project.days
+          .includes(entries: :member)
+          .order(date: :desc)
+          .filter_map do |day|
+            issues = TimeValidation.new(day.entries).issues
+            [ day, issues ] if issues.any?
+          end
+    end
+
     private
 
     # an unknown view falls back to the days, rather than raising

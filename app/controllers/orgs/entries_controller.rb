@@ -46,6 +46,9 @@ module Orgs
         @unlockable = date.past?
         @locked = @unlockable && !@unlocked
 
+        # the same issues the validation page lists, above the entries that cause them
+        @issues = TimeValidation.new(@day.entries).issues if @day.persisted?
+
         @entries =
           if @day.persisted?
                       editable_entries(member: current_member, entries: @day.entries)

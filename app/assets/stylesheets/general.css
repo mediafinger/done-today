@@ -134,6 +134,20 @@ ul {
   width: 100%;
 }
 
+/* The time issues of a day, above its entries -- and the member they belong to,
+   which is a label rather than a heading. */
+.time-issues {
+  background-color: bisque;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+.issue-member {
+  font-weight: lighter;
+  font-size: 65%;
+  margin-right: 0.25rem;
+}
+
 .entry-group-heading {
   margin-top: -0.25rem;
 }

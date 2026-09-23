@@ -25,7 +25,9 @@ Rails.application.routes.draw do
 
   scope module: :orgs, path: "/" do
     resources :entries, only: %i[ index create update ]
-    resources :projects, param: :slug, only: %i[ index show ]
+    resources :projects, param: :slug, only: %i[ index show ] do
+      get :validate_times, on: :member
+    end
 
     get "settings", to: "settings#show"
   end
