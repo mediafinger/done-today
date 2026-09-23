@@ -11,8 +11,8 @@
 
       <%# a full month of everybody's entries -- for an owner of the org or the project %>
       <% if exportable && view == "months" %>
-        <%= link_to "CSV", export_csv_project_path(project.slug, month: period.start.strftime("%Y-%m")),
-              method: :get, class: "camouflage s-link" %>
+        <%= link_to "Export", export_csv_project_path(project.slug, month: period.start.strftime("%Y-%m")),
+              method: :get, role: "button", class: "slim" %>
       <% end %>
     </h3>
 

@@ -254,7 +254,7 @@ RSpec.describe "Orgs::Projects" do
       it "offers the export next to each month" do
         link = months_page.at_css(".period h3 a[href*='export_csv']")
 
-        expect(link.text).to eq("CSV")
+        expect(link.text).to eq("Export")
         expect(link["href"]).to eq(export_csv_project_path(project.slug, month: "2026-03"))
       end
 
