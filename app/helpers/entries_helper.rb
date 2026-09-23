@@ -43,7 +43,7 @@ module EntriesHelper
   def format_clock(minutes)
     return "…" if minutes.nil?
 
-    format("%02d:%02d", *minutes.divmod(60))
+    TimeSummary.format_clock(minutes)
   end
 
   # A duration in the notation `for~` accepts: 90 => "1h30m", 60 => "1h", 45 => "45m".

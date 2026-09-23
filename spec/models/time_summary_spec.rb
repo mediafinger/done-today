@@ -60,6 +60,14 @@ RSpec.describe TimeSummary do
     end
   end
 
+  describe "#net_minutes" do
+    it "goes negative when the breaks are longer than the day" do
+      summary = described_class.new([ entry("start@12:00"), entry("end@18:00"), entry("#break from@15:00 for~400m") ])
+
+      expect(summary).to have_attributes(net_minutes: -40, total_minutes: 0)
+    end
+  end
+
   describe "#times?" do
     it "is false for entries without start@, end@ or a timed break" do
       expect(described_class.new([ entry("#break"), entry("from@10:00 to@11:00") ])).not_to be_times
