@@ -1,0 +1,16 @@
+<%# locals: (issues:, total_minutes: nil, asked: false) %>
+
+<%# What the check found for this member's day: the box the project's time validation
+    explains its findings in, which stands whether or not it was asked for -- and,
+    when "validate" was pressed, the all-clear with the day's total. %>
+
+<% if issues.any? %>
+  <%= render "orgs/entries/time_issues", issues: issues %>
+<% elsif asked %>
+  <div class="validation-ok" id="validation-ok">
+    <strong>Everything ok</strong>
+    <% if total_minutes %>
+      &mdash; <%= format_minutes(total_minutes) %> total
+    <% end %>
+  </div>
+<% end %>

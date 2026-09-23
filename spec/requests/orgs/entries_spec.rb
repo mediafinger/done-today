@@ -139,19 +139,54 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
-  describe "the time issues of a day in edit mode" do
+  describe "validating a day in edit mode" do
     let(:day) { create(:day, project:, date: Time.zone.yesterday) }
 
-    def edit_day
-      get entries_path(date: day.date.iso8601, mode: "edit", unlocked: "1")
+    def edit_day(**params)
+      get entries_path(date: day.date.iso8601, mode: "edit", unlocked: "1", **params)
       Nokogiri::HTML(response.body)
+    end
+
+    def validate_day
+      edit_day(validate: "1")
+    end
+
+    it "offers the check once the day has entries" do
+      create(:entry, day:, member:, log: "start@09:00 kickoff")
+
+      link = edit_day.at_css(".spacing-grid a[href*='validate']")
+
+      expect(link.text).to eq("validate")
+      expect(link["href"]).to eq(entries_path(date: day.date, mode: "edit", unlocked: true, validate: "1"))
+    end
+
+    it "does not offer it for a day without entries" do
+      expect(edit_day.at_css("a[href*='validate']")).to be_nil
+    end
+
+    it "explains the issues without being asked" do
+      create(:entry, day:, member:, log: "start@09:00 kickoff")
+
+      page = edit_day
+
+      expect(page.at_css("#time-issues").text).to include("has no end@")
+      expect(page.at_css("#validation-ok")).to be_nil
+    end
+
+    it "keeps quiet about a day that adds up until the button is pressed" do
+      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
+
+      page = edit_day
+
+      expect(page.at_css("#time-issues")).to be_nil
+      expect(page.at_css("#validation-ok")).to be_nil
     end
 
     it "explains the issues in a box above the entries" do
       create(:entry, day:, member:, log: "start@09:00 kickoff")
       create(:entry, day:, member:, log: "end@25:00 for~40h wrapped up", status: "todo")
 
-      box = edit_day.at_css("#time-issues")
+      box = validate_day.at_css("#time-issues")
 
       expect(box.css("li").map { it.text.squish }).to eq([
         "#{member.name} for~40h exceeds 24h",
@@ -160,16 +195,26 @@ RSpec.describe "Orgs::Entries" do
       expect(response.body.index("time-issues")).to be < response.body.index(%(id="editable-entries"))
     end
 
-    it "shows no box while the day adds up" do
-      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
+    it "reports the all-clear with the day's total" do
+      create(:entry, day:, member:, log: "start@09:00 kickoff")
+      create(:entry, day:, member:, log: "#break for~30m")
+      create(:entry, day:, member:, log: "end@17:00 wrapped up")
 
-      expect(edit_day.at_css("#time-issues")).to be_nil
+      page = validate_day
+
+      expect(page.at_css("#validation-ok").text.squish).to eq("Everything ok — 7h30m total")
+      expect(page.at_css("#time-issues")).to be_nil
     end
 
-    it "shows no box for a day that has no entries yet" do
-      get entries_path(date: "2026-03-01", mode: "edit")
+    it "checks only this member's own entries" do
+      colleague = create(:participant, project:).member
+      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
+      create(:entry, day:, member: colleague, log: "start@09:00 an open day of theirs")
 
-      expect(response.body).not_to include("time-issues")
+      page = validate_day
+
+      expect(page.at_css("#validation-ok")).to be_present
+      expect(page.at_css("#time-issues")).to be_nil
     end
   end
 

@@ -125,6 +125,45 @@ RSpec.describe TimeValidation do
     end
   end
 
+  describe "breaks longer than the day" do
+    it "reports a day whose breaks swallow more than the whole day" do
+      expect(messages(entry("start@12:00"), entry("end@18:00"), entry("#break from@15:00 for~400m")))
+        .to include("the breaks add up to 6h40m, longer than the 6h between 12:00 and 18:00")
+    end
+
+    it "accepts a day whose breaks take exactly all of it" do
+      expect(messages(entry("start@12:00"), entry("end@18:00"), entry("#break from@12:00 for~360m")))
+        .to be_empty
+    end
+  end
+
+  describe "an entry that runs past the end of the day" do
+    it "reports a from@ whose duration reaches beyond end@" do
+      expect(messages(entry("start@12:00"), entry("end@18:00"), entry("#break from@15:00 for~400m")))
+        .to include("from@15:00 for~400m runs until 21:40, past end@18:00")
+    end
+
+    it "reports a from@ and to@ range that ends after end@" do
+      expect(messages(entry("start@09:00"), entry("end@17:00"), entry("from@16:00 to@18:30 review")))
+        .to include("from@16:00 to@18:30 runs until 18:30, past end@17:00")
+    end
+
+    it "accepts an entry that finishes exactly at end@" do
+      expect(messages(entry("start@09:00"), entry("end@17:00"), entry("from@16:00 for~60m review"))).to be_empty
+    end
+
+    it "says nothing about a bare for~, which gives no finishing time" do
+      found = messages(entry("start@09:00"), entry("end@17:00"), entry("#break for~600m"))
+
+      expect(found).to eq([ "the breaks add up to 10h, longer than the 8h between 09:00 and 17:00" ])
+    end
+
+    it "says nothing while the day has no end@ yet" do
+      expect(messages(entry("start@09:00"), entry("from@16:00 for~600m review")))
+        .to eq([ "start@09:00 has no end@" ])
+    end
+  end
+
   describe "time that is still todo" do
     it "reports a time entry in status todo" do
       expect(messages(entry("start@09:00"), entry("end@17:00", status: "todo")))

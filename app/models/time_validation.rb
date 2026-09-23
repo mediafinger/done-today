@@ -77,7 +77,8 @@ class TimeValidation
       return [ Issue.new(code: :no_times, message: "no time information given", member:, entry: nil) ]
     end
 
-    boundary_issues(member, timed) + total_issues(member, member_entries) + todo_issues(member, timed)
+    boundary_issues(member, timed) + total_issues(member, member_entries) +
+      past_end_issues(member, member_entries) + todo_issues(member, timed)
   end
 
   def boundary_issues(member, timed)
@@ -97,11 +98,43 @@ class TimeValidation
   end
 
   def total_issues(member, member_entries)
-    total = TimeSummary.new(member_entries).total_minutes
+    summary = TimeSummary.new(member_entries)
+    net = summary.net_minutes
 
-    return [] if total.nil? || total <= DAY_MINUTES
+    return [] if net.nil?
 
-    [ issue(:over_a_day, "the day adds up to #{TimeSummary.format_minutes(total)}, more than 24h", member, nil) ]
+    # a day of no working time at all is thin but possible; less than none is not
+    if net.negative?
+      return [ issue(:negative_total, "the breaks add up to #{TimeSummary.format_minutes(summary.break_minutes)}, " \
+                                      "longer than the #{TimeSummary.format_minutes(summary.end_minutes - summary.start_minutes)} " \
+                                      "between #{TimeSummary.format_clock(summary.start_minutes)} and " \
+                                      "#{TimeSummary.format_clock(summary.end_minutes)}", member, nil) ]
+    end
+
+    return [] if net <= DAY_MINUTES
+
+    [ issue(:over_a_day, "the day adds up to #{TimeSummary.format_minutes(net)}, more than 24h", member, nil) ]
+  end
+
+  # An entry that starts at a time and runs for a duration finishes at a time, and
+  #   that time has no business being after the day ended. Only from@ gives a
+  #   starting point -- a bare for~ says how long something took, not when.
+  #
+  def past_end_issues(member, member_entries)
+    ending = TimeSummary.new(member_entries).end_minutes
+
+    return [] if ending.nil?
+
+    member_entries.filter_map do |entry|
+      log = entry.parsed
+      next unless log.from_minutes && log.duration_minutes
+
+      finish = log.from_minutes + log.duration_minutes
+      next if finish <= ending
+
+      issue(:past_end, "#{duration_markers(entry)} runs until #{TimeSummary.format_clock(finish)}, " \
+                       "past end@#{TimeSummary.format_clock(ending)}", member, entry)
+    end
   end
 
   # A total that counts a todo entry is a plan, not a record of the day.

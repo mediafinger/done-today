@@ -23,6 +23,13 @@ class TimeSummary
       .map { |member, member_entries| [ member, new(member_entries) ] }
   end
 
+  # Minutes since midnight as a clock time: 570 => "09:30". Hours run past 23 on
+  #   purpose (`end@25:30`, see EntryLog::MAX_HOUR), so they are not wrapped.
+  #
+  def self.format_clock(minutes)
+    format("%02d:%02d", *minutes.divmod(60))
+  end
+
   # A duration in the notation `for~` accepts: 90 => "1h30m", 60 => "1h", 45 => "45m".
   #   Lives here rather than in the helper alone, so TimeValidation can word its
   #   messages the same way the pages do.
@@ -65,9 +72,21 @@ class TimeSummary
   # negative working day, so it yields nil rather than a number.
   #
   def total_minutes
+    return nil if net_minutes.nil?
+
+    # breaks longer than the day would make this negative, which is a mistake in the
+    #   markup rather than a working time -- TimeValidation reports it, and no page
+    #   has any use for a negative total in the meantime
+    [ net_minutes, 0 ].max
+  end
+
+  # The working time as the markup states it, which is negative when the breaks are
+  #   longer than the day between start@ and end@.
+  #
+  def net_minutes
     return nil unless start_minutes && end_minutes && end_minutes > start_minutes
 
-    [ end_minutes - start_minutes - break_minutes, 0 ].max
+    end_minutes - start_minutes - break_minutes
   end
 
   def times?

@@ -1,5 +1,5 @@
 <% if @group_by == "date" %>
-  <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked %>
+  <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
 <% elsif @group_by == "member" %>
   <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
 <% elsif @group_by == "tag" %>
@@ -14,7 +14,7 @@
 
 
 <% if @mode == "edit" %>
-  <%= render "orgs/entries/time_issues", issues: @issues %>
+  <%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes, asked: @asked_to_validate if @issues %>
 
   <ul class="bottom-spacer" id="editable-entries">
     <% if @locked %>

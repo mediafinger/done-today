@@ -46,9 +46,6 @@ module Orgs
         @unlockable = date.past?
         @locked = @unlockable && !@unlocked
 
-        # the same issues the validation page lists, above the entries that cause them
-        @issues = TimeValidation.new(@day.entries).issues if @day.persisted?
-
         @entries =
           if @day.persisted?
                       editable_entries(member: current_member, entries: @day.entries)
@@ -57,6 +54,9 @@ module Orgs
           else
                       @day.entries
           end
+
+        @validatable = @entries.any?
+        validate_day if @validatable
 
       elsif mode == "read"
         date_days = days
@@ -122,6 +122,18 @@ module Orgs
     end
 
     private
+
+    # Checks what this member logged here today -- the entries of other participants
+    #   are theirs to correct. Issues are always worth showing; the all-clear only
+    #   answers the button, as a day nobody asked about does not need praising.
+    #
+    def validate_day
+      own_entries = @day.entries.where(member: current_member).includes(:member, day: :project).to_a
+
+      @asked_to_validate = params[:validate].present?
+      @issues = TimeValidation.new(own_entries).issues
+      @validated_minutes = TimeSummary.new(own_entries).total_minutes
+    end
 
     def set_unlocked
       @unlocked = params[:unlocked].present?
