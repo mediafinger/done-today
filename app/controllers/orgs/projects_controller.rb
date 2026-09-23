@@ -11,6 +11,9 @@ module Orgs
       @entries_count = @project.entries.size
       @view = view
 
+      # an owner of the org, or of this project, may export everybody's entries
+      @exportable = current_member.exportable_projects(relation: @project).exists?
+
       if @view == "days"
         @with_date = true
         @with_project = false
@@ -44,6 +47,25 @@ module Orgs
       @projects = current_org.projects.order(:name) # require_member guarantees the org
     end
 
+    # One month of the project as a CSV: a line per member, with their hours and
+    #   the tags they used most. Scoped to the projects the member may export, so
+    #   an unauthorized slug is a 404 rather than a download.
+    #
+    def export_csv
+      project = current_member.exportable_projects.find_by!(slug: params[:slug])
+
+      # an export is named after its month, so a month that cannot be read has to be
+      #   corrected rather than guessed
+      if month.nil?
+        return redirect_to project_path(project.slug, view: "months"),
+          alert: t("controllers.unknown_month", month: params[:month].presence || "nothing")
+      end
+
+      export = MonthExport.new(project:, month:)
+
+      send_data export.to_csv, filename: export.filename, type: "text/csv"
+    end
+
     # Checks the time markup of every day that has entries, so the days that cannot
     #   add up can be corrected before anyone reads a total off them.
     #
@@ -65,6 +87,18 @@ module Orgs
     # an unknown view falls back to the days, rather than raising
     def view
       params[:view].presence_in(VIEWS) || "days"
+    end
+
+    # `?month=2026-09`, or nil when it is missing or unreadable
+    def month
+      return @month if defined?(@month)
+
+      @month =
+        begin
+          Date.strptime(params[:month].to_s, "%Y-%m")
+        rescue Date::Error
+          nil
+        end
     end
   end
 end

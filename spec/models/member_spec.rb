@@ -50,6 +50,42 @@ RSpec.describe Member do
     end
   end
 
+  describe "#exportable_projects" do
+    it "returns every project of the org for an org owner" do
+      owner = create(:member, :owner, org:)
+
+      expect(owner.exportable_projects).to contain_exactly(joined_project, other_project)
+    end
+
+    it "returns the projects a plain member owns as a participant" do
+      member = create(:member, org:)
+      create(:participant, :owner, project: joined_project, member:)
+      create(:participant, project: other_project, member:)
+
+      expect(member.exportable_projects).to contain_exactly(joined_project)
+    end
+
+    it "returns nothing for a member who only participates" do
+      member = create(:member, org:)
+      create(:participant, project: joined_project, member:)
+
+      expect(member.exportable_projects).to be_empty
+    end
+
+    it "returns nothing for a member without roles" do
+      member = create(:member, org:)
+      member.roles = [] # roles are validated, so this branch is only reachable in memory
+
+      expect(member.exportable_projects).to be_empty
+    end
+
+    it "narrows the result by the given relation" do
+      owner = create(:member, :owner, org:)
+
+      expect(owner.exportable_projects(relation: joined_project)).to contain_exactly(joined_project)
+    end
+  end
+
   describe "#readable_entries" do
     it "returns the entries of the member's projects" do
       member = create(:member, org:)

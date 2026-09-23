@@ -8,7 +8,9 @@
 #   PeriodSummary.weeks(project.entries).first.rows.first.total_minutes # => 2310
 #
 class PeriodSummary
-  Row = Data.define(:member, :total_minutes, :tags)
+  # `tags` are the member's tags of the period, `tag_counts` the same tags with how
+  #   often they were used, most used first and alphabetically within a count.
+  Row = Data.define(:member, :total_minutes, :tags, :tag_counts)
 
   # How a week travels in a URL: 2026-W39. strptime turns it back into its Monday.
   WEEK_PARAM = "%G-W%V"
@@ -46,11 +48,17 @@ class PeriodSummary
         .group_by(&:member)
         .sort_by { |member, _entries| member.name.downcase }
         .map do |member, member_entries|
-          Row.new(member:, total_minutes: total_minutes(member_entries), tags: member_entries.flat_map(&:tags).uniq.sort)
+          tags = member_entries.flat_map(&:tags)
+
+          Row.new(member:, total_minutes: total_minutes(member_entries), tags: tags.uniq.sort, tag_counts: counted(tags))
         end
   end
 
   private
+
+  def counted(tags)
+    tags.tally.sort_by { |tag, count| [ -count, tag ] }.to_h
+  end
 
   # nil rather than 0 when no day of the period has both start@ and end@ --
   #   nothing was logged, which is not the same as zero hours worked.

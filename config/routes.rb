@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     resources :entries, only: %i[ index create update ]
     resources :projects, param: :slug, only: %i[ index show ] do
       get :validate_times, on: :member
+      get :export_csv, on: :member
     end
 
     get "settings", to: "settings#show"

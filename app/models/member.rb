@@ -37,6 +37,23 @@ class Member < ApplicationRecord
     end
   end
 
+  # A full export covers everybody's entries, so it takes ownership: of the org,
+  #   which covers all of its projects, or of the single project.
+  #
+  def exportable_projects(relation: nil)
+    projects = org.projects
+    projects = projects.where(id: relation) if relation.present?
+
+    if roles.include?("owner")
+      projects
+    elsif roles.include?("member")
+      ownership = participations.includes_all_roles(%w[owner])
+      projects.where(id: ownership.select(:project_id))
+    else
+      projects.none
+    end
+  end
+
   def readable_projects(relation: nil)
     projects = org.projects
     projects = projects.where(id: relation) if relation.present?

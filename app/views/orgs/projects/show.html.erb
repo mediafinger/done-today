@@ -30,5 +30,5 @@
     </ul>
   <% end %>
 <% else %>
-  <%= render "orgs/projects/periods", periods: @periods, view: @view, project: @project %>
+  <%= render "orgs/projects/periods", periods: @periods, view: @view, project: @project, exportable: @exportable %>
 <% end %>

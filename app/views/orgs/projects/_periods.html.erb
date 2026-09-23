@@ -1,4 +1,4 @@
-<%# locals: (periods:, view:, project:) %>
+<%# locals: (periods:, view:, project:, exportable: false) %>
 
 <%# One block per week or month: the heading on its own line, then one line per
     member who added entries in it -- their total time and their tags, no logs,
@@ -6,7 +6,15 @@
 
 <% periods.each do |period| %>
   <div class="period">
-    <h3 class="entry-group-heading"><%= period_heading(period, view:, project:) %></h3>
+    <h3 class="entry-group-heading">
+      <%= period_heading(period, view:, project:) %>
+
+      <%# a full month of everybody's entries -- for an owner of the org or the project %>
+      <% if exportable && view == "months" %>
+        <%= link_to "Export", export_csv_project_path(project.slug, month: period.start.strftime("%Y-%m")),
+              method: :get, role: "button", class: "slim" %>
+      <% end %>
+    </h3>
 
     <ul>
       <% period.rows.each do |row| %>
