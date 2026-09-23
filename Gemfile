@@ -6,6 +6,7 @@ gem "rails", "~> 8.1.3"
 
 gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
+gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
 gem "faker", "~> 3.4"
 gem "freezolite", "~> 0.5" # Freeze your strings
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]

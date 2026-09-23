@@ -231,6 +231,71 @@ RSpec.describe "Orgs::Projects" do
     end
   end
 
+  describe "GET /projects/:slug/export_csv" do
+    # an owner of the org who also owns the project -- the only one who may export
+    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, :owner, org:, name: "Zoe")) }
+
+    def months_page
+      get project_path(project.slug, view: "months")
+      Nokogiri::HTML(response.body)
+    end
+
+    def export(**params)
+      get export_csv_project_path(project.slug, **params)
+    end
+
+    context "with both ownerships" do
+      before do
+        sign_in_and_open(owning_participant)
+        create(:entry, day: create(:day, project:, date: Date.new(2026, 3, 21)), member: owning_participant.member,
+               log: "start@09:00 end@17:00 #handover")
+      end
+
+      it "offers the export next to each month" do
+        link = months_page.at_css(".period h3 a[href*='export_csv']")
+
+        expect(link.text).to eq("CSV")
+        expect(link["href"]).to eq(export_csv_project_path(project.slug, month: "2026-03"))
+      end
+
+      it "sends the month as a CSV, named after org, project and month" do
+        export(month: "2026-03")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/csv")
+        expect(response.headers["Content-Disposition"]).to include("#{org.name.parameterize}_#{project.name.parameterize}_2026_03_done.csv")
+        expect(response.body.split("\n").last).to eq("#{org.name},#{project.name},Zoe,8.0,#handover")
+      end
+
+      it "falls back to the running month when the month cannot be read" do
+        export(month: "not-a-month")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to include(Time.zone.today.strftime("%Y_%m_doing.csv"))
+      end
+    end
+
+    context "without both ownerships" do
+      it "does not offer the export to a plain participant" do
+        expect(months_page.at_css("a[href*='export_csv']")).to be_nil
+      end
+
+      it "does not export for a plain participant" do
+        export(month: "2026-03")
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "does not export for an org owner who does not own the project" do
+        org_owner = create(:member, :owner, org:)
+        sign_in_and_open(create(:participant, project:, member: org_owner))
+        export(month: "2026-03")
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
   it "falls back to the days for an unknown view" do
     entry_on("2026-09-21", "wrote some code")
 
