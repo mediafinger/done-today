@@ -51,40 +51,38 @@ RSpec.describe Member do
   end
 
   describe "#exportable_projects" do
-    it "returns a project an org owner also owns as a participant" do
+    it "returns every project of the org for an org owner" do
       owner = create(:member, :owner, org:)
-      create(:participant, :owner, project: joined_project, member: owner)
 
-      expect(owner.exportable_projects).to contain_exactly(joined_project)
+      expect(owner.exportable_projects).to contain_exactly(joined_project, other_project)
     end
 
-    it "returns nothing for an org owner who only participates in the project" do
-      owner = create(:member, :owner, org:)
-      create(:participant, project: joined_project, member: owner)
-
-      expect(owner.exportable_projects).to be_empty
-    end
-
-    it "returns nothing for a project owner who does not own the org" do
+    it "returns the projects a plain member owns as a participant" do
       member = create(:member, org:)
       create(:participant, :owner, project: joined_project, member:)
+      create(:participant, project: other_project, member:)
+
+      expect(member.exportable_projects).to contain_exactly(joined_project)
+    end
+
+    it "returns nothing for a member who only participates" do
+      member = create(:member, org:)
+      create(:participant, project: joined_project, member:)
 
       expect(member.exportable_projects).to be_empty
     end
 
-    it "leaves out the projects the owner does not own" do
-      owner = create(:member, :owner, org:)
-      create(:participant, :owner, project: joined_project, member: owner)
-      create(:participant, project: other_project, member: owner)
+    it "returns nothing for a member without roles" do
+      member = create(:member, org:)
+      member.roles = [] # roles are validated, so this branch is only reachable in memory
 
-      expect(owner.exportable_projects).to contain_exactly(joined_project)
+      expect(member.exportable_projects).to be_empty
     end
 
     it "narrows the result by the given relation" do
       owner = create(:member, :owner, org:)
-      create(:participant, :owner, project: joined_project, member: owner)
 
-      expect(owner.exportable_projects(relation: other_project)).to be_empty
+      expect(owner.exportable_projects(relation: joined_project)).to contain_exactly(joined_project)
     end
   end
 

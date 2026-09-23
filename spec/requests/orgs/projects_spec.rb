@@ -232,8 +232,8 @@ RSpec.describe "Orgs::Projects" do
   end
 
   describe "GET /projects/:slug/export_csv" do
-    # an owner of the org who also owns the project -- the only one who may export
-    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, :owner, org:, name: "Zoe")) }
+    # a member who owns the project, one of the two who may export
+    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
 
     def months_page
       get project_path(project.slug, view: "months")
@@ -244,7 +244,7 @@ RSpec.describe "Orgs::Projects" do
       get export_csv_project_path(project.slug, **params)
     end
 
-    context "with both ownerships" do
+    context "with ownership of the project" do
       before do
         sign_in_and_open(owning_participant)
         create(:entry, day: create(:day, project:, date: Date.new(2026, 3, 21)), member: owning_participant.member,
@@ -267,15 +267,22 @@ RSpec.describe "Orgs::Projects" do
         expect(response.body.split("\n").last).to eq("#{org.name},#{project.name},Zoe,8.0,#handover")
       end
 
-      it "falls back to the running month when the month cannot be read" do
+      it "says so when the month cannot be read, rather than exporting another one" do
         export(month: "not-a-month")
 
-        expect(response).to have_http_status(:ok)
-        expect(response.headers["Content-Disposition"]).to include(Time.zone.today.strftime("%Y_%m_doing.csv"))
+        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(flash[:alert]).to include("not-a-month")
+      end
+
+      it "says so when no month is given at all" do
+        export
+
+        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(flash[:alert]).to be_present
       end
     end
 
-    context "without both ownerships" do
+    context "without any ownership" do
       it "does not offer the export to a plain participant" do
         expect(months_page.at_css("a[href*='export_csv']")).to be_nil
       end
@@ -285,13 +292,17 @@ RSpec.describe "Orgs::Projects" do
 
         expect(response).to have_http_status(:not_found)
       end
+    end
 
-      it "does not export for an org owner who does not own the project" do
+    context "with ownership of the org" do
+      it "exports a project the org owner only participates in" do
         org_owner = create(:member, :owner, org:)
         sign_in_and_open(create(:participant, project:, member: org_owner))
+
         export(month: "2026-03")
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/csv")
       end
     end
   end

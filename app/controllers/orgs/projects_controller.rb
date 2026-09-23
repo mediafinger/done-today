@@ -53,6 +53,14 @@ module Orgs
     #
     def export_csv
       project = current_member.exportable_projects.find_by!(slug: params[:slug])
+
+      # an export is named after its month, so a month that cannot be read has to be
+      #   corrected rather than guessed
+      if month.nil?
+        return redirect_to project_path(project.slug, view: "months"),
+          alert: t("controllers.unknown_month", month: params[:month].presence || "nothing")
+      end
+
       export = MonthExport.new(project:, month:)
 
       send_data export.to_csv, filename: export.filename, type: "text/csv"
@@ -81,12 +89,16 @@ module Orgs
       params[:view].presence_in(VIEWS) || "days"
     end
 
-    # `?month=2026-09`, falling back to the running month like the entries pages
-    #   fall back to today
+    # `?month=2026-09`, or nil when it is missing or unreadable
     def month
-      Date.strptime(params[:month].to_s, "%Y-%m")
-    rescue Date::Error
-      Time.zone.today.beginning_of_month
+      return @month if defined?(@month)
+
+      @month =
+        begin
+          Date.strptime(params[:month].to_s, "%Y-%m")
+        rescue Date::Error
+          nil
+        end
     end
   end
 end
