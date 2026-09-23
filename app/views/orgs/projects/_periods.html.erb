@@ -9,7 +9,7 @@
     <h3 class="entry-group-heading">
       <%= period_heading(period, view:, project:) %>
 
-      <%# a full month of everybody's entries -- only for an owner of org and project %>
+      <%# a full month of everybody's entries -- for an owner of the org or the project %>
       <% if exportable && view == "months" %>
         <%= link_to "CSV", export_csv_project_path(project.slug, month: period.start.strftime("%Y-%m")),
               method: :get, class: "camouflage s-link" %>

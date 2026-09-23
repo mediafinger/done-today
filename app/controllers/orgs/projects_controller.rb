@@ -11,7 +11,7 @@ module Orgs
       @entries_count = @project.entries.size
       @view = view
 
-      # only an owner of both the org and the project may export everybody's entries
+      # an owner of the org, or of this project, may export everybody's entries
       @exportable = current_member.exportable_projects(relation: @project).exists?
 
       if @view == "days"
