@@ -1,0 +1,15 @@
+<%# locals: (issues:, total_minutes: nil) %>
+
+<%# What "validate" found for this member's day: the same box the project's time
+    validation explains its findings in, or the all-clear with the day's total. %>
+
+<% if issues.any? %>
+  <%= render "orgs/entries/time_issues", issues: issues %>
+<% else %>
+  <div class="validation-ok" id="validation-ok">
+    <strong>Everything ok</strong>
+    <% if total_minutes %>
+      &mdash; <%= format_minutes(total_minutes) %> total
+    <% end %>
+  </div>
+<% end %>

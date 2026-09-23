@@ -1,4 +1,4 @@
-<%# locals: (date:, mode:, unlockable: false, unlocked: false) %>
+<%# locals: (date:, mode:, unlockable: false, unlocked: false, validatable: false) %>
 
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
@@ -17,6 +17,12 @@
 
     <% elsif mode == "edit" %>
       <%= link_to "view all", entries_path(date: date, mode: "read"), method: :get, role: "button", class: "slim" %>
+
+      <%# checks this member's own times of the day -- see EntriesController#validate_day %>
+      <% if validatable %>
+        <%= link_to "validate", entries_path(date: date, mode: "edit", unlocked: (unlocked || nil), validate: "1"),
+              method: :get, role: "button", class: "slim" %>
+      <% end %>
 
       <%# A past day is read-only until it is unlocked on purpose -- the toggle covers
           the whole day, and leaving the page drops it again. %>
