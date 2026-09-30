@@ -45,13 +45,16 @@ class EntryLog
   #
   TAG      = /\#(?<name>\p{Alnum}[\p{Alnum}_\/-]*)/
   TIME     = /(?<kind>start|end|from|to)@(?<h>\d{1,2}):(?<m>\d{2})\b/i
-  DURATION = /for~(?=\d)(?:(?<h>\d+)h)?(?:(?<m>\d+)m)?(?![\p{Alnum}])/i
+  # Hours may carry a decimal point or comma (`for~2.5h`, `for~2,5h`); minutes may not.
+  DURATION = /for~(?=\d)(?:(?<h>\d+(?:[.,]\d+)?)h)?(?:(?<m>\d+)m)?(?![\p{Alnum}])/i
 
   # Fallbacks, tried only where the strict patterns fail. They recognise "this was
   # meant to be time markup" so the typo can be reported instead of silently ignored.
   # `to@bob` does not look like a time at all and stays prose without an issue.
   MALFORMED_TIME     = /(?<kind>start|end|from|to)@(?=[\d:])[\p{Alnum}:]*/i
-  MALFORMED_DURATION = /for~[\p{Alnum}]*/i
+  # Takes in a decimal separator only when more follows, so `for~2.5hh` is reported
+  #   whole while the full stop after `for~2x.` stays prose.
+  MALFORMED_DURATION = /for~\p{Alnum}*(?:[.,]\p{Alnum}+)*/i
 
   TIME_KINDS = { "start" => :start, "end" => :end, "from" => :from, "to" => :to }.freeze
 
@@ -126,7 +129,7 @@ class EntryLog
     elsif (raw = scanner.scan(TIME))
       time_token(scanner, raw)
     elsif (raw = scanner.scan(DURATION))
-      [ :time, :for, (scanner[:h].to_i * 60) + scanner[:m].to_i, raw ]
+      duration_token(scanner, raw)
     elsif (raw = scanner.scan(MALFORMED_TIME))
       invalid_time(raw)
     elsif (raw = scanner.scan(MALFORMED_DURATION))
@@ -141,6 +144,14 @@ class EntryLog
     return invalid_time(raw) if hours > MAX_HOUR || minutes > MAX_MINUTE
 
     [ :time, TIME_KINDS.fetch(scanner[:kind].downcase), (hours * 60) + minutes, raw ]
+  end
+
+  # Fractional hours are rounded to whole minutes: `for~0.33h` => 20. A Rational
+  #   rather than a Float, so `for~2.5h` is exactly 150 without float noise.
+  def duration_token(scanner, raw)
+    hours = scanner[:h].to_s.tr(",", ".").to_r
+
+    [ :time, :for, (hours * 60).round + scanner[:m].to_i, raw ]
   end
 
   def invalid_time(raw)

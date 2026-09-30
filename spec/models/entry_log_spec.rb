@@ -98,6 +98,18 @@ RSpec.describe EntryLog do
       expect(parse("for~1h30m").duration_minutes).to eq(90)
     end
 
+    it "reads decimal hours with a point or a comma" do
+      expect(parse("#break for~2.5h").duration_minutes).to eq(150)
+      expect(parse("#break for~2,5h").duration_minutes).to eq(150)
+      expect(parse("for~1.5h30m").duration_minutes).to eq(120)
+      expect(parse("for~2.5h").segments).to eq([ [ :time, :for, 150, "for~2.5h" ] ])
+    end
+
+    it "rounds decimal hours to whole minutes" do
+      expect(parse("for~0.33h").duration_minutes).to eq(20)
+      expect(parse("for~0.125h").duration_minutes).to eq(8) # 7.5 rounds up
+    end
+
     it "has no duration when nothing says how long it took" do
       expect(parse("just some prose").duration_minutes).to be_nil
     end
@@ -140,6 +152,12 @@ RSpec.describe EntryLog do
       expect(codes("for~90")).to eq([ :invalid_duration ]) # no unit
       expect(parse("for~1hh").segments).to eq([ [ :text, "for~1hh" ] ])
       expect(parse("for~1hh").duration_minutes).to be_nil
+    end
+
+    it "reports a mistyped decimal duration whole, but leaves a trailing full stop as prose" do
+      expect(codes("for~1.5m")).to eq([ :invalid_duration ]) # minutes take no decimals
+      expect(parse("for~2.5hh").issues.map(&:message)).to eq([ "for~2.5hh is not a valid duration, it is kept as text" ])
+      expect(parse("for~2x.").issues.map(&:message)).to eq([ "for~2x is not a valid duration, it is kept as text" ])
     end
 
     it "leaves prose that only looks like markup alone" do
