@@ -66,6 +66,23 @@ module Orgs
       send_data export.to_csv, filename: export.filename, type: "text/csv"
     end
 
+    # One member's days of a month as a CSV: a line per day, with their hours and
+    #   the tags they used most. Same permission as the month export.
+    #
+    def export_days_csv
+      project = current_member.exportable_projects.find_by!(slug: params[:slug])
+      member = project.org.members.find(params[:member_id])
+
+      if month.nil?
+        return redirect_to project_path(project.slug, view: "months"),
+          alert: t("controllers.unknown_month", month: params[:month].presence || "nothing")
+      end
+
+      export = DaysExport.new(project:, member:, month:)
+
+      send_data export.to_csv, filename: export.filename, type: "text/csv"
+    end
+
     # Checks the time markup of every day that has entries, so the days that cannot
     #   add up can be corrected before anyone reads a total off them.
     #

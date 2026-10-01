@@ -7,13 +7,9 @@ require "csv"
 #   export.filename # => "org-1_2026-v1_2026_09_done.csv"
 #
 class MonthExport
-  HEADERS = %w[org project member hours tags].freeze
+  include CsvExport
 
-  # `#break` is not work, and TimeSummary has already subtracted it from the hours,
-  #   so listing it among the topics worked on would be misleading.
-  EXCLUDED_TAGS = %w[break].freeze
-
-  TAG_LIMIT = 20
+  HEADERS = %w[org project member month hours tags].freeze
 
   attr_reader :project, :month
 
@@ -28,7 +24,7 @@ class MonthExport
       csv << HEADERS
 
       rows.each do |row|
-        csv << [ project.org.name, project.name, row.member.name, hours(row), tags(row) ]
+        csv << [ project.org.name, project.name, row.member.name, month.strftime("%Y-%m"), hours(row), tags(row) ]
       end
     end
   end
@@ -56,23 +52,5 @@ class MonthExport
 
   def entries
     project.entries.includes(:member, :day).where(days: { date: month..month.end_of_month }).references(:days)
-  end
-
-  def hours(row)
-    (row.total_minutes.to_i / 60.0).round(2)
-  end
-
-  def tags(row)
-    row.tag_counts
-      .except(*EXCLUDED_TAGS)
-      .keys
-      .first(TAG_LIMIT)
-      .map { |tag| "##{tag}" }
-      .join(" ")
-  end
-
-  # Names travel into a filename, where spaces and slashes have no business.
-  def slug(name)
-    name.parameterize
   end
 end

@@ -264,7 +264,7 @@ RSpec.describe "Orgs::Projects" do
         expect(response).to have_http_status(:ok)
         expect(response.media_type).to eq("text/csv")
         expect(response.headers["Content-Disposition"]).to include("#{org.name.parameterize}_#{project.name.parameterize}_2026_03_done.csv")
-        expect(response.body.split("\n").last).to eq("#{org.name},#{project.name},Zoe,8.0,#handover")
+        expect(response.body.split("\n").last).to eq("#{org.name},#{project.name},Zoe,2026-03,8.0,#handover")
       end
 
       it "says so when the month cannot be read, rather than exporting another one" do
@@ -303,6 +303,73 @@ RSpec.describe "Orgs::Projects" do
 
         expect(response).to have_http_status(:ok)
         expect(response.media_type).to eq("text/csv")
+      end
+    end
+  end
+
+  describe "GET /projects/:slug/export_days_csv" do
+    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
+
+    def months_page
+      get project_path(project.slug, view: "months")
+      Nokogiri::HTML(response.body)
+    end
+
+    def export_days(**params)
+      get export_days_csv_project_path(project.slug, **params)
+    end
+
+    context "with ownership of the project" do
+      before do
+        sign_in_and_open(owning_participant)
+        entry_on("2026-03-21", "start@09:00 end@17:00 #handover", by: owning_participant.member)
+        entry_on("2026-03-23", "start@09:00 end@12:30 #review", by: owning_participant.member)
+      end
+
+      it "offers the export of the days next to each member of a month" do
+        link = months_page.at_css(".period li a[href*='export_days_csv']")
+
+        expect(link.text).to eq("Export days")
+        expect(link["href"]).to eq(export_days_csv_project_path(project.slug, month: "2026-03", member_id: owning_participant.member.id))
+      end
+
+      it "sends the days as a CSV, named after org, project, member, first and last day" do
+        export_days(month: "2026-03", member_id: owning_participant.member.id)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/csv")
+        expect(response.headers["Content-Disposition"])
+          .to include("#{org.name.parameterize}_#{project.name.parameterize}_zoe_2026-03-21_2026-03-23.csv")
+        expect(response.body.split("\n")).to eq([
+          "org,project,member,date,hours,tags",
+          "#{org.name},#{project.name},Zoe,2026-03-21,8.0,#handover",
+          "#{org.name},#{project.name},Zoe,2026-03-23,3.5,#review"
+        ])
+      end
+
+      it "says so when the month cannot be read" do
+        export_days(month: "not-a-month", member_id: owning_participant.member.id)
+
+        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(flash[:alert]).to include("not-a-month")
+      end
+
+      it "does not export a member of another org" do
+        export_days(month: "2026-03", member_id: create(:member).id)
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "without any ownership" do
+      it "does not offer the export to a plain participant" do
+        expect(months_page.at_css("a[href*='export_days_csv']")).to be_nil
+      end
+
+      it "does not export for a plain participant" do
+        export_days(month: "2026-03", member_id: member.id)
+
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

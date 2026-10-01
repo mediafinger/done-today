@@ -19,7 +19,7 @@ RSpec.describe MonthExport do
 
   describe "#to_csv" do
     it "names the columns" do
-      expect(rows.headers).to eq(%w[org project member hours tags])
+      expect(rows.headers).to eq(%w[org project member month hours tags])
     end
 
     it "writes one line per member of the month, by member name" do
@@ -28,6 +28,13 @@ RSpec.describe MonthExport do
 
       expect(rows.map { it["member"] }).to eq(%w[anna Bert])
       expect(rows.map { [ it["org"], it["project"] ] }).to all(eq([ "Codurance AG", "2026 v1" ]))
+    end
+
+    it "names the month on every line" do
+      entry("2026-09-01", "start@09:00 end@17:00")
+      entry("2026-09-02", "start@09:00 end@17:00", by: bert)
+
+      expect(rows.map { it["month"] }).to eq(%w[2026-09 2026-09])
     end
 
     it "totals the hours of the month, breaks already subtracted" do
