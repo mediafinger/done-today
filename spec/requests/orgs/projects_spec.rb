@@ -39,9 +39,20 @@ RSpec.describe "Orgs::Projects" do
       page = show_project
 
       expect(heading_rows(page)).to contain_exactly(
-        "2026-09-02 Anna (1h30m)", a_string_ending_with("Anna (7h)"), a_string_ending_with("Zoe (2h30m)")
+        "2026-09-02 (We) Anna (1h30m)", a_string_ending_with("Anna (7h)"), a_string_ending_with("Zoe (2h30m)")
       )
       expect(page.at_css(".time-info")).to be_nil
+    end
+
+    it "separates the weeks with a line below each Monday" do
+      %w[2026-09-06 2026-09-07 2026-09-08].each { entry_on(it, "worked") }
+
+      page = show_project
+      day_after_line = page.at_css("hr").next_element
+
+      expect(page.css("hr").size).to eq(1)
+      expect(page.at_css("hr").previous_element.text).to include("2026-09-07 (Mo)")
+      expect(day_after_line.text).to include("2026-09-06 (Su)")
     end
 
     it "shows no total for a day without time markup" do

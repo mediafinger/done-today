@@ -27,7 +27,7 @@ RSpec.describe "Orgs::Entries" do
       get entries_path(date: "2026-03-01", mode: "edit")
 
       # the date nav always links to today, so assert on the heading
-      expect(response.body).to include("Day 2026-03-01")
+      expect(response.body).to include("Day 2026-03-01 (Sunday)")
       expect(response.body).not_to include("Day #{Time.zone.today.iso8601}")
     end
 

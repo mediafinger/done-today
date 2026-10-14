@@ -52,6 +52,14 @@ module EntriesHelper
     TimeSummary.format_minutes(minutes)
   end
 
+  # A date, optionally with its weekday cut to two letters: "2026-10-19 (Mo)".
+  #
+  def date_label(date, with_weekday: false)
+    return date.iso8601 unless with_weekday
+
+    "#{date.iso8601}  (#{date.strftime('%a').first(2)})"
+  end
+
   # An ISO calendar week, labelled with its week-based year: the week of
   #   2027-01-01 is "2026 / w53", as that Friday still belongs to 2026's last week.
   #
