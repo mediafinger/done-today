@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get "open/:slug_org(/:slug_project)", to: "switch_orgs#switch_to", as: :open
 
   scope module: :orgs, path: "/" do
+    resources :days, param: :date, only: %i[ show edit ], constraints: { date: /\d{4}-\d{2}-\d{2}/ }
     resources :entries, only: %i[ index create update ]
     resources :tags, param: :tag, only: %i[ show ]
     resources :weeks, param: :week, only: %i[ show ]

@@ -219,7 +219,7 @@ RSpec.describe "Orgs::Projects" do
       entry_on("2026-09-21", "start@09:00 kickoff")
 
       expect(validate.at_css(".period h3 a")["href"])
-        .to eq(entries_path(date: "2026-09-21", mode: "edit", unlocked: "1", project_id: project.id))
+        .to eq(edit_day_path("2026-09-21", unlocked: "1", project_id: project.id))
     end
 
     it "reports a day without any time markup" do

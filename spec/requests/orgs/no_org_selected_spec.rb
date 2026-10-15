@@ -27,6 +27,17 @@ RSpec.describe "Pages reached before an org is selected" do
     end
   end
 
+  describe "the day, week, tag and member pages" do
+    it "redirect instead of raising" do
+      [ day_path("2026-03-01"), edit_day_path("2026-03-01"), week_path("2026-W10"), tag_path("handover"),
+        member_entries_path(SecureRandom.uuid) ].each do |path|
+        get path
+
+        expect(response).to redirect_to(root_path)
+      end
+    end
+  end
+
   describe "POST /entries" do
     it "redirects instead of raising" do
       post entries_path, params: { entry: { date: "2026-03-01", log: "Wrote a spec" } }
@@ -63,6 +74,12 @@ RSpec.describe "Pages reached before an org is selected" do
 
     it "sends the user to pick a project rather than raising" do
       get entries_path
+
+      expect(response).to redirect_to(projects_path)
+    end
+
+    it "does so from the day page too" do
+      get edit_day_path("2026-03-01")
 
       expect(response).to redirect_to(projects_path)
     end

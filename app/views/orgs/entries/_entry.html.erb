@@ -29,7 +29,7 @@
       <div class="left">
         <% if show_date %>
           <h3 class="entry-group-heading">
-            <%= link_to date_label(entry.day.date, with_weekday:), entries_path(date: entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+            <%= link_to date_label(entry.day.date, with_weekday:), day_path(entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
           </h3>
         <% end %>
       </div>

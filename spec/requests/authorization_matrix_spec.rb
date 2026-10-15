@@ -129,12 +129,27 @@ RSpec.describe "Authorization role matrix" do
     get entries_path(project_id: project.id, mode: "read")
   end
 
-  row "GET /entries?mode=edit&project_id=", {
+  row "GET /days/:date?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    colleagues_entry # the day exists
+
+    get day_path(Time.zone.today, project_id: project.id)
+  end
+
+  row "GET /days/:date/edit?project_id=", {
     outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
     org_owner: :read_only
   } do
     colleagues_entry # the day exists
 
+    get edit_day_path(Time.zone.today, project_id: project.id)
+  end
+
+  row "GET /entries?mode=edit&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
     get entries_path(project_id: project.id, mode: "edit")
   end
 

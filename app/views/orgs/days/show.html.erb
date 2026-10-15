@@ -1,0 +1,9 @@
+<%= render "orgs/days/nav", date: @date, project: @project %>
+
+<%= render "orgs/entries/time_summary", entries: @entries, project: @project %>
+
+<ul id="entries">
+  <% @entries.each_with_index do |entry, index| %>
+    <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_member: true %>
+  <% end %>
+</ul>

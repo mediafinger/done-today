@@ -10,7 +10,7 @@
     <% if @project != current_project && policy(@project).create_entry? %>
       <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
     <% elsif @project == current_project && policy(@project).create_entry? %>
-      <%= link_to "add or edit", entries_path(date: Time.zone.today, mode: "edit"), method: :get, role: "button", class: "slim" %>
+      <%= link_to "add or edit", edit_day_path(Time.zone.today), method: :get, role: "button", class: "slim" %>
     <% end %>
   </div>
 

@@ -17,7 +17,7 @@
   <% @days_with_issues.each do |day, issues| %>
     <div class="period">
       <h3 class="entry-group-heading">
-        <%= link_to day.date.iso8601, entries_path(date: day.date, mode: "edit", unlocked: "1", project_id: @project.id),
+        <%= link_to day.date.iso8601, edit_day_path(day.date, unlocked: "1", project_id: @project.id),
               method: :get, class: "camouflage s-link" %>
       </h3>
 
