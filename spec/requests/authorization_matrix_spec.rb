@@ -17,7 +17,6 @@ require "rails_helper"
 RSpec.describe "Authorization role matrix" do
   # cells that do not hold yet, with the P1 bullet that fixes them
   def self.gaps = {
-    [ "GET /open/:org", :outsider ] => "switch_orgs nil check",
     [ "PATCH a colleague's entry", :observer ] => "entry ownership",
     [ "PATCH a colleague's entry", :participant ] => "entry ownership",
     [ "PATCH an own entry", :observer ] => "entry ownership",
