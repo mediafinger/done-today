@@ -42,20 +42,22 @@ module Orgs
         @day = days.find_by(date:) || days.build(org: current_org, date:)
         @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
 
+        # observers, and org owners who do not participate, read the day instead
+        writable = policy(project).create_entry?
+
         # a past day is read-only until it is unlocked on purpose -- see #unlocked?
-        @unlockable = date.past?
-        @locked = @unlockable && !@unlocked
+        @unlockable = writable && date.past?
+        @locked = !writable || (@unlockable && !@unlocked)
 
         @entries =
           if @day.persisted?
-                      editable_entries(member: current_member, entries: @day.entries)
-                        .includes(:member, day: :project)
-                        .order(status: :desc, created_at: :asc)
+            entries = writable ? editable_entries(member: current_member, entries: @day.entries) : @day.entries
+            entries.includes(:member, day: :project).order(status: :desc, created_at: :asc)
           else
-                      @day.entries
+            @day.entries
           end
 
-        @validatable = @entries.any?
+        @validatable = writable && @entries.any?
         validate_day if @validatable
 
       elsif mode == "read"
@@ -93,6 +95,8 @@ module Orgs
     #   Therefore we need to find or create a day for the given date.
     #
     def create
+      authorize!(current_project, :create_entry?)
+
       @entry = Entry.new(
         org: current_org,
         member: current_member,

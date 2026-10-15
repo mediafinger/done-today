@@ -17,9 +17,6 @@ require "rails_helper"
 RSpec.describe "Authorization role matrix" do
   # cells that do not hold yet, with the P1 bullet that fixes them
   def self.gaps = {
-    [ "POST /entries", :observer ] => "observer on create",
-    [ "GET /entries?mode=edit&project_id=", :observer ] => "observer on create",
-    [ "GET /entries?mode=edit&project_id=", :org_owner ] => "observer on create",
     [ "GET /entries?mode=edit&project_id=", :member ] => "project read access",
     [ "GET /entries?project_id=", :member ] => "project read access",
     [ "GET /projects/:slug", :member ] => "project read access",
@@ -140,6 +137,8 @@ RSpec.describe "Authorization role matrix" do
     outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
     org_owner: :read_only
   } do
+    colleagues_entry # the day exists
+
     get entries_path(project_id: project.id, mode: "edit")
   end
 

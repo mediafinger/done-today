@@ -480,6 +480,34 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "as an observer of the project" do
+    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    before { sign_in_and_open(create(:participant, :observer, project:)) }
+
+    it "does not offer to add or edit" do
+      get entries_path(mode: "read")
+
+      expect(response.body).not_to include("add or edit")
+    end
+
+    it "shows the day read-only in edit mode, with everybody's entries and no way to unlock" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(entry.log)
+      expect(response.body).not_to include(%(id="new-entry"))
+      expect(response.body).not_to include(%(data-controller="entry-form"))
+      expect(response.body).not_to include("unlock to edit")
+    end
+
+    it "refuses to create an entry" do
+      expect { post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Only watching" } } }
+        .not_to change(Entry, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   describe "POST /entries" do
     it "creates an entry on the given day" do
       expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" } } }
