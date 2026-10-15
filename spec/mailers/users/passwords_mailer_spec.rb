@@ -17,5 +17,19 @@ RSpec.describe Users::PasswordsMailer do
       expect(mail.html_part.body.to_s).to include("/passwords/")
       expect(mail.text_part.body.to_s).to include("/passwords/")
     end
+
+    it "is sent from DEFAULT_EMAIL_SENDER" do
+      allow(AppConf).to receive(:default_email_sender).and_return("Done <noreply@mediafinger.eu>")
+
+      expect(mail.from).to eq([ "noreply@mediafinger.eu" ])
+      expect(mail[:from].display_names).to eq([ "Done" ])
+    end
+
+    it "links to DONE_HOST over https" do
+      link = "https://#{AppConf.done_host}/passwords/"
+
+      expect(mail.html_part.body.to_s).to include(link)
+      expect(mail.text_part.body.to_s).to include(link)
+    end
   end
 end
