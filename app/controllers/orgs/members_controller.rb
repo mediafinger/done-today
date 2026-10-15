@@ -1,57 +1,50 @@
 module Orgs
-  class MembersController < ApplicationController
-    #
-    # TODO: before_action :authenticate_owner!, except: [:index]
-    #
+  # Org owners list the members of their org, change their roles, and deactivate
+  #   or reactivate them. Deactivating archives the member, their entries stay.
+  #
+  class MembersController < AppOrgBaseController
     def index
-      # TODO: list all members of the organization
+      authorize!(Member, :index?)
+
+      members = current_org.members.includes(:user).order(:name)
+
+      @active_members = members.active
+      @archived_members = members.archived
     end
 
-    def create
-      # TODO: add member to organization / status: invited?! (or unarchive member)
-    end
-
-    # TODO: add or remove member roles
     def update
-      member = current_org.members.find(update_params[:member_id])
-
-      invalid_roles = update_params[:roles] - Member::VALID_ROLES
-
-      if invalid_roles.any?
-        @error_message =
-          "Member #{member.name} could not be updated to #{update_params[:roles].join(', ')}, " \
-          "as it contains the invalid_roles: #{invalid_roles.join(', ')}"
-
-      # render error
-      else
-        member = update_roles(member, update_params[:roles])
-
-        # member.save and render success (or failure)
-      end
+      change(:updated, roles: params.expect(member: [ roles: [] ]).fetch(:roles).compact_blank)
     end
 
-    def destroy
-      # TODO: remove member from organization / archive member!
+    def deactivate
+      change(:deactivated, archived_at: member.archived_at || Time.current)
+    end
+
+    def reactivate
+      change(:reactivated, archived_at: nil)
     end
 
     private
 
-    def update_roles(member, new_roles)
-      roles_to_remove = Member::VALID_ROLES - new_roles
-      roles_to_set    = Member::VALID_ROLES & new_roles
-
-      roles_to_remove.each { |role| member.delete_role(role) }
-      roles_to_set.each    { |role| member.add_role(role) }
-
-      member
+    # another org's member is a 404, a colleague of a non-owner a 403
+    def member
+      @member ||= authorize!(current_org.members.find(params[:id]), :manage?)
     end
 
-    def create_params
-      params.expect(:member).permit(:org_id, :user_id)
+    # the lock keeps two owners from demoting each other at the same time
+    def change(done, **attributes)
+      saved = current_org.with_lock { member.update(attributes) }
+
+      if saved
+        redirect_to after_change_path, notice: t("controllers.members.#{done}", name: member.name)
+      else
+        redirect_to members_path, alert: member.errors.full_messages.to_sentence
+      end
     end
 
-    def update_params
-      params.expect(:member).permit(:member_id, :status, :roles)
+    # an owner who stepped down or deactivated themselves cannot see the list any more
+    def after_change_path
+      member.id == current_member.id && !member.active_owner? ? root_path : members_path
     end
   end
 end

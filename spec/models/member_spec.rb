@@ -5,6 +5,7 @@ RSpec.describe Member do
 
   describe "roles" do
     it "adds and removes roles without duplicating them" do
+      create(:member, :owner, org:) # the org keeps an owner
       member = create(:member, org:)
 
       member.add_role!("owner")
@@ -59,6 +60,57 @@ RSpec.describe Member do
 
       expect(Entry.exists?(entry.id)).to be(true)
       expect(Participant.exists?(participant.id)).to be(true)
+    end
+  end
+
+  describe "keeping an owner" do
+    let(:owner) { create(:member, :owner, org:) }
+
+    it "refuses to demote the last active owner" do
+      owner.roles = %w[member]
+
+      expect(owner).not_to be_valid
+      expect(owner.errors[:base]).to include("#{org.name} needs at least one active owner")
+    end
+
+    it "refuses to archive the last active owner" do
+      expect { owner.archive! }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(owner.reload).not_to be_archived
+    end
+
+    it "does not count an archived owner" do
+      create(:member, :owner, org:, archived_at: 1.day.ago)
+      owner.roles = %w[member]
+
+      expect(owner).not_to be_valid
+    end
+
+    it "does not count an owner of another org" do
+      create(:member, :owner)
+      owner.roles = %w[member]
+
+      expect(owner).not_to be_valid
+    end
+
+    it "lets one of two owners step down" do
+      create(:member, :owner, org:)
+
+      expect { owner.delete_role!("owner") }.not_to raise_error
+      expect { owner.archive! }.not_to raise_error
+    end
+
+    it "leaves changes that keep the owner alone" do
+      owner.name = "Renamed"
+
+      expect(owner).to be_valid
+    end
+
+    it "lets an archived owner be changed, who no longer counts anyway" do
+      create(:member, :owner, org:)
+      owner.archive!
+
+      expect { owner.delete_role!("owner") }.not_to raise_error
     end
   end
 

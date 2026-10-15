@@ -1,0 +1,168 @@
+require "rails_helper"
+
+# Who may do what is covered by spec/requests/authorization_matrix_spec.rb,
+#   this is what an org owner sees and changes.
+#
+RSpec.describe "Orgs::Members" do
+  let(:org) { create(:org) }
+  let(:owner) { create(:member, :owner, org:, name: "Olivia") }
+  let(:colleague) { create(:member, org:, name: "Carl") }
+
+  def page
+    Nokogiri::HTML(response.body)
+  end
+
+  def row_of(member)
+    page.at_css("##{ActionView::RecordIdentifier.dom_id(member)}")
+  end
+
+  before do
+    sign_in(owner.user)
+    get open_path(org.slug)
+  end
+
+  describe "GET /members" do
+    it "lists the active members with email and roles" do
+      colleague
+
+      get members_path
+
+      expect(row_of(colleague).text).to include("Carl", colleague.user.email)
+      expect(row_of(colleague).css("input[type=checkbox][checked]").pluck("value")).to eq(%w[member])
+      expect(row_of(owner).css("input[type=checkbox][checked]").pluck("value")).to eq(%w[member owner])
+    end
+
+    it "gives each row's role checkboxes their own ids, so the labels toggle the right row" do
+      colleague
+
+      get members_path
+
+      ids = page.css("input[type=checkbox]").pluck("id")
+      expect(ids.size).to eq(4)
+      expect(ids.uniq.size).to eq(ids.size)
+    end
+
+    it "lists the deactivated members apart, to reactivate them" do
+      archived = create(:member, org:, name: "Ada").tap(&:archive!)
+
+      get members_path
+
+      expect(page.at_css("#archived-members").text).to include("Ada")
+      expect(page.at_css("#active-members").text).not_to include("Ada")
+      expect(row_of(archived).at_css("form")["action"]).to eq(reactivate_member_path(archived))
+    end
+
+    it "does not list members of other orgs" do
+      create(:member, name: "Stranger")
+
+      get members_path
+
+      expect(response.body).not_to include("Stranger")
+    end
+
+    it "is linked from the settings page" do
+      get settings_path
+
+      expect(page.css("a").pluck("href")).to include(members_path)
+    end
+  end
+
+  it "is not linked from the settings page of a member who is not an owner" do
+    sign_in(colleague.user)
+    get open_path(org.slug)
+
+    get settings_path
+
+    expect(page.css("a").pluck("href")).not_to include(members_path)
+  end
+
+  describe "PATCH /members/:id" do
+    it "makes a member an owner and back" do
+      patch member_path(colleague), params: { member: { roles: [ "", "member", "owner" ] } }
+
+      expect(response).to redirect_to(members_path)
+      expect(flash[:notice]).to eq("Updated the roles of Carl")
+      expect(colleague.reload.roles).to contain_exactly("member", "owner")
+
+      patch member_path(colleague), params: { member: { roles: [ "", "member" ] } }
+
+      expect(colleague.reload.roles).to eq(%w[member])
+    end
+
+    it "refuses an unknown role" do
+      patch member_path(colleague), params: { member: { roles: %w[member wizard] } }
+
+      expect(response).to redirect_to(members_path)
+      expect(flash[:alert]).to include("wizard")
+      expect(colleague.reload.roles).to eq(%w[member])
+    end
+
+    it "refuses to take every role" do
+      patch member_path(colleague), params: { member: { roles: [ "" ] } }
+
+      expect(flash[:alert]).to be_present
+      expect(colleague.reload.roles).to eq(%w[member])
+    end
+
+    it "refuses to demote the last owner" do
+      patch member_path(owner), params: { member: { roles: %w[member] } }
+
+      expect(response).to redirect_to(members_path)
+      expect(flash[:alert]).to eq("#{org.name} needs at least one active owner")
+      expect(owner.reload.roles).to include("owner")
+    end
+
+    it "lets an owner step down when another one is left, and sends them away" do
+      create(:member, :owner, org:)
+
+      patch member_path(owner), params: { member: { roles: %w[member] } }
+
+      expect(owner.reload.roles).to eq(%w[member])
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
+  describe "PATCH /members/:id/deactivate" do
+    it "archives the member and keeps their entries" do
+      project = create(:project, org:)
+      create(:participant, project:, member: colleague)
+      entry = create(:entry, member: colleague, day: create(:day, project:))
+
+      patch deactivate_member_path(colleague)
+
+      expect(response).to redirect_to(members_path)
+      expect(flash[:notice]).to eq("Deactivated Carl, their entries stay")
+      expect(colleague.reload).to be_archived
+      expect(Entry.exists?(entry.id)).to be(true)
+      expect(colleague.participations.count).to eq(1)
+    end
+
+    it "refuses to deactivate the last owner" do
+      patch deactivate_member_path(owner)
+
+      expect(flash[:alert]).to eq("#{org.name} needs at least one active owner")
+      expect(owner.reload).not_to be_archived
+    end
+
+    it "lets an owner deactivate themselves when another one is left" do
+      create(:member, :owner, org:)
+
+      patch deactivate_member_path(owner)
+
+      expect(owner.reload).to be_archived
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
+  describe "PATCH /members/:id/reactivate" do
+    it "gives the member access back" do
+      colleague.archive!
+
+      patch reactivate_member_path(colleague)
+
+      expect(response).to redirect_to(members_path)
+      expect(flash[:notice]).to eq("Reactivated Carl")
+      expect(colleague.reload).not_to be_archived
+    end
+  end
+end

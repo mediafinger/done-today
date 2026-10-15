@@ -30,6 +30,7 @@ class Member < ApplicationRecord
   before_validation :set_user_name, on: :create
 
   validates :name, presence: true
+  validate :org_keeps_an_owner, on: :update
   validates :roles, presence: true, array_inclusion: {
     in: VALID_ROLES, message: "%{rejected_values} not allowed, roles must be in #{VALID_ROLES}"
   }
@@ -71,7 +72,20 @@ class Member < ApplicationRecord
     self
   end
 
+  def active_owner?
+    !archived? && roles.include?("owner")
+  end
+
   private
+
+  # Serialize concurrent changes with `org.with_lock`, or two owners can demote each other.
+  def org_keeps_an_owner
+    was_active_owner = attribute_in_database(:archived_at).nil? && attribute_in_database(:roles).include?("owner")
+    return if !was_active_owner || active_owner?
+    return if org.members.active.includes_all_roles(%w[owner]).where.not(id:).exists?
+
+    errors.add(:base, :last_owner, org: org.name)
+  end
 
   def set_user_name
     self.name = user.name if name.blank?

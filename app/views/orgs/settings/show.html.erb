@@ -9,7 +9,12 @@
 <ul>
   <li> User name: <b><%= current_user.name %></b></li>
   <% if current_org %>
-    <li>Selected org: <b><%= current_org.name %></b></li>
+    <li>
+      Selected org: <b><%= current_org.name %></b>
+      <% if policy(Member).index? %>
+        (<%= link_to "manage members", members_path %>)
+      <% end %>
+    </li>
   <% end %>
   <% if current_member %>
     <li>Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>

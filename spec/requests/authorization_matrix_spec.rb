@@ -36,6 +36,11 @@ RSpec.describe "Authorization role matrix" do
     personas.fetch(RSpec.current_example.metadata[:persona])
   end
 
+  # a member of the org who is none of the personas
+  def colleague
+    colleagues_entry.member
+  end
+
   def link_to_project?
     Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(project.slug) }
   end
@@ -152,5 +157,35 @@ RSpec.describe "Authorization role matrix" do
     observer: :forbidden, participant: :written, project_owner: :written
   }, written: -> { own_entry.reload.log == "Changed by the matrix" } do
     patch entry_path(own_entry), params: { entry: { log: "Changed by the matrix" } }
+  end
+
+  row "GET /members", {
+    outsider: :forbidden, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :ok
+  } do
+    get members_path
+  end
+
+  row "PATCH /members/:id", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { colleague.reload.roles.include?("owner") } do
+    patch member_path(colleague), params: { member: { roles: %w[member owner] } }
+  end
+
+  row "PATCH /members/:id/deactivate", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { colleague.reload.archived? } do
+    patch deactivate_member_path(colleague)
+  end
+
+  row "PATCH /members/:id/reactivate", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { !colleague.reload.archived? } do
+    colleague.archive!
+
+    patch reactivate_member_path(colleague)
   end
 end

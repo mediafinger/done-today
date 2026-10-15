@@ -30,8 +30,18 @@
 en:
   hello: "Hello world"
 
+  activerecord:
+    errors:
+      models:
+        member:
+          last_owner: "%{org} needs at least one active owner"
+
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
+    members:
+      deactivated: "Deactivated %{name}, their entries stay"
+      reactivated: "Reactivated %{name}"
+      updated: "Updated the roles of %{name}"
     no_org_selected: "Select an org first"
     no_project_selected: "Select a project first"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"

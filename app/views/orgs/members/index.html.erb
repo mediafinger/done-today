@@ -1,0 +1,59 @@
+<h2>Members of <%= current_org.name %></h2>
+
+<%# the invite form goes here (P2) %>
+
+<table id="active-members">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Roles</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @active_members.each do |member| %>
+      <tr id="<%= dom_id(member) %>">
+        <td><%= member.name %><%= " (you)" if member.id == current_member.id %></td>
+        <td><%= member.user.email %></td>
+        <td>
+          <%= form_with model: member, url: member_path(member), method: :patch, namespace: dom_id(member) do |form| %>
+            <%= form.collection_check_boxes :roles, Member::VALID_ROLES, :itself, :itself do |box| %>
+              <%= box.label { box.check_box + " " + box.text } %>
+            <% end %>
+            <%= form.submit "Save roles", class: "slim" %>
+          <% end %>
+        </td>
+        <td>
+          <%= button_to "Deactivate", deactivate_member_path(member), method: :patch, class: "slim secondary",
+                form: { data: { turbo_confirm: "Deactivate #{member.name}? Their entries stay." } } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<% if @archived_members.any? %>
+  <h3>Deactivated</h3>
+
+  <table id="archived-members">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Deactivated on</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @archived_members.each do |member| %>
+        <tr id="<%= dom_id(member) %>">
+          <td><%= member.name %></td>
+          <td><%= member.user.email %></td>
+          <td><%= member.archived_at.to_date %></td>
+          <td><%= button_to "Reactivate", reactivate_member_path(member), method: :patch, class: "slim" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
