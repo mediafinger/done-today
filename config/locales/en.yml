@@ -31,6 +31,7 @@ en:
   hello: "Hello world"
 
   controllers:
+    day_locked: "%{date} is locked, unlock the day to change it"
     no_org_selected: "Select an org first"
     no_project_selected: "Select a project first"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"

@@ -97,15 +97,17 @@ module Orgs
     def create
       authorize!(current_project, :create_entry?)
 
+      day = current_project.days.find_or_initialize_by(org: current_org, date: create_params[:date])
+
       @entry = Entry.new(
         org: current_org,
         member: current_member,
-        day: current_project.days.find_or_create_by!(org: current_org, date: create_params[:date]),
+        day:,
         log: create_params[:log],
         status: create_params[:status] || "todo", # TODO
       )
 
-      saved = @entry.save
+      saved = open_day?(@entry) && day.save! && @entry.save
 
       # on success the form starts over with a blank entry, on failure it keeps
       #   what was typed so the error can be corrected instead of retyped
@@ -122,10 +124,20 @@ module Orgs
       @entry.status = update_params[:status] if update_params.key?(:status)
       @entry.log    = update_params[:log]    if update_params.key?(:log)
 
-      respond_to_save(@entry.save, entry: @entry)
+      respond_to_save(open_day?(@entry) && @entry.save, entry: @entry)
     end
 
     private
+
+    # The lock on past days guards against changing them in passing. Whoever may
+    #   write can lift it, by sending `unlocked` along like the unlocked page does.
+    #
+    def open_day?(entry)
+      return true unless entry.day.date&.past? && !@unlocked
+
+      entry.errors.add(:base, t("controllers.day_locked", date: entry.day.date.iso8601))
+      false
+    end
 
     # Checks what this member logged here today -- the entries of other participants
     #   are theirs to correct. Issues are always worth showing; the all-clear only
