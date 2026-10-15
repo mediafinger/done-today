@@ -9,6 +9,22 @@ RSpec.describe Org do
 
       expect(other.slug).to match(/\Aacme-\d+\z/)
     end
+
+    it "is the URL param" do
+      expect(create(:org, name: "Acme Inc").to_param).to eq("acme-inc")
+    end
+
+    # the slug is the first segment of every org URL, next to /session, /settings, /up, ...
+    it "steers clear of the top-level paths" do
+      expect(create(:org, name: "Settings").slug).to match(/\Asettings-\d+\z/)
+    end
+
+    it "refuses a reserved word set by hand" do
+      org = create(:org)
+
+      expect(org.update(slug: "help")).to be(false)
+      expect(org.errors[:slug]).to be_present
+    end
   end
 
   # deleting a whole tenant stays possible on purpose, unlike deleting one member
