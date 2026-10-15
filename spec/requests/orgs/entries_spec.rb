@@ -174,6 +174,92 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "the edit trail" do
+    let(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    def histories = RecordHistory.where(record_type: "Entry")
+
+    it "records who created an entry, in which org, with its log" do
+      expect { post entries_path(org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Wrote a spec" } } }
+        .to change(histories, :count).by(1)
+
+      history = histories.last
+      expect(history).to have_attributes(event: "created", record_id: Entry.last.id, org_id: org.id,
+        user_id: member.user_id, done_by_admin: false)
+      expect(history.record_changes).to include("log" => [ nil, "Wrote a spec" ], "status" => %w[doing todo])
+      expect(history.record_changes.keys).not_to include("created_at", "updated_at")
+    end
+
+    it "records an edit with exactly the changed attributes" do
+      entry
+
+      expect { patch entry_path(org, project, entry), params: { entry: { log: "Rewrote a spec", status: "done" } } }
+        .to change(histories, :count).by(1)
+
+      expect(histories.last).to have_attributes(event: "updated", record_id: entry.id, user_id: member.user_id)
+      expect(histories.last.record_changes)
+        .to eq("log" => [ "Wrote some code", "Rewrote a spec" ], "status" => %w[doing done])
+    end
+
+    it "records a project owner editing a colleague's entry as the owner" do
+      owner = create(:participant, :owner, project:)
+      sign_in(owner.member.user)
+
+      patch entry_path(org, project, entry), params: { entry: { status: "done" } }
+
+      expect(histories.last).to have_attributes(event: "updated", user_id: owner.member.user_id)
+    end
+
+    it "records nothing for a refused edit" do
+      colleagues_entry = create(:entry, day: entry.day, member: create(:participant, project:).member)
+
+      expect { patch entry_path(org, project, colleagues_entry), params: { entry: { log: "Not mine to change" } } }
+        .not_to change(histories, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "records nothing for an invalid edit" do
+      entry
+
+      expect { patch entry_path(org, project, entry), params: { entry: { log: "x" } } }.not_to change(histories, :count)
+    end
+
+    it "records nothing for a save that changes nothing" do
+      entry
+
+      expect { patch entry_path(org, project, entry), params: { entry: { status: "doing" } } }.not_to change(histories, :count)
+    end
+
+    it "records nothing on a locked past day" do
+      old_entry = create(:entry, day: create(:day, project:, date: Time.zone.yesterday), member:)
+
+      expect { patch entry_path(org, project, old_entry), params: { entry: { log: "Changed in passing" } } }
+        .not_to change(histories, :count)
+    end
+
+    it "rolls the edit back when the history cannot be written" do
+      allow(RecordHistoryService).to receive(:call).and_raise(ActiveRecord::StatementInvalid)
+
+      expect { patch entry_path(org, project, entry), params: { entry: { log: "Lost with the history" } } }
+        .to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(entry.reload.log).to eq("Wrote some code")
+    end
+
+    it "rolls the new entry and its day back when the history cannot be written" do
+      allow(RecordHistoryService).to receive(:call).and_raise(ActiveRecord::StatementInvalid)
+
+      counts = -> { [ Entry.count, Day.count ] }
+      before = counts.call
+
+      expect { post entries_path(org, project), params: { entry: { date: "2026-03-02", log: "Lost" }, unlocked: "1" } }
+        .to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(counts.call).to eq(before)
+    end
+  end
+
   describe "Turbo Stream responses" do
     let(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
 

@@ -33,6 +33,22 @@ RSpec.describe ApplicationRecord do
       expect { entry.update_with_history }.to change(RecordHistory, :count).by(1)
       expect(RecordHistory.last.record_changes).to include("status")
     end
+
+    it "logs nothing when nothing changed" do
+      entry = create(:entry, day:, member: create(:member, org:))
+
+      expect { entry.update_with_history }.not_to change(RecordHistory, :count)
+      expect(entry.update_with_history).to be(true)
+    end
+
+    it "rolls the save back when the history cannot be written" do
+      entry = create(:entry, day:, member: create(:member, org:))
+      entry.status = "done"
+      allow(RecordHistoryService).to receive(:call).and_raise(ActiveRecord::StatementInvalid)
+
+      expect { entry.update_with_history }.to raise_error(ActiveRecord::StatementInvalid)
+      expect(entry.reload.status).to eq("doing")
+    end
   end
 
   describe "#destroy_with_history" do
