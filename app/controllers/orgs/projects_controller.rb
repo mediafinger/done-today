@@ -3,11 +3,7 @@ module Orgs
     VIEWS = %w[days weeks months].freeze
 
     def show
-      # TODO: only display:
-      #  * projects the member is participant of
-      #  * all projects of org, if the member role is owner
-
-      @project = current_org.projects.find_by!(slug: params[:slug])
+      @project = readable_projects.find_by!(slug: params[:slug])
       @entries_count = @project.entries.size
       @view = view
 
@@ -44,7 +40,7 @@ module Orgs
     end
 
     def index
-      @projects = current_org.projects.order(:name) # require_member guarantees the org
+      @projects = readable_projects.order(:name)
     end
 
     # One month of the project as a CSV: a line per member, with their hours and
@@ -87,7 +83,7 @@ module Orgs
     #   add up can be corrected before anyone reads a total off them.
     #
     def validate_times
-      @project = current_org.projects.find_by!(slug: params[:slug])
+      @project = readable_projects.find_by!(slug: params[:slug])
 
       @days_with_issues =
         @project.days
@@ -100,6 +96,11 @@ module Orgs
     end
 
     private
+
+    # a project the member may not read is a 404, like one that does not exist
+    def readable_projects
+      ProjectPolicy.readable(current_member)
+    end
 
     # an unknown view falls back to the days, rather than raising
     def view

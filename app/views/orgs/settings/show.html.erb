@@ -30,10 +30,10 @@
 <% end %>
 
 <% if current_org %>
-  <h2>All projects of current organization '<%= current_org.name %>'</h2>
+  <h2>Projects of current organization '<%= current_org.name %>'</h2>
 
   <ul>
-    <% current_org.projects.each do |project| %>
+    <% @projects.each do |project| %>
       <li><%= link_to project.name, project_path(project.slug), method: :get %></li>
     <% end %>
   </ul>

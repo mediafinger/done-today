@@ -229,7 +229,7 @@ module Orgs
     def project
       @project ||=
         if params[:project_id].present?
-          current_org&.projects&.find(params[:project_id])
+          ProjectPolicy.readable(current_member).find(params[:project_id])
         else
           current_project
         end

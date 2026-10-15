@@ -15,16 +15,6 @@ require "rails_helper"
 #   :written             the write went through
 #
 RSpec.describe "Authorization role matrix" do
-  # cells that do not hold yet, with the P1 bullet that fixes them
-  def self.gaps = {
-    [ "GET /entries?mode=edit&project_id=", :member ] => "project read access",
-    [ "GET /entries?project_id=", :member ] => "project read access",
-    [ "GET /projects/:slug", :member ] => "project read access",
-    [ "GET /projects/:slug/validate_times", :member ] => "project read access",
-    [ "GET /projects", :member ] => "project read access",
-    [ "GET /settings", :member ] => "project read access"
-  }
-
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:colleagues_entry) { create(:entry, day: create(:day, project:), member: create(:participant, project:).member) }
@@ -71,7 +61,7 @@ RSpec.describe "Authorization role matrix" do
   def self.row(name, outcomes, written: nil, &request)
     describe name do
       outcomes.each do |persona, outcome|
-        it "#{persona}: #{outcome}", persona:, **{ pending: gaps[[ name, persona ]] }.compact do
+        it "#{persona}: #{outcome}", persona: do
           sign_in(me.user)
           get open_path(me.org.slug, project.slug)
 
