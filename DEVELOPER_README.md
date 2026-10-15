@@ -53,6 +53,8 @@ The app supports multi-tenant organization boundaries and project selection:
   - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (`set_current_org`: `Current.org` and `Current.member`, through the user's active memberships, else 404).
   - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (`set_current_project`: `Current.project`, among the projects the member may read, else 404).
 - Build links with both slugs, e.g. `day_path(org, project, date)` (`Org#to_param` and `Project#to_param` are the slugs).
+- Both scopes remember what was opened on the user (`last_org_id`, `last_project_id`). `/` sends the user to today in that
+  project, or in their only one ([LandingService](file:///Users/andy/Dropbox/www/2025/done_today/app/services/landing_service.rb)), else lists their orgs and projects.
 - Authorization uses [ActionPolicy](https://actionpolicy.evilmartians.io), policies in `app/policies`. The subject is `current_member`
   (roles depend on the org), nil outside of an org. `ApplicationPolicy` denies a nil or archived member and records of another org
   in pre-checks, `ProjectPolicy` lets org owners through (except `create_entry?`).

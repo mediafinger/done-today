@@ -23,4 +23,30 @@ RSpec.describe User do
         .to raise_error(ActiveRecord::InvalidForeignKey)
     end
   end
+
+  describe "#remember_last_visit!" do
+    let(:org) { create(:org) }
+    let(:user) { create(:member, org:).user }
+    let(:project) { create(:project, org:) }
+
+    it "keeps the project when the same org is opened again" do
+      user.remember_last_visit!(org:, project:)
+      user.remember_last_visit!(org:)
+
+      expect(user.reload).to have_attributes(last_org: org, last_project: project)
+    end
+
+    it "drops the project when another org is opened" do
+      user.remember_last_visit!(org:, project:)
+      user.remember_last_visit!(org: create(:org))
+
+      expect(user.reload.last_project).to be_nil
+    end
+
+    it "drops a project that does not belong to the org" do
+      user.remember_last_visit!(org:, project: create(:project))
+
+      expect(user.reload).to have_attributes(last_org: org, last_project: nil)
+    end
+  end
 end
