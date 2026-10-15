@@ -353,7 +353,7 @@ RSpec.describe "Orgs::Entries" do
       link = read_day.at_css(".tag-info a.tag")
 
       expect(link.text).to eq("#handover")
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read"))
+      expect(link["href"]).to eq(tag_path("handover"))
     end
 
     it "links the tags inside a log, keeping how they were written" do
@@ -362,7 +362,7 @@ RSpec.describe "Orgs::Entries" do
       link = read_day.at_css("#entries a.tag")
 
       expect(link.text).to eq("#PR123")
-      expect(link["href"]).to eq(entries_path(tag: "pr123", mode: "read"))
+      expect(link["href"]).to eq(tag_path("pr123"))
     end
 
     it "still escapes the rest of the log" do
@@ -443,87 +443,13 @@ RSpec.describe "Orgs::Entries" do
   end
 
   describe "GET /entries?tag=" do
-    let(:colleague) { create(:participant, project:).member }
-
-    def entry_on(date, log, by: member, status: "done")
-      day = Day.find_or_create_by!(project:, date: Date.parse(date))
-      create(:entry, day:, member: by, log:, status:)
-    end
-
-    def read_tag(tag, **params)
-      get entries_path(tag:, mode: "read", **params)
-      Nokogiri::HTML(response.body)
-    end
-
-    # the date and member heading of every listed line
-    def lines(page)
-      page.css("#entries li").map { |line| line.css(".entry-group-heading").map { it.text.squish } }
-    end
-
-    it "names the project and the tag in the headline" do
-      expect(read_tag("handover").at_css(".spacing-grid h2").text.squish).to eq("#{project.name} #handover")
-    end
-
-    it "lists the tagged entries newest first, showing date and member only where they change" do
-      entry_on("2026-09-01", "first #handover")
-      entry_on("2026-09-03", "third #handover", by: colleague)
-      entry_on("2026-09-03", "fourth #handover", by: colleague)
-      entry_on("2026-09-02", "untagged")
-
-      page = read_tag("handover")
-
-      expect(page.css("#entries li").map { it.text.squish }).to all(include("handover"))
-      expect(lines(page)).to eq([
-        [ "2026-09-03", colleague.name ],
-        [],
-        [ "2026-09-01", member.name ]
-      ])
-      expect(page.at_css("#entries").text).to match(/fourth.*third.*first/m)
-    end
-
-    it "puts the headings of a group on a row of their own, above its entries" do
-      entry_on("2026-09-01", "first #handover")
-      entry_on("2026-09-01", "second #handover")
-
-      page = read_tag("handover")
-      heading_rows = page.css("#entries .entry-heading-row")
-
-      expect(heading_rows.map { it.text.squish }).to eq([ "2026-09-01 #{member.name}" ])
-      expect(heading_rows.css(".btn-done")).to be_empty
-      expect(page.css("#entries .entry-grid:not(.entry-heading-row)").map { it.text.squish })
-        .to all(match(/handover todo doing done\z/))
-    end
-
-    it "shows the status of each entry" do
-      entry_on("2026-09-01", "waiting #handover", status: "todo")
-
-      expect(read_tag("handover").at_css("#entries .btn-todo").text).to eq("todo")
-    end
-
-    it "leaves out entries of other projects" do
+    it "sends the old tag URL to the tag page, keeping the project" do
       other = create(:participant, project: create(:project, org:), member:).project
-      create(:entry, day: create(:day, project: other), member:, log: "elsewhere #handover")
 
-      expect(read_tag("handover").at_css("#entries").text).not_to include("elsewhere")
-    end
+      get entries_path(tag: "handover", mode: "read", project_id: other.id)
 
-    it "finds the tag however it is written in the URL" do
-      entry_on("2026-09-01", "done #Handover")
-
-      expect(lines(read_tag("#HandOver")).size).to eq(1)
-    end
-
-    it "stays read-only, even when asked to edit" do
-      entry_on(Time.zone.today.iso8601, "today #handover")
-
-      page = read_tag("handover", mode: "edit")
-
-      expect(page.at_css("form")).to be_nil
-      expect(page.to_html).not_to include("add or edit")
-    end
-
-    it "says so when nothing carries the tag" do
-      expect(read_tag("nothing").text).to include("No entries are tagged #nothing yet.")
+      expect(response).to redirect_to(tag_path("handover", project_id: other.id))
+      expect(response).to have_http_status(:moved_permanently)
     end
   end
 

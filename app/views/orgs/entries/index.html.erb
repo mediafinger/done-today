@@ -2,8 +2,6 @@
   <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
 <% elsif @group_by == "member" %>
   <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
-<% elsif @group_by == "tag" %>
-  <%= render "orgs/entries/entries_nav_by_tag", tag: @tag, project: @project %>
 <% elsif @group_by == "week" %>
   <%= render "orgs/entries/entries_nav_by_week", week: @week, project: @project %>
 <% elsif @group_by == "project" %>
@@ -38,10 +36,6 @@
       <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project, totals: @totals %>
     <% end %>
   </ul>
-
-  <% if @group_by == "tag" && @entries.none? %>
-    <p>No entries are tagged #<%= @tag %> yet.</p>
-  <% end %>
 
 <% else %>
   mode '<%= @mode %>' is invalid

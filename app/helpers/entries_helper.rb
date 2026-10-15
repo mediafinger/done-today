@@ -20,7 +20,7 @@ module EntriesHelper
   def tag_link(tag, project:, label: "##{tag}")
     project_id = project.id unless project == current_project
 
-    link_to label, entries_path(tag:, mode: "read", project_id:), class: "tag"
+    link_to label, tag_path(tag, project_id:), class: "tag"
   end
 
   # The log with its #tags linked. Walks the segments EntryLog tokenized, so a

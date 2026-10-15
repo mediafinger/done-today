@@ -79,7 +79,7 @@ RSpec.describe "Orgs::Projects" do
       link = show_project.at_css("a.tag")
 
       expect(link.text).to eq("#Handover")
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read"))
+      expect(link["href"]).to eq(tag_path("handover"))
     end
 
     it "keeps the project in the tag link when it is not the current one" do
@@ -88,7 +88,7 @@ RSpec.describe "Orgs::Projects" do
 
       link = show_project(of: other).at_css("a.tag")
 
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read", project_id: other.id))
+      expect(link["href"]).to eq(tag_path("handover", project_id: other.id))
     end
   end
 
@@ -126,7 +126,7 @@ RSpec.describe "Orgs::Projects" do
 
       expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+        %w[break handover pr123].map { tag_path(it) }
       )
     end
 
@@ -180,7 +180,7 @@ RSpec.describe "Orgs::Projects" do
 
       expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+        %w[break handover pr123].map { tag_path(it) }
       )
     end
 
