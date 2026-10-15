@@ -7,8 +7,7 @@ module Orgs
       @entries_count = @project.entries.size
       @view = view
 
-      # an owner of the org, or of this project, may export everybody's entries
-      @exportable = current_member.exportable_projects(relation: @project).exists?
+      @exportable = policy(@project).export?
 
       if @view == "days"
         @with_date = true
@@ -48,7 +47,7 @@ module Orgs
     #   an unauthorized slug is a 404 rather than a download.
     #
     def export_csv
-      project = current_member.exportable_projects.find_by!(slug: params[:slug])
+      project = ProjectPolicy.exportable(current_member).find_by!(slug: params[:slug])
 
       # an export is named after its month, so a month that cannot be read has to be
       #   corrected rather than guessed
@@ -66,7 +65,7 @@ module Orgs
     #   the tags they used most. Same permission as the month export.
     #
     def export_days_csv
-      project = current_member.exportable_projects.find_by!(slug: params[:slug])
+      project = ProjectPolicy.exportable(current_member).find_by!(slug: params[:slug])
       member = project.org.members.find(params[:member_id])
 
       if month.nil?

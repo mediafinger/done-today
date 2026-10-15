@@ -51,6 +51,18 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  context "with a member without roles" do
+    # roles are validated, so this is only reachable in memory
+    let(:member) { member_with(org_roles: %w[member owner], project_roles: %w[owner]).tap { it.roles = [] } }
+    let(:policy) { described_class.new(member, project) }
+
+    it "allows nothing" do
+      expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
+      expect(described_class.readable(member)).to be_empty
+      expect(described_class.exportable(member)).to be_empty
+    end
+  end
+
   context "without a member" do
     let(:policy) { described_class.new(nil, project) }
 

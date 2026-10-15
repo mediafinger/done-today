@@ -51,7 +51,7 @@ module Orgs
 
         @entries =
           if @day.persisted?
-            entries = writable ? editable_entries(member: current_member, entries: @day.entries) : @day.entries
+            entries = writable ? EntryPolicy.editable(current_member).where(day: @day) : @day.entries
             entries.includes(:member, day: :project).order(status: :desc, created_at: :asc)
           else
             @day.entries
@@ -68,7 +68,7 @@ module Orgs
         # start@ / end@ only add up within a single day
         @with_time_summary = @group_by == "date" && params[:date].present?
 
-        @entries = current_org.entries.where(day: date_days).includes(:member, day: :project)
+        @entries = EntryPolicy.readable(current_member).where(day: date_days).includes(:member, day: :project)
         @entries =
           if tag
             # a tag's history spans many days and reads newest first
@@ -244,21 +244,6 @@ module Orgs
       return "project" if params[:project_id] # TODO: use slug
 
       "date" # a bare /entries shows today
-    end
-
-    def readable_entries(member:, entries:)
-      participant(member:).readable_entries(relation: entries)
-    end
-
-    def editable_entries(member:, entries:)
-      # TODO: ensure participant.owner can see who's entries they edit
-      # @with_member = participant(member:).roles.include?("owner")
-
-      participant(member:).editable_entries(relation: entries)
-    end
-
-    def participant(member:)
-       @participant ||= member.participations.find_by(project:)
     end
 
     def create_params
