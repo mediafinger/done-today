@@ -143,11 +143,24 @@ RSpec.describe "Authorization role matrix" do
     get tag_path("handover", project_id: project.id)
   end
 
+  row "GET /weeks/:week?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    get week_path("2026-W38", project_id: project.id)
+  end
+
   row "GET /entries?tag=&project_id= (old URL)", {
     outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
     project_owner: :moved_permanently, org_owner: :moved_permanently
   } do
     get entries_path(tag: "handover", project_id: project.id)
+  end
+
+  row "GET /entries?week=&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
+    get entries_path(week: "2026-W38", project_id: project.id)
   end
 
   # only a participation selects P as the current project, everyone else is sent to pick one

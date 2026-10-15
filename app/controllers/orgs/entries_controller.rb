@@ -28,13 +28,15 @@ module Orgs
       if params[:tag].present?
         return redirect_to tag_path(params[:tag], project_id: params[:project_id].presence), status: :moved_permanently
       end
+      if params[:week].present?
+        return redirect_to week_path(params[:week], project_id: params[:project_id].presence), status: :moved_permanently
+      end
 
       date # to initialize it
       @group_by = group_by
       @with_date = params[:date].blank?
       @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
-      @with_project = false if week # the week page names its project in the headline
       # TODO: or handle only current_project in this controller and leave the rest for the projects_controller ?!
 
       if params[:member_id]
@@ -68,24 +70,14 @@ module Orgs
       elsif mode == "read"
         date_days = days
         date_days = date_days.where(date:) if params[:date].present?
-        date_days = date_days.where(date: week..(week + 6.days)) if week
 
         # start@ / end@ only add up within a single day
         @with_time_summary = @group_by == "date" && params[:date].present?
 
         @entries = EntryPolicy.readable(current_member).where(day: date_days).includes(:member, day: :project)
-        @entries =
-          if week
-            # newest day first, like the project page the week is linked from
-            @entries.joins(:day).order(Day.arel_table[:date].desc, status: :desc, created_at: :asc)
-          else
-            @entries.order(status: :desc, created_at: :asc)
-          end
+        @entries = @entries.order(status: :desc, created_at: :asc)
 
         @entries = @entries.where(member: @member) if @member
-
-        # the week page shows each member's day total, like the project page
-        @totals = TimeSummary.day_totals(@entries) if week
       end
     end
 
@@ -173,10 +165,8 @@ module Orgs
       end
     end
 
-    # The week page lists entries of many days, which are never edited together.
-    #
     def mode
-      @mode ||= week ? "read" : (params[:mode] || "read")
+      @mode ||= params[:mode] || "read"
 
       raise ArgumentError, "invalid mode: #{@mode}" unless %w[read edit].include?(@mode)
 
@@ -193,19 +183,6 @@ module Orgs
           params[:date].present? ? Date.parse(params[:date]) : Time.zone.today
         rescue Date::Error
           Time.zone.today
-        end
-    end
-
-    # The Monday of the ISO week in `?week=2026-W39`, or nil for none or an invalid one.
-    #
-    def week
-      return @week if defined?(@week)
-
-      @week =
-        begin
-          Date.strptime(params[:week], PeriodSummary::WEEK_PARAM) if params[:week].present?
-        rescue Date::Error
-          nil
         end
     end
 
@@ -227,7 +204,6 @@ module Orgs
 
     def group_by
       return params[:group_by] if params[:group_by]
-      return "week" if week
       return "date" if params[:date]
       return "member" if params[:member_id]
       return "project" if params[:project_id] # TODO: use slug

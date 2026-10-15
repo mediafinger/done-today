@@ -112,7 +112,7 @@ RSpec.describe "Orgs::Projects" do
       headings = show_weeks.css(".period h3 a")
 
       expect(headings.map(&:text)).to eq([ "2026 / w39", "2026 / w38" ])
-      expect(headings.first["href"]).to eq(entries_path(week: "2026-W39", project_id: project.id))
+      expect(headings.first["href"]).to eq(week_path("2026-W39", project_id: project.id))
     end
 
     it "lists the members of the week alphabetically, with their total and tags" do
@@ -165,7 +165,7 @@ RSpec.describe "Orgs::Projects" do
       links = show_months.css(".period h3").first.css("a")
 
       expect(links.map { it["href"] }).to eq([
-        entries_path(week: "2026-W36", project_id: project.id), entries_path(week: "2026-W40", project_id: project.id)
+        week_path("2026-W36", project_id: project.id), week_path("2026-W40", project_id: project.id)
       ])
     end
 

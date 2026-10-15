@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   scope module: :orgs, path: "/" do
     resources :entries, only: %i[ index create update ]
     resources :tags, param: :tag, only: %i[ show ]
+    resources :weeks, param: :week, only: %i[ show ]
     resources :members, only: %i[ index update ] do
       patch :deactivate, on: :member
       patch :reactivate, on: :member
