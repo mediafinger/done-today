@@ -12,8 +12,41 @@ RSpec.describe LandingService do
     described_class.call(user: user.reload)
   end
 
-  it "is empty when nothing was remembered" do
-    expect(landing).to have_attributes(org: nil, project: nil)
+  context "with several orgs and projects" do
+    before do
+      create(:participant, member:, project: create(:project, org:))
+      create(:member, user:)
+    end
+
+    it "is empty when nothing was remembered" do
+      expect(landing).to have_attributes(org: nil, project: nil)
+    end
+
+    it "returns the only project of the remembered org" do
+      other_org = create(:member, user:).org
+      only_project = create(:project, org: other_org)
+      create(:participant, member: user.memberships.find_by(org: other_org), project: only_project)
+      user.remember_last_visit!(org: other_org)
+
+      expect(landing).to have_attributes(org: other_org, project: only_project)
+    end
+  end
+
+  it "returns the only org and project when nothing was remembered" do
+    expect(landing).to have_attributes(org:, project:)
+  end
+
+  it "skips archived projects when looking for the only one" do
+    create(:participant, member:, project: create(:project, org:, archived_at: 1.day.ago))
+
+    expect(landing).to have_attributes(org:, project:)
+  end
+
+  it "does not pick a project for an org owner who takes part in none" do
+    owner = create(:member, :owner, org: create(:org))
+    create(:project, org: owner.org)
+
+    expect(described_class.call(user: owner.user)).to have_attributes(org: owner.org, project: nil)
   end
 
   it "returns the remembered org and project" do
@@ -52,6 +85,7 @@ RSpec.describe LandingService do
   end
 
   it "ignores a remembered project of another org" do
+    create(:participant, member:, project: create(:project, org:))
     user.update_columns(last_org_id: org.id, last_project_id: create(:project).id) # rubocop:disable Rails/SkipsModelValidations
 
     expect(landing).to have_attributes(org:, project: nil)

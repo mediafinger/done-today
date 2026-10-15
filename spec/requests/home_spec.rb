@@ -75,4 +75,62 @@ RSpec.describe "GET /" do
       expect(main_text).to include("not part of any project in Beta yet")
     end
   end
+
+  describe "going straight to today" do
+    let(:member) { create(:member, user:) }
+    let(:project) { create(:project, org: member.org) }
+    let(:today) { edit_day_path(member.org, project, Time.zone.today) }
+
+    it "sends a user with a single project from the sign-in to today" do
+      create(:participant, member:, project:)
+
+      sign_in(user)
+      follow_redirect!
+
+      expect(response).to redirect_to(today)
+      follow_redirect!
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "shows an observer today read-only" do
+      create(:participant, :observer, member:, project:)
+      sign_in(user)
+
+      get root_path
+      follow_redirect!
+
+      expect(response.body).not_to include(%(id="new-entry"))
+    end
+
+    it "picks the only project of the org opened last" do
+      create(:participant, member:, project:)
+      other = create(:member, user:)
+      create(:participant, member: other, project: create(:project, org: other.org))
+      sign_in(user)
+      get org_path(member.org)
+
+      get root_path
+
+      expect(response).to redirect_to(today)
+    end
+
+    it "stays on the picker when there are several projects to choose from" do
+      2.times { create(:participant, member:, project: create(:project, org: member.org)) }
+      sign_in(user)
+
+      get root_path
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "stays on the picker for an org owner who takes part in no project" do
+      member.add_role!("owner")
+      project
+      sign_in(user)
+
+      get root_path
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

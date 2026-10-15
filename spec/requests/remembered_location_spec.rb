@@ -10,11 +10,13 @@ RSpec.describe "Remembering the last org and project" do
   let(:project) { create(:project, org:) }
   let(:today) { Time.zone.today }
 
-  # two orgs and two projects, so nothing is unambiguous enough to be auto-selected
+  # enough orgs and projects that, even after leaving one, none is the only one left
   before do
     create(:participant, member:, project:)
-    create(:participant, member:, project: create(:project, org:))
-    create(:member, user:)
+    2.times do
+      create(:participant, member:, project: create(:project, org:))
+      create(:member, user:)
+    end
     sign_in(user)
   end
 
