@@ -13,6 +13,10 @@ Rails.application.routes.draw do
     resource :session, only: %i[ new create destroy ]
     resources :passwords, param: :token, only: %i[ new create edit update ]
 
+    resource :account, only: %i[ show update ] do
+      resource :password, only: :update, controller: "account_passwords"
+    end
+
     get "/preferences", to: "preferences#show"
 
     patch "dark_mode", to: "display_modes#dark"

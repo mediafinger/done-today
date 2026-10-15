@@ -30,6 +30,11 @@
 en:
   hello: "Hello world"
 
+  activerecord:
+    attributes:
+      user:
+        password_challenge: "Current password"
+
   controllers:
     no_org_selected: "Select an org first"
     no_project_selected: "Select a project first"

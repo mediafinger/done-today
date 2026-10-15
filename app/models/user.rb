@@ -14,8 +14,13 @@ class User < ApplicationRecord
     format: { with: URI::MailTo::EMAIL_REGEXP, message: "%{value} is not a valid email format" }
   validates :name, presence: true, length: { in: 3..72 }
   validates :password, allow_nil: true, length: { in: 10..72 }, on: %i[create update reset_password]
+  validates :password, presence: true, on: :change_password
   validates :password, not_pwned: { message: "might easily be guessed" }, if:  :production_env
   validates :password_digest, presence: true
+
+  def end_sessions_except(session)
+    sessions.where.not(id: session.id).delete_all
+  end
 
   private
 

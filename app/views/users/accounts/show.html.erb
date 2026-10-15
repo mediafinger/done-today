@@ -1,0 +1,39 @@
+<h2>Account</h2>
+
+<article>
+  <header><h3>Profile</h3></header>
+
+  <%= form_with model: @user, url: account_path, method: :patch, scope: :user do |form| %>
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true, autocomplete: "name", minlength: 3, maxlength: 72 %>
+
+    <%= form.label :email %>
+    <%= form.email_field :email, required: true, autocomplete: "email" %>
+
+    <%= form.label :password_challenge, "Current password", for: "profile_password_challenge" %>
+    <%= form.password_field :password_challenge, id: "profile_password_challenge", autocomplete: "current-password",
+          aria: { describedby: "profile_password_challenge_hint" } %>
+    <small id="profile_password_challenge_hint">Only needed to change your email.</small>
+
+    <%= form.submit "Save profile" %>
+  <% end %>
+</article>
+
+<article>
+  <header><h3>Password</h3></header>
+
+  <%= form_with model: @user, url: account_password_path, method: :patch, scope: :user do |form| %>
+    <%= form.label :password_challenge, "Current password", for: "password_password_challenge" %>
+    <%= form.password_field :password_challenge, id: "password_password_challenge", required: true, autocomplete: "current-password" %>
+
+    <%= form.label :password, "New password" %>
+    <%= form.password_field :password, required: true, autocomplete: "new-password", minlength: 10, maxlength: 72 %>
+
+    <%= form.label :password_confirmation, "Repeat new password" %>
+    <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", minlength: 10, maxlength: 72,
+          aria: { describedby: "password_hint" } %>
+    <small id="password_hint">Changing your password signs you out on all other devices.</small>
+
+    <%= form.submit "Change password" %>
+  <% end %>
+</article>
