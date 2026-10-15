@@ -1,0 +1,15 @@
+<h2>Change email</h2>
+
+<article>
+  <%= form_with model: @user, url: user_email_path, method: :patch, scope: :user do |form| %>
+    <%= form.label :email, "New email" %>
+    <%= form.email_field :email, required: true, autocomplete: "email" %>
+
+    <%= form.label :password_challenge, "Current password" %>
+    <%= form.password_field :password_challenge, required: true, autocomplete: "current-password" %>
+
+    <%= form.submit "Change email" %>
+  <% end %>
+
+  <footer><%= link_to "Back", edit_user_path %></footer>
+</article>
