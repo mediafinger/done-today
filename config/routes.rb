@@ -19,11 +19,8 @@ Rails.application.routes.draw do
       resources :sessions, only: %i[ index destroy ], controller: "user_sessions" do
         delete :destroy_others, on: :collection
       end
+      resource :display_mode, only: %i[ update ]
     end
-
-    patch "dark_mode", to: "display_modes#dark"
-    patch "light_mode", to: "display_modes#light"
-    patch "system_mode", to: "display_modes#system"
   end
 
   # resources :switch_current_organizations, only: %i[index show create destroy]

@@ -45,7 +45,7 @@ The project utilizes custom cookie-based signed session handling modeled after s
 The app supports multi-tenant organization boundaries and project selection:
 - Thread-safe globals are stored using ActiveSupport's `CurrentAttributes` in the [Current](file:///Users/andy/Dropbox/www/2025/done_today/app/models/current.rb) model.
 - Scoping concerns dynamically load context on each request:
-  - [RequestContext](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/request_context.rb) (IP, request ID, user agent, display modes).
+  - [RequestContext](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/request_context.rb) (IP, request ID, user agent).
   - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (populates `Current.org` and `Current.member`).
   - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (populates `Current.project`).
 - Switching context is routed by organization and project slug paths (e.g. `/open/:slug_org(/:slug_project)`) handled by [SwitchOrgsController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/switch_orgs_controller.rb).
@@ -53,7 +53,7 @@ The app supports multi-tenant organization boundaries and project selection:
 ### 5. Domain Model & PostgreSQL-specific Features
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Arrays**: Membership and participation roles are stored as array columns (`text[]`). Role querying utilizes specialized Postgres operators (e.g., `&&` for intersection, `@>` for containment).
-- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`).
+- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`).
 - **Array Validation**: To validate postgres array columns, we use a custom [ArrayInclusionValidator](file:///Users/andy/Dropbox/www/2025/done_today/app/validators/array_inclusion_validator.rb).
 
 ### 6. Auditing & Record History
@@ -64,7 +64,7 @@ For auditing operations within organizations, we implement a lightweight event-l
 
 ### 7. UI / Styling Decisions
 - **Classless CSS**: The codebase styles semantic HTML elements by default using **Pico CSS** ([pico.amber.css](file:///Users/andy/Dropbox/www/2025/done_today/app/assets/stylesheets/pico.amber.css)). This allows us to write standard semantic HTML (e.g. `<main>`, `<details>`, `<article>`) without bloating class attributes.
-- **Dark Mode**: Supports light, dark, and system color preferences. The theme is applied dynamically using a `data-theme` attribute on the `<html>` tag, populated from the user's preference cookies in [DisplayModesController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/users/display_modes_controller.rb).
+- **Dark Mode**: Supports light, dark, and system color preferences, stored in `users.display_mode` (PostgreSQL enum `display_mode`, default `system`) and set on the account page via [DisplayModesController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/users/display_modes_controller.rb). The layout renders `light`/`dark` as `data-theme` on `<html>`; `system` omits it so Pico follows the OS setting. Signed-out pages always follow the OS setting.
 - **No Node.js build step**: JavaScript is managed using [importmap.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/importmap.rb) and executed using native ES modules.
 
 ---

@@ -1,22 +1,17 @@
 module Users
   class DisplayModesController < ApplicationController
-    def dark
-      Current.display_mode = cookies[:display_mode] = "dark"
-
-      redirect_back_or_to root_path
+    def update
+      if current_user.update(display_mode_params)
+        redirect_back_or_to edit_user_path
+      else
+        redirect_back_or_to edit_user_path, alert: current_user.errors.full_messages.to_sentence
+      end
     end
 
-    def light
-      Current.display_mode = cookies[:display_mode] = "light"
+    private
 
-      redirect_back_or_to root_path
-    end
-
-    def system
-      cookies.delete(:display_mode)
-      Current.display_mode = nil
-
-      redirect_back_or_to root_path
+    def display_mode_params
+      params.expect(user: %i[display_mode])
     end
   end
 end

@@ -14,7 +14,6 @@ module RequestContext
     # Current.member = current_member # set in OrgScope concern
     # Current.project = current_project # set in ProjectScope concern
 
-    Current.display_mode = cookies[:display_mode]
     Current.ip_address = request.remote_ip
     Current.module_name = self.class.module_parent_name
     Current.path = request.path
