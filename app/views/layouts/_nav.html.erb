@@ -18,6 +18,7 @@
     </div>
 
     <div class="right zup">
+      <%= link_to "?", help_path, role: "button", class: "slim", title: "Help", aria: { label: "Help" } %>
       <% if current_user %>
         <%= link_to "👤", edit_user_path, role: "button", class: "slim", title: "Account", aria: { label: "Account" } %>
         <%= link_to "⚙", current_org ? org_settings_path(current_org) : settings_path, method: :get, role: "button", class: "slim" %>

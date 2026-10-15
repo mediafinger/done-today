@@ -30,6 +30,35 @@ RSpec.describe "Help" do
     end
   end
 
+  describe "the navigation guide" do
+    def help_link
+      Nokogiri::HTML(response.body).at_css("nav a[href='#{help_path}']")
+    end
+
+    it "is linked from the nav before signing in" do
+      get new_session_path
+
+      expect(help_link).to be_present
+    end
+
+    it "is linked from the nav once signed in" do
+      participant = create(:participant)
+      sign_in(participant.member.user)
+
+      get edit_day_path(participant.org, participant.project, Time.zone.today)
+
+      expect(help_link).to be_present
+    end
+
+    it "explains the settings button and the org | project switcher" do
+      get help_path
+
+      guide = Nokogiri::HTML(response.body).at_css("main #navigation").text.squish
+
+      expect(guide).to include("⚙", "Settings", "👤", "Account", "org | project", "projects you take part in")
+    end
+  end
+
   describe "the cheat sheet next to the entry field" do
     let(:participant) { create(:participant) }
     let(:org) { participant.org }
