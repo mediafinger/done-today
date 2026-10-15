@@ -17,8 +17,9 @@ class ApplicationPolicy
     @record = record
   end
 
+  # an archived member keeps their entries, but no access
   def self.active?(member)
-    member.present? && member.roles.intersect?(Member::VALID_ROLES)
+    member.present? && !member.archived? && member.roles.intersect?(Member::VALID_ROLES)
   end
 
   def self.org_owner?(member)

@@ -1,7 +1,8 @@
 class User < ApplicationRecord
   has_secure_password
 
-  has_many :memberships, class_name: "Member", inverse_of: :user, dependent: :destroy
+  # members carry the entries: archive them instead (the DB FK refuses as well)
+  has_many :memberships, class_name: "Member", inverse_of: :user, dependent: :restrict_with_exception
   has_many :orgs, through: :memberships
   has_many :sessions, dependent: :destroy
 

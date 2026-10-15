@@ -10,4 +10,14 @@ RSpec.describe Org do
       expect(other.slug).to match(/\Aacme-\d+\z/)
     end
   end
+
+  # deleting a whole tenant stays possible on purpose, unlike deleting one member
+  it "deletes its members together with their entries when destroyed" do
+    participant = create(:participant)
+    create(:entry, member: participant.member, day: create(:day, project: participant.project))
+
+    participant.org.destroy!
+
+    expect([ Member.count, Entry.count, Participant.count ]).to all(be_zero)
+  end
 end

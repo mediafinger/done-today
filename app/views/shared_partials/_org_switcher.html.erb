@@ -9,7 +9,7 @@
   </summary>
 
   <ul>
-    <% current_user.memberships.includes(:org, participations: :project).order("org.name asc").each_with_index do |member, index| %>
+    <% current_user.memberships.active.includes(:org, participations: :project).order("org.name asc").each_with_index do |member, index| %>
       <!-- link to org -->
       <li class="without-bullet">
         <b>
