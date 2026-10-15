@@ -1,0 +1,168 @@
+<% content_for(:title, "Datenschutzerklärung – Done Today") %>
+
+<%# Must match what the app processes. Review on every change to models, cookies, logging or providers. %>
+<div lang="de">
+  <h1>Datenschutzerklärung</h1>
+
+  <%= render "legal/notices" %>
+
+  <h2>1. Verantwortlicher</h2>
+  <address>
+    <%= legal(:legal_operator_name) %><br>
+    <%= legal(:legal_street) %><br>
+    <%= legal(:legal_city) %><br>
+    E-Mail: <%= legal_email_link %>
+  </address>
+  <p>Weitere Angaben finden Sie im <%= link_to "Impressum", imprint_path %>.</p>
+
+  <h2>2. Worum es geht</h2>
+  <p>
+    Done Today ist ein Werkzeug zur Zeiterfassung für eingeladene Teams. Es gibt keine öffentliche Registrierung,
+    keine Werbung, kein Tracking und keine Analysewerkzeuge. Die Anwendung wird auf Servern in Deutschland betrieben.
+  </p>
+
+  <h2>3. Rollenverteilung</h2>
+  <p>
+    Organisationen (z. B. Arbeitgeber oder Auftraggeber), die Done Today für ihre Teams nutzen, sind für die Inhalte,
+    die ihre Mitglieder erfassen – insbesondere Zeiteinträge –, Verantwortliche im Sinne von Art. 4 Nr. 7 DSGVO.
+    Für diese Inhalte handeln wir als Auftragsverarbeiter nach Art. 28 DSGVO auf Grundlage eines
+    Auftragsverarbeitungsvertrags mit der jeweiligen Organisation. Anfragen zu diesen Daten richten Sie bitte an Ihre
+    Organisation; an uns gerichtete Anfragen leiten wir an sie weiter.
+  </p>
+  <p>
+    Für den Betrieb der Anwendung selbst (Server-Logs, Anmeldung, Sitzungen, E-Mail-Versand) sind wir Verantwortlicher.
+  </p>
+
+  <h2>4. Welche Daten wir verarbeiten</h2>
+
+  <h3>4.1 Aufruf der Anwendung (Server-Logs)</h3>
+  <p>
+    Bei jedem Aufruf verarbeitet der Server IP-Adresse, Datum und Uhrzeit, aufgerufene Adresse, HTTP-Statuscode,
+    Browser-Kennung (User-Agent) und eine Anfrage-ID. Zweck ist der sichere und stabile Betrieb, insbesondere die
+    Abwehr von Angriffen und die Fehleranalyse. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes
+    Interesse liegt in der Sicherheit und Verfügbarkeit des Dienstes. Die Logs werden nach spätestens 14 Tagen gelöscht.
+  </p>
+
+  <h3>4.2 Benutzerkonto</h3>
+  <p>
+    Für Ihr Konto speichern wir Name, E-Mail-Adresse und Ihr Passwort ausschließlich als kryptografischen Hash
+    (bcrypt). Beim Setzen eines Passworts prüfen wir, ob es in bekannten Datenlecks vorkommt: Dazu übermitteln wir
+    die ersten fünf Zeichen des SHA-1-Hashes Ihres Passworts an den Dienst „Pwned Passwords“
+    (api.pwnedpasswords.com). Das Passwort selbst und Ihre IP-Adresse werden dabei nicht übertragen.
+    Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung des Dienstes) sowie Art. 6 Abs. 1 lit. f DSGVO
+    (Schutz Ihres Kontos). Die Daten werden gespeichert, bis Ihr Konto gelöscht wird.
+  </p>
+
+  <h3>4.3 Organisationen, Mitgliedschaften und Projekte</h3>
+  <p>
+    Wir speichern, welchen Organisationen und Projekten Sie angehören, Ihren Anzeigenamen in der Organisation und
+    Ihre Rollen (z. B. Mitglied, Beobachter, Verantwortlicher). Diese Angaben steuern, wer welche Daten sehen und
+    bearbeiten darf.
+  </p>
+
+  <h3>4.4 Zeiteinträge</h3>
+  <p>
+    Zeiteinträge enthalten Datum, Freitext, Schlagwörter (Tags), Start- und Endzeiten, Dauer und Status sowie die
+    Zuordnung zu Ihrer Person und zum Projekt. Andere Mitglieder des Projekts bzw. der Organisation können sie je
+    nach Rolle sehen und als CSV-Datei exportieren. Bitte erfassen Sie im Freitext keine unnötigen personenbezogenen
+    Daten Dritter. Diese Daten verarbeiten wir im Auftrag Ihrer Organisation (siehe Abschnitt 3); sie werden
+    gespeichert, bis die Organisation sie löscht oder die Zusammenarbeit endet.
+  </p>
+
+  <h3>4.5 Änderungsprotokoll</h3>
+  <p>
+    Änderungen an Datensätzen können mit Zeitpunkt, Art der Änderung, geänderten Werten und der handelnden Person
+    protokolliert werden. Zweck ist die Nachvollziehbarkeit von Änderungen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+    DSGVO bzw. die Weisung Ihrer Organisation.
+  </p>
+
+  <h3>4.6 Anmeldung und Sitzungen</h3>
+  <p>
+    Bei der Anmeldung legen wir eine Sitzung an und speichern dazu IP-Adresse, Browser-Kennung (User-Agent), Zeitpunkt
+    sowie die zuletzt gewählte Organisation und das zuletzt gewählte Projekt. Zweck ist, Sie angemeldet zu halten und
+    missbräuchliche Anmeldungen erkennen zu können. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b und lit. f DSGVO. Eine
+    Sitzung wird gelöscht, wenn Sie sich abmelden oder Ihr Konto gelöscht wird.
+  </p>
+
+  <h3>4.7 E-Mails</h3>
+  <p>
+    Wir versenden ausschließlich E-Mails, die für die Nutzung erforderlich sind, etwa zum Zurücksetzen des Passworts.
+    Dabei verarbeiten wir Ihre E-Mail-Adresse und den Inhalt der Nachricht. Für den Versand setzen wir einen
+    E-Mail-Dienstleister als Auftragsverarbeiter ein (siehe Abschnitt 6). Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+  </p>
+
+  <h2>5. Cookies</h2>
+  <p>
+    Wir verwenden nur Cookies, die für den Betrieb technisch erforderlich sind oder eine von Ihnen ausdrücklich gewählte
+    Einstellung speichern. Eine Einwilligung ist dafür nach § 25 Abs. 2 Nr. 2 TDDDG nicht erforderlich.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Zweck</th><th>Speicherdauer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>session_id</code></td>
+        <td>Signierte Kennung Ihrer Anmeldung</td>
+        <td>bis zur Abmeldung (technisch höchstens 20 Jahre)</td>
+      </tr>
+      <tr>
+        <td><code>_done_today_session</code></td>
+        <td>Schutz vor Cross-Site-Request-Forgery, Hinweise nach Aktionen, Rücksprung nach der Anmeldung</td>
+        <td>bis zum Schließen des Browsers</td>
+      </tr>
+      <tr>
+        <td><code>display_mode</code></td>
+        <td>Von Ihnen gewählte helle oder dunkle Darstellung; wird nur gesetzt, wenn Sie eine Darstellung wählen</td>
+        <td>bis zum Schließen des Browsers oder bis Sie „System“ wählen</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6. Empfänger und Auftragsverarbeiter</h2>
+  <%# Keep in sync with docs/runbooks/legal_pages.md %>
+  <p>
+    Innerhalb Ihrer Organisation sehen andere Mitglieder Ihre Daten im Rahmen ihrer Rollen. Darüber hinaus setzen wir
+    folgende Dienstleister ein, mit denen Verträge zur Auftragsverarbeitung nach Art. 28 DSGVO bestehen:
+  </p>
+  <ul>
+    <li>Hosting und Datensicherung (Server in Deutschland): <%= legal(:legal_hosting_provider) %></li>
+    <li>E-Mail-Versand: <%= legal(:legal_mail_provider) %></li>
+  </ul>
+  <p>
+    Eine Übermittlung in Länder außerhalb der Europäischen Union bzw. des Europäischen Wirtschaftsraums findet nicht
+    statt. Wir verkaufen keine Daten und geben sie nicht zu Werbezwecken weiter.
+  </p>
+
+  <h2>7. Ihre Rechte</h2>
+  <p>Sie haben nach der DSGVO das Recht auf</p>
+  <ul>
+    <li>Auskunft (Art. 15),</li>
+    <li>Berichtigung (Art. 16),</li>
+    <li>Löschung (Art. 17),</li>
+    <li>Einschränkung der Verarbeitung (Art. 18),</li>
+    <li>Datenübertragbarkeit (Art. 20),</li>
+    <li>Widerspruch gegen Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO aus Gründen, die sich aus Ihrer
+      besonderen Situation ergeben (Art. 21).</li>
+  </ul>
+  <p>
+    Wenden Sie sich dazu an die oben genannte E-Mail-Adresse. Sie haben außerdem das Recht, sich bei einer
+    Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO), insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts,
+    Ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes.
+  </p>
+
+  <h2>8. Pflicht zur Bereitstellung, automatisierte Entscheidungen</h2>
+  <p>
+    Ohne Name, E-Mail-Adresse und Passwort können Sie Done Today nicht nutzen. Eine automatisierte Entscheidungsfindung
+    einschließlich Profiling nach Art. 22 DSGVO findet nicht statt.
+  </p>
+
+  <h2>9. Sicherheit</h2>
+  <p>
+    Die Verbindung zur Anwendung ist durchgehend per TLS verschlüsselt. Passwörter werden nur als Hash gespeichert.
+    Der Zugriff auf Daten ist auf die Mitglieder der jeweiligen Organisation beschränkt.
+  </p>
+
+  <h2>10. Stand</h2>
+  <p>Diese Datenschutzerklärung hat den Stand Oktober 2026. Wir passen sie an, wenn sich die Verarbeitung ändert.</p>
+</div>

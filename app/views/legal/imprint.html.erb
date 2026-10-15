@@ -1,0 +1,44 @@
+<% content_for(:title, "Impressum – Done Today") %>
+
+<div lang="de">
+  <h1>Impressum</h1>
+
+  <%= render "legal/notices" %>
+
+  <h2>Angaben gemäß § 5 DDG</h2>
+  <address>
+    <%= legal(:legal_operator_name) %><br>
+    <%= legal(:legal_street) %><br>
+    <%= legal(:legal_city) %>
+  </address>
+
+  <% if (representative = legal_optional(:legal_representative)) %>
+    <p>Vertreten durch: <%= representative %></p>
+  <% end %>
+
+  <h2>Kontakt</h2>
+  <p>
+    <% if (phone = legal_optional(:legal_phone)) %>
+      Telefon: <%= phone %><br>
+    <% end %>
+    E-Mail: <%= legal_email_link %>
+  </p>
+
+  <% if (register = legal_optional(:legal_register)) %>
+    <h2>Registereintrag</h2>
+    <p><%= register %></p>
+  <% end %>
+
+  <% if (vat_id = legal_optional(:legal_vat_id)) %>
+    <h2>Umsatzsteuer-ID</h2>
+    <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: <%= vat_id %></p>
+  <% end %>
+
+  <h2>Verbraucherstreitbeilegung</h2>
+  <p>
+    Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer
+    Verbraucherschlichtungsstelle teilzunehmen.
+  </p>
+
+  <p><%= link_to "Datenschutzerklärung", privacy_path %></p>
+</div>
