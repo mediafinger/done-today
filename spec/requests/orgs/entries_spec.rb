@@ -535,6 +535,24 @@ RSpec.describe "Orgs::Entries" do
       expect(flash[:alert]).to be_present
     end
 
+    it "refuses to update a colleague's entry and leaves it alone" do
+      colleagues_entry = create(:entry, day: entry.day, member: create(:participant, project:).member)
+
+      patch entry_path(colleagues_entry), params: { entry: { log: "Not mine to change" } }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(colleagues_entry.reload.log).to eq("Wrote some code")
+    end
+
+    it "refuses a Turbo Stream update of a colleague's entry with a bare 403" do
+      colleagues_entry = create(:entry, day: entry.day, member: create(:participant, project:).member)
+
+      patch entry_path(colleagues_entry), params: { entry: { status: "done" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:forbidden)
+      expect(colleagues_entry.reload.status).to eq("doing")
+    end
+
     it "stays on the unlocked past day instead of locking it again" do
       patch entry_path(entry), params: { entry: { log: "Fixed it after all" }, unlocked: "1" }
 

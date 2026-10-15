@@ -111,7 +111,7 @@ module Orgs
     end
 
     def update
-      @entry = current_project.entries.find(params[:id])
+      @entry = authorize!(current_project.entries.find(params[:id]), :update?)
 
       # `key?`, not `present?`: a submitted-but-blank log has to reach the validations
       #   rather than being silently dropped
