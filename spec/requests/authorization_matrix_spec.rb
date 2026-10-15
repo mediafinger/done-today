@@ -122,8 +122,9 @@ RSpec.describe "Authorization role matrix" do
     get export_days_csv_project_path(project.slug, month: "2026-03", member_id: colleagues_entry.member_id)
   end
 
-  row "GET /entries?project_id=", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  row "GET /entries?project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
   } do
     get entries_path(project_id: project.id, mode: "read")
   end

@@ -31,11 +31,11 @@ RSpec.describe "Orgs::Entries" do
       expect(response.body).not_to include("Day #{Time.zone.today.iso8601}")
     end
 
-    it "renders the project grouping without blowing up on a missing partial" do
+    it "sends the old project grouping to the project page" do
       get entries_path(project_id: project.id, mode: "read")
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(project.name)
+      expect(response).to redirect_to(project_path(project.slug))
+      expect(response).to have_http_status(:moved_permanently)
     end
   end
 
@@ -401,17 +401,6 @@ RSpec.describe "Orgs::Entries" do
 
       expect(response).to redirect_to(member_entries_path(member, project_id: project.id))
       expect(response).to have_http_status(:moved_permanently)
-    end
-  end
-
-  describe "GET /entries?project_id=" do
-    it "lists the entries of every day of the project" do
-      create(:entry, day: create(:day, project:, date: Date.new(2026, 9, 1)), member:, log: "on the first")
-      create(:entry, day: create(:day, project:, date: Date.new(2026, 9, 2)), member:, log: "on the second")
-
-      get entries_path(project_id: project.id)
-
-      expect(response.body).to include("Entries of #{project.name}", "on the first", "on the second")
     end
   end
 

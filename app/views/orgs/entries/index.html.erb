@@ -1,7 +1,5 @@
 <% if @group_by == "date" %>
   <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
-<% elsif @group_by == "project" %>
-  <%= render "orgs/entries/entries_nav_by_project", project: @project, mode: @mode %>
 <% else %>
   group_by '<%= @group_by %>' is invalid
 <% end %>
