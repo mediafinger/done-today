@@ -1,0 +1,24 @@
+<%# The markup EntryLog understands, from SyntaxGuide -- whose spec parses every example. %>
+
+<div class="overflow-auto">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Markup</th>
+        <th scope="col">Example</th>
+        <th scope="col">Meaning</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% SyntaxGuide::EXAMPLES.each_with_index do |example, index| %>
+        <%# a markup with several examples is named on its first row only %>
+        <% repeated = index.positive? && SyntaxGuide::EXAMPLES[index - 1].markup == example.markup %>
+        <tr>
+          <th scope="row"><%= tag.code(example.markup) unless repeated %></th>
+          <td><code><%= example.log %></code></td>
+          <td><%= example.meaning %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

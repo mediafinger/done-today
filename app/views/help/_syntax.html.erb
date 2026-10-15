@@ -1,0 +1,26 @@
+<section id="syntax">
+  <h2>Writing entries</h2>
+
+  <p>
+    Type what you did and press Enter. Markup anywhere in the line adds tags and times;
+    the text is always saved the way you typed it.
+  </p>
+
+  <%= render "help/syntax_table" %>
+
+  <h3>What stays plain text</h3>
+
+  <ul>
+    <% SyntaxGuide::NOT_MARKUP.each do |example| %>
+      <li><code><%= example.log %></code> &mdash; <%= example.meaning %></li>
+    <% end %>
+  </ul>
+
+  <h3>Working time</h3>
+
+  <p>
+    Working time is end@ minus start@ minus the #break durations. Logging
+    <% SyntaxGuide::DAY.each do |log| %><code><%= log %></code> <% end %>
+    as separate entries adds up to <strong><%= SyntaxGuide::DAY_TOTAL %></strong>.
+  </p>
+</section>

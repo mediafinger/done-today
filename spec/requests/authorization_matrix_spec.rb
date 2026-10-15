@@ -134,6 +134,10 @@ RSpec.describe "Authorization role matrix" do
     get privacy_path
   end
 
+  row "GET /help", { anonymous: :ok, no_org: :ok, member: :ok } do
+    get help_path
+  end
+
   row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
     get new_session_path
   end

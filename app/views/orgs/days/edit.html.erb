@@ -18,5 +18,14 @@
     <% end %>
 
     <%= render "orgs/entries/new_entry", entry: @new_entry, unlocked: @unlocked %>
+
+    <%# outside #new-entry, so the Turbo Stream that resets the field leaves it open %>
+    <li class="nude">
+      <details id="syntax-help">
+        <summary>Markup: #tag start@ end@ from@ to@ for~ #break</summary>
+        <%= render "help/syntax_table" %>
+        <p><%= link_to "More on the help page", help_path %></p>
+      </details>
+    </li>
   <% end %>
 </ul>
