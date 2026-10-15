@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -49,17 +49,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
     t.index ["tags"], name: "index_entries_on_tags", using: :gin
   end
 
-  create_table "integrations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "credentials", default: {}, null: false
-    t.string "integration_type", null: false
-    t.uuid "org_id", null: false
-    t.string "service", null: false
-    t.text "template", null: false
-    t.datetime "updated_at", null: false
-    t.index ["org_id"], name: "index_integrations_on_org_id"
-  end
-
   create_table "members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -91,17 +80,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
     t.index ["member_id"], name: "index_participants_on_member_id"
     t.index ["org_id"], name: "index_participants_on_org_id"
     t.index ["project_id", "member_id"], name: "index_participants_on_project_id_and_member_id", unique: true
-  end
-
-  create_table "project_integrations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.uuid "integration_id", null: false
-    t.uuid "org_id", null: false
-    t.uuid "project_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["integration_id"], name: "index_project_integrations_on_integration_id"
-    t.index ["org_id"], name: "index_project_integrations_on_org_id"
-    t.index ["project_id", "integration_id"], name: "index_project_integrations_on_project_id_and_integration_id", unique: true
   end
 
   create_table "projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -159,15 +137,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_18_140000) do
   add_foreign_key "entries", "days"
   add_foreign_key "entries", "members"
   add_foreign_key "entries", "orgs"
-  add_foreign_key "integrations", "orgs"
   add_foreign_key "members", "orgs"
   add_foreign_key "members", "users"
   add_foreign_key "participants", "members"
   add_foreign_key "participants", "orgs"
   add_foreign_key "participants", "projects"
-  add_foreign_key "project_integrations", "integrations"
-  add_foreign_key "project_integrations", "orgs"
-  add_foreign_key "project_integrations", "projects"
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
   add_foreign_key "sessions", "orgs"
