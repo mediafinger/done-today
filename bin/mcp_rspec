@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+source /opt/homebrew/share/chruby/chruby.sh
+chruby $(cat .ruby-version 2>/dev/null)
+export PARALLEL_TEST_PROCESSORS="${PARALLEL_TEST_PROCESSORS:-4}"
+
+exec bundle exec rspec "$@"
+
+# TODO: activate parallel_tests first
+#
+# if [ $# -eq 0 ]; then
+#   exec bundle exec parallel_rspec -n 4 spec/
+# elif [ $# -eq 1 ] && [[ "$1" == *":"* || ( -f "$1" && "$1" == *_spec.rb ) ]]; then
+#   exec bundle exec rspec "$@"
+# else
+#   exec bundle exec parallel_rspec -n 4 "$@"
+# fi

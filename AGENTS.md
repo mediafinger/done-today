@@ -1,0 +1,133 @@
+# Agent Guidelines
+
+> Disclaimer this file has been copied from another project - let me know which options below might not work
+
+## Role
+
+Act as a Senior Technical Lead and Subject Matter Expert.
+
+## Plan, Documentation and ADRs
+
+Under docs/adrs you will find architectural decision records. Do not update them in the same PR as the technical change. If you see the need to add or change information, let the humans know in the PR description.
+
+Under docs/development you will find setup instruction for the app, guidance how to run the linters and tests, how we handle JS and assets.
+
+Under docs/runbooks you will find description of technical (partially manual) workflows, about creating databases, backups, deployments, releases...
+
+
+## Working on a new Ticket
+
+Ask me, if any implementation detail for this ticket is unclear or undecided.
+
+You will create a new branch for every ticket. base it off main, which has usually been updated with the prior work.
+
+When you you are done working on a ticket:
+  * push your work to a remote branch with the same name as your new local worktree branch
+  * create a PR
+  * remove your worktree access, but keep the local branch
+
+## Ruby Environment & Execution Helpers
+
+This project provides self-contained wrapper scripts in `bin/` that automatically initialize the required Ruby environment via `chruby` and `.ruby-version`. Always prefer these scripts when running Ruby, Rake, RSpec, and console commands:
+
+- **Full CI suite (Tests + Linters + Security Analysis)**:
+  ```bash
+  bin/mcp_rake ci
+  ```
+- **Rake tasks**:
+  ```bash
+  bin/mcp_rake <task_name> [args...]
+  # Examples:
+  bin/mcp_rake db:migrate
+  bin/mcp_rake ci
+  ```
+- **RSpec test execution**:
+  ```bash
+  bin/mcp_rspec [spec_files_or_options...]
+  # Examples:
+  bin/mcp_rspec                                      # Runs all specs in parallel (4 processes)
+  bin/mcp_rspec spec/models/chronicle_spec.rb        # Runs single spec file
+  bin/mcp_rspec spec/requests/searches_spec.rb:15    # Runs single example
+  ```
+- **RuboCop & Autocorrection**:
+  ```bash
+  bin/mcp_rubocop [options] [files...]
+  # Examples:
+  bin/mcp_rubocop -a                                 # Safe autocorrect on all files
+  bin/mcp_rubocop -A app/models/chronicle.rb         # Full autocorrect on specific file(s)
+  ```
+- **Rails Commands (runner, server, console, etc.)**:
+  ```bash
+  bin/mcp_rails <command> [args...]
+  # Examples:
+  bin/mcp_rails runner "puts Chronicle.count"
+  bin/mcp_rails server
+  bin/mcp_rails c --sandbox
+  ```
+- **Rails Sandbox Console**:
+  ```bash
+  bin/mcp_rails console
+  ```
+
+If running arbitrary Ruby commands without a dedicated `bin/mcp_...` script, prefix with:
+```bash
+source /opt/homebrew/share/chruby/chruby.sh && chruby $(cat .ruby-version 2>/dev/null) && <command>
+```
+
+---
+
+## Code Quality & Verification Rules
+
+1. **Regression tests are mandatory for every bug — no exceptions**:
+   - Whenever a bug is reported to you, OR you discover one yourself while working,
+     you MUST add a regression test that fails before your fix and passes after it.
+   - Never fix a bug with only a code change. The test comes with the fix, in the
+     same change set.
+   - Write the failing test first, watch it fail for the right reason, then fix.
+   - The regression test must target the specific broken behaviour (the exact
+     nav entry, the exact route, the exact rendered element, …), so a future
+     change that reintroduces the bug is caught.
+   - This applies to bugs of any size, including "one-line" fixes and config /
+     routing / view / JS-wiring bugs.
+
+2. **Ruby Change Validation**:
+   - Always run `bin/mcp_rake ci` to confirm all changes pass before concluding a task.
+   - Follow strict TDD: plan first, write failing specs first, then implement changes.
+
+3. **RuboCop Auto-correction**:
+   - After modifying any Ruby file and before running tests or CI, run safe auto-correct:
+     ```bash
+     bin/mcp_rubocop -A <modified_files>
+     ```
+
+4. **Domain Hierarchy**:
+   Keep domain models aligned with the content hierarchy:
+
+## UI, Stylesheets, Assets
+
+ This Rails app uses Propshaft - there is no need to precompile assets for development.
+
+* https://raw.githubusercontent.com/rails/propshaft/refs/heads/main/README.md
+
+Propshaft makes all the assets from all the paths it's been configured with through config.assets.paths available for serving and will copy all of them into public/assets when precompiling. This is unlike Sprockets, which did not copy over assets that hadn't been explicitly included in one of the bundled assets.
+
+You can however exempt directories that have been added through the config.assets.excluded_paths. This is useful if you're for example using app/assets/stylesheets exclusively as a set of inputs to a compiler like Dart Sass for Rails, and you don't want these input files to be part of the load path. (Remember you need to add full paths, like `Rails.root.join("app/assets/stylesheets"))`.
+
+These assets can be referenced through their logical path using the normal helpers like asset_path, image_tag, javascript_include_tag, and all the other asset helper tags. These logical references are automatically converted into digest-aware paths in production when `assets:precompile` has been run (through a JSON mapping file found in public/assets/.manifest.json).
+
+### Bulk stylesheet inclusion with SRI
+
+Propshaft extends stylesheet_link_tag with special symbols for bulk inclusion:
+
+```erb
+<%= stylesheet_link_tag :all, integrity: true %>  <!-- All stylesheets -->
+<%= stylesheet_link_tag :app, integrity: true %>  <!-- Only app/assets stylesheets -->
+```
+
+### Improving performance in development
+
+Before every request Propshaft checks if any asset was updated to decide if a cache sweep is needed. This verification is done using the application's configured file watcher which, by default, is ActiveSupport::FileUpdateChecker.
+
+If you have a lot of assets in your project, you can improve performance by adding the listen gem to the development group in your Gemfile, and this line to the development.rb environment file:
+
+`config.file_watcher = ActiveSupport::EventedFileUpdateChecker`
