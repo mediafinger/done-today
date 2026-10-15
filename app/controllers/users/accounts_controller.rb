@@ -1,5 +1,7 @@
 module Users
   class AccountsController < ApplicationController
+    before_action :set_sessions
+
     def show
       @user = current_user
     end
@@ -18,6 +20,10 @@ module Users
     end
 
     private
+
+    def set_sessions
+      @sessions = current_user.sessions.order(created_at: :desc)
+    end
 
     def profile_params
       params.expect(user: %i[name email password_challenge])

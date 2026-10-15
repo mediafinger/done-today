@@ -15,6 +15,7 @@ Rails.application.routes.draw do
 
     resource :account, only: %i[ show update ] do
       resource :password, only: :update, controller: "account_passwords"
+      resource :other_sessions, only: :destroy
     end
 
     get "/preferences", to: "preferences#show"
