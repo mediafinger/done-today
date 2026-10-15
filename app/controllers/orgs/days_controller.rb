@@ -9,6 +9,7 @@ module Orgs
 
     def show
       @entries = readable_entries.where(days: { date: @date }).order(status: :desc, created_at: :asc)
+      @edited_ids = policy(project).entry_history? ? edited_ids(@entries) : Set.new
     end
 
     # When no day for the date exists yet, a new one is initialized, so the user can
@@ -42,6 +43,11 @@ module Orgs
     end
 
     private
+
+    def edited_ids(entries)
+      RecordHistory.for_org_events(org: current_org, event: "updated", klass: Entry)
+        .where(record_id: entries.map(&:id)).distinct.pluck(:record_id).to_set
+    end
 
     # the route only takes 2026-10-15, this refuses 2026-02-31
     def set_date
