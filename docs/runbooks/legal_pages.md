@@ -40,6 +40,7 @@ Optional keys are omitted from the page when unset.
   IP to a third party outside the EU, which contradicts section 6
 - [ ] Mail provider processes data inside the EU/EEA; for a US provider (e.g. AWS SES) add a third-country transfer
   paragraph (EU-US Data Privacy Framework or SCCs) to section 6
+- [ ] DPAs signed and processor list complete, see [data_processing_agreements.md](data_processing_agreements.md)
 
 ## Keep in sync
 
