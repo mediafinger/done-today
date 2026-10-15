@@ -21,8 +21,6 @@ Rails.application.routes.draw do
       end
     end
 
-    get "/preferences", to: "preferences#show"
-
     patch "dark_mode", to: "display_modes#dark"
     patch "light_mode", to: "display_modes#light"
     patch "system_mode", to: "display_modes#system"
