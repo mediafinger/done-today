@@ -17,6 +17,10 @@
   <% end %>
 </div>
 
+<% unless @participating %>
+  <p>You do not take part in <%= @project.name %>, so you cannot log entries here. Ask an owner of the project to add you.</p>
+<% end %>
+
 <ul class="bottom-spacer">
   <li class="nude">The participants</li>
   <% @project.participants.each do |participant| %>
@@ -24,6 +28,10 @@
   <% end %>
   <li class="nude">Have added <%= @entries_count %> entries since <%= @project.created_at.to_date %></li>
 </ul>
+
+<% if @entries_count.zero? %>
+  <p>Nothing has been logged in <%= @project.name %> yet.</p>
+<% end %>
 
 <% if @view == "days" %>
   <% @days.each do |day| %>

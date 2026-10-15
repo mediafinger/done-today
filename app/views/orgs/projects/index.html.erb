@@ -8,6 +8,13 @@
       <% end %>
     </ul>
 
+    <% if @projects.none? %>
+      <p>
+        <%= current_org.name %> has no projects yet.
+        <% unless allowed_to?(:create?, Project) %>Ask an owner of <%= current_org.name %> to add one.<% end %>
+      </p>
+    <% end %>
+
     <% if allowed_to?(:create?, Project) %>
       <%= link_to "New project", new_project_path(current_org), method: :get, role: "button", class: "slim secondary" %>
     <% end %>

@@ -26,7 +26,7 @@ module Orgs
       @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
 
       # observers and org owners who do not participate read the day instead
-      writable = allowed_to?(:create_entry?, project)
+      writable = @writable = allowed_to?(:create_entry?, project)
 
       # a past day is read-only until it is unlocked on purpose
       @unlockable = writable && @date.past?

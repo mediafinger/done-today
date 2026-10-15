@@ -20,3 +20,7 @@
     <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: true, with_member: true, totals: @totals %>
   <% end %>
 </ul>
+
+<% if @entries.none? %>
+  <p>Nobody has logged anything in this week.</p>
+<% end %>

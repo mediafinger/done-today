@@ -1,6 +1,8 @@
 <%# A new entry goes in above the input field, and the input field starts over blank. %>
 
 <% if @entry.persisted? %>
+  <%= turbo_stream.remove "no-entries-yet" %>
+
   <%= turbo_stream.before "new-entry",
         partial: "orgs/entries/editable_entry",
         locals: { entry: @entry, unlocked: @unlocked } %>

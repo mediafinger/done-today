@@ -18,6 +18,7 @@ module Orgs
     def show
       @project = current_project
       @entries_count = @project.entries.size
+      @participating = current_member.participations.exists?(project: @project)
       @view = view
 
       @exportable = allowed_to?(:export?, @project)
