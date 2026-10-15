@@ -31,18 +31,16 @@ module Orgs
       if params[:week].present?
         return redirect_to week_path(params[:week], project_id: params[:project_id].presence), status: :moved_permanently
       end
+      if params[:member_id].present?
+        return redirect_to member_entries_path(params[:member_id], project_id: params[:project_id].presence),
+          status: :moved_permanently
+      end
 
       date # to initialize it
       @group_by = group_by
       @with_date = params[:date].blank?
-      @with_member = params[:member_id].blank?
       @with_project = current_project.blank? || params[:project_id].present? # TODO: display always ?!
       # TODO: or handle only current_project in this controller and leave the rest for the projects_controller ?!
-
-      if params[:member_id]
-        @member = project.members.find(params[:member_id])
-        @members = project.members.order(:name).pluck(:id, :name)
-      end
 
       # TODO: ensure edit mode always uses current_project OR makes it obvious & switches to project!!!
       if mode == "edit"
@@ -76,8 +74,6 @@ module Orgs
 
         @entries = EntryPolicy.readable(current_member).where(day: date_days).includes(:member, day: :project)
         @entries = @entries.order(status: :desc, created_at: :asc)
-
-        @entries = @entries.where(member: @member) if @member
       end
     end
 
@@ -205,7 +201,6 @@ module Orgs
     def group_by
       return params[:group_by] if params[:group_by]
       return "date" if params[:date]
-      return "member" if params[:member_id]
       return "project" if params[:project_id] # TODO: use slug
 
       "date" # a bare /entries shows today

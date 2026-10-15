@@ -396,53 +396,11 @@ RSpec.describe "Orgs::Entries" do
   end
 
   describe "GET /entries?member_id=" do
-    let(:colleague) { create(:participant, project:, member: create(:member, org:, name: "Anna")).member }
+    it "sends the old member URL to the member's page" do
+      get entries_path(member_id: member.id, project_id: project.id)
 
-    def entry_on(date, log, by: member)
-      day = Day.find_or_create_by!(project:, date: Date.parse(date))
-      create(:entry, day:, member: by, log:)
-    end
-
-    def read_member(of, **params)
-      get entries_path(member_id: of.id, project_id: project.id, **params)
-      Nokogiri::HTML(response.body)
-    end
-
-    it "lists only that member's entries of the project, on every day" do
-      entry_on("2026-09-01", "mine on the first")
-      entry_on("2026-09-02", "mine on the second")
-      entry_on("2026-09-02", "theirs", by: colleague)
-      other = create(:participant, project: create(:project, org:), member:).project
-      create(:entry, day: create(:day, project: other), member:, log: "elsewhere")
-
-      text = read_member(member).at_css("#entries").text
-
-      expect(text).to include("mine on the first", "mine on the second")
-      expect(text).not_to include("theirs")
-      expect(text).not_to include("elsewhere")
-    end
-
-    it "names the member in the headline and shows date and project, not the member, per line" do
-      entry_on("2026-09-01", "mine")
-
-      page = read_member(member)
-
-      expect(page.at_css(".spacing-grid h2").text.squish).to eq("Entries of #{member.name}")
-      expect(page.css("#entries .entry-group-heading").map { it.text.squish }).to eq([ "2026-09-01", project.name ])
-    end
-
-    it "links to the other members of the project" do
-      colleague
-
-      arrows = read_member(member).css(".spacing-grid .right a")
-
-      expect(arrows.map { it["href"] }).to all(eq(entries_path(member_id: colleague.id, mode: "read", project_id: project.id)))
-    end
-
-    it "is a 404 for someone who is no member of the project" do
-      read_member(create(:member, org:))
-
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(member_entries_path(member, project_id: project.id))
+      expect(response).to have_http_status(:moved_permanently)
     end
   end
 

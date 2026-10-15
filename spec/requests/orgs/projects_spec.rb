@@ -124,7 +124,7 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_weeks.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
         %w[break handover pr123].map { tag_path(it) }
       )
@@ -178,7 +178,7 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_months.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
         %w[break handover pr123].map { tag_path(it) }
       )

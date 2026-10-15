@@ -1,7 +1,5 @@
 <% if @group_by == "date" %>
   <%= render "orgs/entries/entries_nav_by_date", date: @date, mode: @mode, unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
-<% elsif @group_by == "member" %>
-  <%= render "orgs/entries/entries_nav_by_member", member: @member, members: @members, mode: @mode %>
 <% elsif @group_by == "project" %>
   <%= render "orgs/entries/entries_nav_by_project", project: @project, mode: @mode %>
 <% else %>
@@ -31,7 +29,7 @@
 
   <ul id="entries">
     <% @entries.each_with_index do |entry, index| %>
-      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: @with_member, with_project: @with_project %>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: @with_date, with_member: true, with_project: @with_project %>
     <% end %>
   </ul>
 

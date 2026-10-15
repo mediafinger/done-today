@@ -1,0 +1,28 @@
+<% index = @members.index(@member.id) %>
+
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> <%= @project.name %> <%= @member.name %> </h2>
+  </div>
+
+  <div class="center">
+    <% if @project != current_project && policy(@project).create_entry? %>
+      <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
+    <% elsif @project == current_project && policy(@project).create_entry? %>
+      <%= link_to "add or edit", entries_path(date: Time.zone.today, mode: "edit"), method: :get, role: "button", class: "slim" %>
+    <% end %>
+  </div>
+
+  <div class="right">
+    <%= link_to "⬅️", member_entries_path(@members[index - 1], project_id: @project.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", member_entries_path(@members[(index + 1) % @members.size], project_id: @project.id), method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>
+
+<ul id="entries">
+  <% @entries.each_with_index do |entry, index| %>
+    <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: true %>
+  <% end %>
+</ul>

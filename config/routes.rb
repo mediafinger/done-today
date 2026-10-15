@@ -33,6 +33,8 @@ Rails.application.routes.draw do
     resources :members, only: %i[ index update ] do
       patch :deactivate, on: :member
       patch :reactivate, on: :member
+
+      resources :entries, only: %i[ index ], controller: "member_entries"
     end
     resources :projects, param: :slug, only: %i[ index show ] do
       get :validate_times, on: :member

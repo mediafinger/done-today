@@ -49,7 +49,7 @@
       <div class="left">
         <% if show_member %>
           <h3 class="entry-group-heading">
-            <%= link_to entry.member.name, entries_path(member_id: entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+            <%= link_to entry.member.name, member_entries_path(entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
           </h3>
         <% end %>
       </div>

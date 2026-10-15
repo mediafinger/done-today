@@ -29,7 +29,7 @@
 
   <ul>
     <% current_project.members.each do |member| %>
-      <li><%= link_to member.name, entries_path(member_id: member.id, project_id: current_project.id), method: :get %></li>
+      <li><%= link_to member.name, member_entries_path(member, project_id: current_project.id), method: :get %></li>
     <% end %>
   </ul>
 <% end %>
