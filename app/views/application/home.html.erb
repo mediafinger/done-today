@@ -1,17 +1,29 @@
-<h1> What have you done today? </h1>
+<h1>What have you done today?</h1>
 
-<% if @memberships.none? %>
-  <p>You are not a member of any org yet. Ask an owner of one to add you.</p>
-<% end %>
-
-<% @memberships.each do |member| %>
+<% if @memberships.empty? %>
   <article>
-    <h2><%= link_to member.org.name, org_path(member.org), method: :get %></h2>
-
-    <ul>
-      <% member.participations.reject { it.project.archived? }.sort_by { it.project.name }.each do |participation| %>
-        <li><%= link_to participation.project.name, project_path(member.org, participation.project), method: :get %></li>
-      <% end %>
-    </ul>
+    <p>You are not a member of any org yet. Ask the owner of your team's org to invite you.</p>
   </article>
+<% else %>
+  <p>Pick the project you want to log your day in.</p>
+
+  <% @memberships.each do |member| %>
+    <% participations = member.participations.reject { it.project.archived? }.sort_by { it.project.name } %>
+
+    <article>
+      <header>
+        <h2><%= link_to member.org.name, org_path(member.org), method: :get %></h2>
+      </header>
+
+      <% if participations.empty? %>
+        <p>You are not part of any project in <%= member.org.name %> yet. Ask an owner of <%= member.org.name %> to add you.</p>
+      <% else %>
+        <ul>
+          <% participations.each do |participation| %>
+            <li><%= link_to participation.project.name, project_path(member.org, participation.project), method: :get %></li>
+          <% end %>
+        </ul>
+      <% end %>
+    </article>
+  <% end %>
 <% end %>
