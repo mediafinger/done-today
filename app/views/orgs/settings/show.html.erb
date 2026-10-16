@@ -45,3 +45,16 @@
     </ul>
   </section>
 <% end %>
+
+<% if dev_area? %>
+  <section>
+    <h2>Development</h2>
+
+    <ul>
+      <li><%= link_to "Dev area", dev_home_path %></li>
+      <% if defined?(LetterOpenerWeb) %>
+        <li><%= link_to "Sent mail (letter_opener_web)", "/dev/letter_opener" %></li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>
