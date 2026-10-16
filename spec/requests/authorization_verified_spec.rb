@@ -2,8 +2,8 @@ require "rails_helper"
 
 # ApplicationController verifies that every action called `authorize!` and
 #   `authorized_scope`, or skipped the check explicitly, and raises otherwise.
-#   This sends one request per route of the app as an owner of the org and lead of the project,
-#   so every action runs to its end and its verification with it.
+#   This sends one request per route of the app as an owner of the org and lead of the project (as a member
+#   outside the project to ask to join it), so every action runs to its end and its verification with it.
 #
 #   A new route needs its params below, or this fails. The engines' routes have no
 #   ApplicationController action and are left out.
@@ -13,6 +13,8 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
   let(:project) { create(:project, org:) }
   let(:me) { create(:participant, :lead, project:, member: create(:member, :owner, org:)).member }
   let(:colleague) { create(:participant, project:).member }
+  # asks to join, takes part in no project
+  let(:requester) { create(:member, org:) }
 
   def entry
     create(:entry, day: create(:day, project:, date: Time.zone.today), member: me)
@@ -72,6 +74,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }
     when "orgs/participants#create" then { participant: { member_id: create(:member, org:).id, role: "observer" } }
     when "orgs/participants#update" then { participant: { role: "owner" } }
+    when "orgs/access_requests#create" then { access_request: { message: "Please" } }
     else {}
     end
   end
@@ -88,7 +91,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
 
   app_routes.each do |verb, spec, controller, action|
     it "#{verb} #{spec} (#{controller}##{action})" do
-      sign_in(me.user)
+      sign_in("#{controller}##{action}" == "orgs/access_requests#create" ? requester.user : me.user)
       path = spec.gsub(/[:*](\w+)/) { path_value(Regexp.last_match(1), controller).to_s }
 
       public_send(verb.downcase, path, params: request_params(controller, action), headers: { "HTTP_REFERER" => root_url })

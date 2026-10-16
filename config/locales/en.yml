@@ -48,6 +48,9 @@ en:
         participant:
           guest_lead: "lead is not a project role for guests"
   controllers:
+    access_requests:
+      rate_limited: "Too many requests, try again later"
+      requested: "Asked to join %{project}"
     day_locked: "%{date} is locked, unlock the day to change it"
     invitations:
       already_invited: "%{email} is already invited"

@@ -579,6 +579,23 @@ RSpec.describe "Authorization role matrix" do
     delete participant_path(org, project, colleague.participations.find_by!(project:))
   end
 
+  # internals ask to join a project they cannot read, guests only know their own projects
+  row "POST /:org/:project/access_requests", {
+    **locked_out, outsider: :not_found, member: :written, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :forbidden, outside_guest: :not_found
+  }, written: -> { project.access_requests.exists? } do
+    post access_requests_path(org, project), params: { access_request: { message: "Please" } }
+  end
+
+  row "POST /:org/:project/access_requests with P archived", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :forbidden, outside_guest: :not_found
+  }, written: -> { project.access_requests.exists? } do
+    project.archive!
+
+    post access_requests_path(org, project)
+  end
+
   # an archived project is read-only for everybody, listed only for those who manage it
   row "GET /:org (its projects) with P archived", {
     **locked_out, outsider: :not_found, member: :hidden, observer: :hidden, participant: :hidden, project_lead: :listed,

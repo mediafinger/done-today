@@ -57,6 +57,8 @@ module Orgs
     def index
       @projects = authorized_scope(current_org.projects, as: :listable).active.includes(participants: :member).order(:name)
       @readable_ids = authorized_scope(current_org.projects).ids.to_set
+      # the member's own requests to join the others
+      @access_requests = current_member.access_requests.pending.index_by(&:project_id)
       @archived_projects = authorized_scope(current_org.projects, as: :manageable).archived.order(:name)
     end
 

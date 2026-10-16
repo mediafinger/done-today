@@ -70,6 +70,8 @@ Rails.application.routes.draw do
       resources :guest_invitations, only: %i[ create destroy ] do
         patch :resend, on: :member
       end
+      # members who do not take part ask to join
+      resources :access_requests, only: %i[ create ]
       resources :tags, param: :tag, only: %i[ show ]
       resources :weeks, param: :week, only: %i[ show ]
 

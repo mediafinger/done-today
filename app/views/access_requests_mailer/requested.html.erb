@@ -1,0 +1,9 @@
+<p>
+  <%= @access_request.member.name %> asks to join <strong><%= @access_request.project.name %></strong> in <%= @access_request.org.name %> on Done today.
+</p>
+<% if @access_request.message %>
+  <blockquote><%= simple_format(@access_request.message) %></blockquote>
+<% end %>
+<p>
+  <%= link_to "Grant or decline the request", @url %> with the project's participants.
+</p>
