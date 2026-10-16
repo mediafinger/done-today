@@ -2,6 +2,8 @@ default: &default
   adapter: postgresql
   connect_timeout: <%= AppConf.done_db_timeout_seconds.to_i * 1000 %>
   encoding: unicode
+  # libpq's GSSAPI probe segfaults in forked processes on macOS (bin/jobs); nothing here uses Kerberos
+  gssencmode: disable
   host: <%= AppConf.done_db_host %>
   password: <%= AppConf.done_db_password %>
   # For details on connection pooling, see Rails configuration guide
