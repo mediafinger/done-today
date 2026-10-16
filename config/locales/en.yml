@@ -41,10 +41,10 @@ en:
           already_participates: "%{email} already participates in %{project}"
         member:
           last_owner: "%{org} needs at least one active owner"
-          guest_owner: "guest cannot own %{projects}, change the project role first"
+          guest_lead: "guest cannot lead %{projects}, change the project role first"
           guest_without_project: "guest has to participate in a project first"
         participant:
-          guest_owner: "owner is not a project role for guests"
+          guest_lead: "lead is not a project role for guests"
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
     invitations:

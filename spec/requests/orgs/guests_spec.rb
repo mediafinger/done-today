@@ -28,11 +28,11 @@ RSpec.describe "Org guests" do
 
   describe "GET /:org (its projects)" do
     before do
-      create(:participant, :owner, project: shop, member: owner)
+      create(:participant, :lead, project: shop, member: owner)
       create(:participant, project: website, member: carl)
     end
 
-    it "lists every project to a member, linking those they may read, naming the owners of the others" do
+    it "lists every project to a member, linking those they may read, naming the leads of the others" do
       sign_in(carl.user)
 
       get org_path(org)
@@ -111,8 +111,8 @@ RSpec.describe "Org guests" do
   end
 
   describe "the participants of a project" do
-    def project_owner
-      @project_owner ||= create(:participant, :owner, project: shop, member: create(:member, org:, name: "Pat")).member
+    def project_lead
+      @project_lead ||= create(:participant, :lead, project: shop, member: create(:member, org:, name: "Pat")).member
     end
 
     def hugo
@@ -132,8 +132,8 @@ RSpec.describe "Org guests" do
       create(:participant, project: shop, member: gina)
     end
 
-    it "offers a project owner the members and only the guests of their own projects" do
-      sign_in(project_owner.user)
+    it "offers a project lead the members and only the guests of their own projects" do
+      sign_in(project_lead.user)
 
       get edit_project_path(org, shop)
 
@@ -157,8 +157,8 @@ RSpec.describe "Org guests" do
         .to include("Gina (guest)")
     end
 
-    it "turns away a project owner adding a guest of another project" do
-      sign_in(project_owner.user)
+    it "turns away a project lead adding a guest of another project" do
+      sign_in(project_lead.user)
 
       post participants_path(org, shop), params: { participant: { member_id: hugo.id, role: "participant" } }
 
@@ -166,12 +166,12 @@ RSpec.describe "Org guests" do
       expect(shop.participants.exists?(member: hugo)).to be(false)
     end
 
-    it "refuses to make a guest a project owner" do
+    it "refuses to make a guest a project lead" do
       sign_in(owner.user)
 
-      post participants_path(org, shop), params: { participant: { member_id: hugo.id, role: "owner" } }
+      post participants_path(org, shop), params: { participant: { member_id: hugo.id, role: "lead" } }
 
-      expect(flash[:alert]).to eq("Roles owner is not a project role for guests")
+      expect(flash[:alert]).to eq("Role lead is not a project role for guests")
       expect(shop.participants.exists?(member: hugo)).to be(false)
     end
   end

@@ -144,10 +144,10 @@ RSpec.describe MemberPolicy do
       it("offers everybody of the org") { expect(addable).to include(colleague, own_guest, other_guest, member) }
     end
 
-    context "with a project owner" do
-      let(:member) { create(:participant, :owner, project: own_guest.projects.sole).member }
+    context "with a project lead" do
+      let(:member) { create(:participant, :lead, project: own_guest.projects.sole).member }
 
-      it "offers the internals and the guests of the projects they own" do
+      it "offers the internals and the guests of the projects they lead" do
         expect(addable).to include(colleague, own_guest)
         expect(addable).not_to include(other_guest)
       end

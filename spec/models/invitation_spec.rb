@@ -61,9 +61,9 @@ RSpec.describe Invitation do
       expect(build(:invitation, :guest, org:, project: create(:project, org:).tap(&:archive!))).not_to be_valid
     end
 
-    # guests never own a project
-    it "refuse the project role owner" do
-      expect(build(:invitation, :guest, org:, project:, project_role: "owner")).not_to be_valid
+    # guests never lead a project
+    it "refuse the project role lead" do
+      expect(build(:invitation, :guest, org:, project:, project_role: "lead")).not_to be_valid
     end
 
     it "keep members and owners out of a project" do
@@ -169,7 +169,7 @@ RSpec.describe Invitation do
         member = invitation.accept!(user)
 
         expect(member).to have_attributes(role: "guest", archived_at: nil)
-        expect(member.participations.sole).to have_attributes(project:, roles: %w[observer])
+        expect(member.participations.sole).to have_attributes(project:, role: "observer")
       end
 
       it "reactivates an archived member as guest of the project" do

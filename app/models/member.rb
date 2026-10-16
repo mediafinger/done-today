@@ -1,5 +1,5 @@
 # Every member has one org role:
-#   guest - an external: participates in projects, sees only those, never owns one
+#   guest - an external: participates in projects, sees only those, never leads one
 #   member - an internal: can participate in projects (after invitation), sees all projects and members
 #   manager - can manage members, projects and participants, can read all existing entries,
 #             but neither gives nor takes the owner role
@@ -78,11 +78,11 @@ class Member < ApplicationRecord
     errors.add(:base, :last_owner, org: org.name)
   end
 
-  # a guest only sees their projects, so they need one, and they own none
+  # a guest only sees their projects, so they need one, and they lead none
   def guest_with_a_project
-    owned = participations.includes_all_roles(%w[owner]).includes(:project).map { it.project.name }
+    led = participations.leads.includes(:project).map { it.project.name }
 
-    errors.add(:role, :guest_owner, projects: owned.sort.to_sentence) if owned.any?
+    errors.add(:role, :guest_lead, projects: led.sort.to_sentence) if led.any?
     errors.add(:role, :guest_without_project) if participations.none?
   end
 

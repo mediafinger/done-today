@@ -1,5 +1,5 @@
 module Orgs
-  # Org and project owners add active members of the org to a project, change their
+  # Org managers and owners, and project leads, add active members of the org to a project, change their
   #   role and remove them. Removing takes the access, the entries stay.
   #
   class ParticipantsController < AppOrgBaseController
@@ -9,13 +9,13 @@ module Orgs
     def create
       # a deactivated member, one of another org or a guest of another project is a 404, the form does not offer them
       member = authorized_scope(current_org.members.active, as: :addable).find(participant_params[:member_id])
-      participant = current_project.participants.new(member:, roles: [ participant_params[:role] ])
+      participant = current_project.participants.new(member:, role: participant_params[:role])
 
       respond(participant.save, :added, participant)
     end
 
     def update
-      respond(participant.update(roles: [ participant_params[:role] ]), :updated, participant)
+      respond(participant.update(role: participant_params[:role]), :updated, participant)
     end
 
     def destroy
@@ -43,7 +43,7 @@ module Orgs
       end
     end
 
-    # A project owner who stepped down or removed themselves cannot manage the project
+    # A project lead who stepped down or removed themselves cannot manage the project
     #   any more. A fresh policy, the memoized one answered before the change.
     def after_change_path
       policy = ProjectPolicy.new(current_project, member: current_member)

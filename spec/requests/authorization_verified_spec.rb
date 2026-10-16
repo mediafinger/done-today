@@ -2,7 +2,7 @@ require "rails_helper"
 
 # ApplicationController verifies that every action called `authorize!` and
 #   `authorized_scope`, or skipped the check explicitly, and raises otherwise.
-#   This sends one request per route of the app as an owner of org and project,
+#   This sends one request per route of the app as an owner of the org and lead of the project,
 #   so every action runs to its end and its verification with it.
 #
 #   A new route needs its params below, or this fails. The engines' routes have no
@@ -11,7 +11,7 @@ require "rails_helper"
 RSpec.describe "Every action is authorized or skips it explicitly" do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
-  let(:me) { create(:participant, :owner, project:, member: create(:member, :owner, org:)).member }
+  let(:me) { create(:participant, :lead, project:, member: create(:member, :owner, org:)).member }
   let(:colleague) { create(:participant, project:).member }
 
   def entry

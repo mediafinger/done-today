@@ -1,6 +1,6 @@
 module Orgs
   # A project's pages, and its management: org managers and owners create projects, they and
-  #   project owners rename, archive and unarchive them. Projects are never deleted.
+  #   project leads rename, archive and unarchive them. Projects are never deleted.
   #
   class ProjectsController < AppOrgBaseController
     VIEWS = %w[days weeks months].freeze

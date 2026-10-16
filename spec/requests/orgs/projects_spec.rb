@@ -244,7 +244,7 @@ RSpec.describe "Orgs::Projects" do
 
   describe "GET /projects/:slug/export_csv" do
     # a member who owns the project, one of the two who may export
-    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
+    let(:leading_participant) { create(:participant, :lead, project:, member: create(:member, org:, name: "Zoe")) }
 
     def months_page
       get project_path(org, project, view: "months")
@@ -255,10 +255,10 @@ RSpec.describe "Orgs::Projects" do
       get export_csv_project_path(org, project, **params)
     end
 
-    context "with ownership of the project" do
+    context "with the lead role in the project" do
       before do
-        sign_in(owning_participant.member.user)
-        create(:entry, day: create(:day, project:, date: Date.new(2026, 3, 21)), member: owning_participant.member,
+        sign_in(leading_participant.member.user)
+        create(:entry, day: create(:day, project:, date: Date.new(2026, 3, 21)), member: leading_participant.member,
                log: "start@09:00 end@17:00 #handover")
       end
 
@@ -299,7 +299,7 @@ RSpec.describe "Orgs::Projects" do
       end
     end
 
-    context "without any ownership" do
+    context "without leading the project or managing the org" do
       it "does not offer the export to a plain participant" do
         expect(months_page.at_css("a[href*='export_csv']")).to be_nil
       end
@@ -325,7 +325,7 @@ RSpec.describe "Orgs::Projects" do
   end
 
   describe "GET /projects/:slug/export_days_csv" do
-    let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
+    let(:leading_participant) { create(:participant, :lead, project:, member: create(:member, org:, name: "Zoe")) }
 
     def months_page
       get project_path(org, project, view: "months")
@@ -336,22 +336,22 @@ RSpec.describe "Orgs::Projects" do
       get export_days_csv_project_path(org, project, **params)
     end
 
-    context "with ownership of the project" do
+    context "with the lead role in the project" do
       before do
-        sign_in(owning_participant.member.user)
-        entry_on("2026-03-21", "start@09:00 end@17:00 #handover", by: owning_participant.member)
-        entry_on("2026-03-23", "start@09:00 end@12:30 #review", by: owning_participant.member)
+        sign_in(leading_participant.member.user)
+        entry_on("2026-03-21", "start@09:00 end@17:00 #handover", by: leading_participant.member)
+        entry_on("2026-03-23", "start@09:00 end@12:30 #review", by: leading_participant.member)
       end
 
       it "offers the export of the days next to each member of a month" do
         link = months_page.at_css(".period li a[href*='export_days_csv']")
 
         expect(link.text).to eq("Export days")
-        expect(link["href"]).to eq(export_days_csv_project_path(org, project, month: "2026-03", member_id: owning_participant.member.id))
+        expect(link["href"]).to eq(export_days_csv_project_path(org, project, month: "2026-03", member_id: leading_participant.member.id))
       end
 
       it "sends the days as a CSV, named after org, project, member, first and last day" do
-        export_days(month: "2026-03", member_id: owning_participant.member.id)
+        export_days(month: "2026-03", member_id: leading_participant.member.id)
 
         expect(response).to have_http_status(:ok)
         expect(response.media_type).to eq("text/csv")
@@ -365,7 +365,7 @@ RSpec.describe "Orgs::Projects" do
       end
 
       it "says so when the month cannot be read" do
-        export_days(month: "not-a-month", member_id: owning_participant.member.id)
+        export_days(month: "not-a-month", member_id: leading_participant.member.id)
 
         expect(response).to redirect_to(project_path(org, project, view: "months"))
         expect(flash[:alert]).to include("not-a-month")
@@ -378,7 +378,7 @@ RSpec.describe "Orgs::Projects" do
       end
     end
 
-    context "without any ownership" do
+    context "without leading the project or managing the org" do
       it "does not offer the export to a plain participant" do
         expect(months_page.at_css("a[href*='export_days_csv']")).to be_nil
       end

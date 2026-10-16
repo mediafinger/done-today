@@ -52,7 +52,7 @@ RSpec.describe "Empty states" do
     it "explains why no entries can be added there" do
       get project_path(org, project)
 
-      expect(main_text).to include("You do not take part in Website")
+      expect(main_text).to include("You do not take part in Website", "Ask a lead of the project to add you.")
     end
 
     it "does not say so on a project the user takes part in" do

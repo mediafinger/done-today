@@ -56,6 +56,8 @@ RSpec.describe "Help" do
       guide = Nokogiri::HTML(response.body).at_css("main #navigation").text.squish
 
       expect(guide).to include("⚙", "Settings", "👤", "Account", "org | project", "projects you take part in")
+      expect(guide).to include("managers and owners of the org, and leads of the project")
+      expect(guide).not_to include("owners of the project")
     end
   end
 

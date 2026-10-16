@@ -4,7 +4,7 @@ RSpec.describe "Orgs::EntryHistories" do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:author) { create(:participant, project:) }
-  let(:owner) { create(:participant, :owner, project:) }
+  let(:lead) { create(:participant, :lead, project:) }
   let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member: author.member) }
 
   # writes through the app, so the history is what the controller records
@@ -14,9 +14,9 @@ RSpec.describe "Orgs::EntryHistories" do
   end
 
   describe "GET /:org/:project/entries/:id/history" do
-    it "lists the changes with who made them, for a project owner" do
+    it "lists the changes with who made them, for a project lead" do
       edit_as(author, log: "Wrote more code")
-      edit_as(owner, status: "done")
+      edit_as(lead, status: "done")
 
       get entry_history_path(org, project, entry)
 
@@ -24,13 +24,13 @@ RSpec.describe "Orgs::EntryHistories" do
       rows = Nokogiri::HTML(response.body).css("tbody tr").map { it.text.squish }
       expect(rows.size).to eq(2)
       expect(rows.first).to include(author.member.name, "updated", "log", "Wrote some code", "Wrote more code")
-      expect(rows.last).to include(owner.member.name, "updated", "status", "doing", "done")
+      expect(rows.last).to include(lead.member.name, "updated", "status", "doing", "done")
     end
 
     it "names a deactivated member as well" do
       edit_as(author, log: "Wrote more code")
       author.member.archive!
-      sign_in(owner.member.user)
+      sign_in(lead.member.user)
 
       get entry_history_path(org, project, entry)
 
@@ -38,7 +38,7 @@ RSpec.describe "Orgs::EntryHistories" do
     end
 
     it "explains an entry without recorded changes" do
-      sign_in(owner.member.user)
+      sign_in(lead.member.user)
 
       get entry_history_path(org, project, entry)
 
@@ -55,7 +55,7 @@ RSpec.describe "Orgs::EntryHistories" do
 
     it "is a 404 for an entry of another org" do
       other = create(:entry)
-      sign_in(owner.member.user)
+      sign_in(lead.member.user)
 
       get entry_history_path(org, project, other)
 
@@ -70,9 +70,9 @@ RSpec.describe "Orgs::EntryHistories" do
       Nokogiri::HTML(response.body).css("a").map { it["href"] }.select { it.end_with?("/history") }
     end
 
-    it "links the edited entries to their history, for a project owner" do
+    it "links the edited entries to their history, for a project lead" do
       edit_as(author, log: "Wrote more code")
-      sign_in(owner.member.user)
+      sign_in(lead.member.user)
 
       get day_path(org, project, Time.zone.today)
 

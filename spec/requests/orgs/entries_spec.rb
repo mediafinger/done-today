@@ -201,13 +201,13 @@ RSpec.describe "Orgs::Entries" do
         .to eq("log" => [ "Wrote some code", "Rewrote a spec" ], "status" => %w[doing done])
     end
 
-    it "records a project owner editing a colleague's entry as the owner" do
-      owner = create(:participant, :owner, project:)
-      sign_in(owner.member.user)
+    it "records a project lead editing a colleague's entry as the lead" do
+      lead = create(:participant, :lead, project:)
+      sign_in(lead.member.user)
 
       patch entry_path(org, project, entry), params: { entry: { status: "done" } }
 
-      expect(histories.last).to have_attributes(event: "updated", user_id: owner.member.user_id)
+      expect(histories.last).to have_attributes(event: "updated", user_id: lead.member.user_id)
     end
 
     it "records nothing for a refused edit" do

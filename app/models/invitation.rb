@@ -2,7 +2,7 @@
 #   that expires after EXPIRES_IN, and dies when the invitation is resent (sent_at)
 #   or accepted (accepted_at). Nothing secret is stored.
 #
-#   A guest is invited to one project, by an org manager or owner, or the project's owner.
+#   A guest is invited to one project, by an org manager or owner, or the project's lead.
 #
 #   Accepting creates or reactivates the Member, see Users::InvitationsController.
 #
@@ -71,7 +71,7 @@ class Invitation < ApplicationRecord
   private
 
   def join_project(member)
-    member.participations.find_or_create_by!(project:) { it.roles = [ project_role ] } if project
+    member.participations.find_or_create_by!(project:) { it.role = project_role } if project
   end
 
   def project_of_the_org

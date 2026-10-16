@@ -7,9 +7,9 @@ RSpec.describe ProjectPolicy do
   let(:member) { nil }
   let(:context) { { member: } }
 
-  def member_with(org_role:, project_roles:, of: org)
+  def member_with(org_role:, project_role:, of: org)
     create(:member, org: of, role: org_role).tap do |member|
-      create(:participant, project:, member:, roles: project_roles) if project_roles
+      create(:participant, project:, member:, role: project_role) if project_role
     end
   end
 
@@ -22,21 +22,21 @@ RSpec.describe ProjectPolicy do
     described_class.new(member:).apply_scope(Project.all, type: :active_record_relation, name:)
   end
 
-  # org role, project roles => show?, create_entry?, export?, manage?
+  # org role, project role => show?, create_entry?, export?, manage?
   {
     [ "member", nil ] => [ false, false, false, false ],
-    [ "member", %w[observer] ] => [ true, false, false, false ],
-    [ "member", %w[participant] ] => [ true, true, false, false ],
-    [ "member", %w[owner] ] => [ true, true, true, true ],
+    [ "member", "observer" ] => [ true, false, false, false ],
+    [ "member", "participant" ] => [ true, true, false, false ],
+    [ "member", "lead" ] => [ true, true, true, true ],
     [ "manager", nil ] => [ true, false, true, true ],
-    [ "manager", %w[participant] ] => [ true, true, true, true ],
+    [ "manager", "participant" ] => [ true, true, true, true ],
     [ "owner", nil ] => [ true, false, true, true ],
-    [ "owner", %w[observer] ] => [ true, false, true, true ],
-    [ "owner", %w[participant] ] => [ true, true, true, true ],
-    [ "owner", %w[owner] ] => [ true, true, true, true ]
-  }.each do |(org_role, project_roles), (show, create_entry, export, manage)|
-    context "with org role #{org_role} and project roles #{project_roles.inspect}" do
-      let(:member) { member_with(org_role:, project_roles:) }
+    [ "owner", "observer" ] => [ true, false, true, true ],
+    [ "owner", "participant" ] => [ true, true, true, true ],
+    [ "owner", "lead" ] => [ true, true, true, true ]
+  }.each do |(org_role, project_role), (show, create_entry, export, manage)|
+    context "with org role #{org_role} and project role #{project_role.inspect}" do
+      let(:member) { member_with(org_role:, project_role:) }
 
       it { expect(policy.apply(:show?)).to be(show) }
       it { expect(policy.apply(:create_entry?)).to be(create_entry) }
@@ -66,7 +66,7 @@ RSpec.describe ProjectPolicy do
       "member" => true, "manager" => true, "owner" => true, "guest" => false
     }.each do |org_role, lists_all|
       context "with org role #{org_role}, participating in the project" do
-        let(:member) { member_with(org_role:, project_roles: %w[participant]) }
+        let(:member) { member_with(org_role:, project_role: "participant") }
 
         it "lists #{lists_all ? "all projects of the org" : "only their project"}" do
           expect(scope(:listable)).to match_array(lists_all ? org.projects : [ project ])
@@ -76,14 +76,14 @@ RSpec.describe ProjectPolicy do
 
     it "lists nothing for an archived member" do
       create(:member, :owner, org:)
-      member = member_with(org_role: "owner", project_roles: nil).tap(&:archive!)
+      member = member_with(org_role: "owner", project_role: nil).tap(&:archive!)
 
       expect(described_class.new(member:).apply_scope(Project.all, type: :active_record_relation, name: :listable)).to be_empty
     end
   end
 
   context "with a guest participating in the project" do
-    let(:member) { member_with(org_role: "guest", project_roles: %w[participant]) }
+    let(:member) { member_with(org_role: "guest", project_role: "participant") }
 
     it "allows what a participant may do" do
       expect(allowed).to eq([ true, true, false, false ])
@@ -94,16 +94,16 @@ RSpec.describe ProjectPolicy do
   context "with an archived project" do
     before { project.archive! }
 
-    # org role, project roles => show?, create_entry?, export?, manage?
+    # org role, project role => show?, create_entry?, export?, manage?
     {
-      [ "member", %w[observer] ] => [ true, false, false, false ],
-      [ "member", %w[participant] ] => [ true, false, false, false ],
-      [ "member", %w[owner] ] => [ true, false, true, true ],
+      [ "member", "observer" ] => [ true, false, false, false ],
+      [ "member", "participant" ] => [ true, false, false, false ],
+      [ "member", "lead" ] => [ true, false, true, true ],
       [ "owner", nil ] => [ true, false, true, true ],
-      [ "owner", %w[participant] ] => [ true, false, true, true ]
-    }.each do |(org_role, project_roles), expected|
-      context "with org role #{org_role} and project roles #{project_roles.inspect}" do
-        let(:member) { member_with(org_role:, project_roles:) }
+      [ "owner", "participant" ] => [ true, false, true, true ]
+    }.each do |(org_role, project_role), expected|
+      context "with org role #{org_role} and project role #{project_role.inspect}" do
+        let(:member) { member_with(org_role:, project_role:) }
 
         it("allows #{expected}") { expect(allowed).to eq(expected) }
 
@@ -117,16 +117,16 @@ RSpec.describe ProjectPolicy do
   describe "create? and the manageable scope" do
     let(:record) { Project }
 
-    # org role, project roles => create?, manageable includes the project
+    # org role, project role => create?, manageable includes the project
     {
       [ "member", nil ] => [ false, false ],
-      [ "member", %w[participant] ] => [ false, false ],
-      [ "member", %w[owner] ] => [ false, true ],
+      [ "member", "participant" ] => [ false, false ],
+      [ "member", "lead" ] => [ false, true ],
       [ "manager", nil ] => [ true, true ],
       [ "owner", nil ] => [ true, true ]
-    }.each do |(org_role, project_roles), (create, manageable)|
-      context "with org role #{org_role} and project roles #{project_roles.inspect}" do
-        let(:member) { member_with(org_role:, project_roles:) }
+    }.each do |(org_role, project_role), (create, manageable)|
+      context "with org role #{org_role} and project role #{project_role.inspect}" do
+        let(:member) { member_with(org_role:, project_role:) }
 
         it("allows #{[ create, manageable ]}") do
           expect([ policy.apply(:create?), scope(:manageable).include?(project) ]).to eq([ create, manageable ])
@@ -135,13 +135,13 @@ RSpec.describe ProjectPolicy do
     end
 
     context "with an owner of another org" do
-      let(:member) { member_with(org_role: "owner", project_roles: nil, of: create(:org)) }
+      let(:member) { member_with(org_role: "owner", project_role: nil, of: create(:org)) }
 
       it { expect(scope(:manageable)).not_to include(project) }
     end
 
     context "with an archived org owner" do
-      let(:member) { member_with(org_role: "owner", project_roles: nil).tap(&:archive!) }
+      let(:member) { member_with(org_role: "owner", project_role: nil).tap(&:archive!) }
 
       before { create(:member, :owner, org:) } # the org keeps an owner
 
@@ -153,7 +153,7 @@ RSpec.describe ProjectPolicy do
   end
 
   context "with an owner of another org" do
-    let(:member) { member_with(org_role: "owner", project_roles: nil, of: create(:org)) }
+    let(:member) { member_with(org_role: "owner", project_role: nil, of: create(:org)) }
 
     it "allows nothing" do
       expect(allowed).to all(be(false))
@@ -163,7 +163,7 @@ RSpec.describe ProjectPolicy do
   end
 
   context "with an archived owner of the org and the project" do
-    let(:member) { member_with(org_role: "owner", project_roles: %w[owner]).tap(&:archive!) }
+    let(:member) { member_with(org_role: "owner", project_role: "lead").tap(&:archive!) }
 
     before { create(:member, :owner, org:) } # the org keeps an owner
 

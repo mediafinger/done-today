@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # Who may do what is covered by spec/requests/authorization_matrix_spec.rb,
-#   this is what an org owner or a project owner sees and changes.
+#   this is what an org owner or a project lead sees and changes.
 #
 RSpec.describe "Managing projects" do
   let(:org) { create(:org) }
@@ -113,9 +113,9 @@ RSpec.describe "Managing projects" do
       expect(flash[:notice]).to eq("Renamed Website to Shop")
     end
 
-    it "lets a project owner rename it" do
-      project_owner = create(:participant, :owner, project:).member
-      sign_in(project_owner.user)
+    it "lets a project lead rename it" do
+      project_lead = create(:participant, :lead, project:).member
+      sign_in(project_lead.user)
 
       patch project_path(org, project), params: { project: { name: "Shop" } }
 
