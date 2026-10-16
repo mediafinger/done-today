@@ -116,6 +116,21 @@ For auditing operations within organizations, we implement a lightweight event-l
    bin/rails server
    ```
 
+### Admin and Dev Areas
+- **`/admin`** (admins only): links to **`/admin/mission_control_jobs`** (Mission Control, the Solid Queue dashboard).
+  [AdminConstraint](file:///Users/andy/Dropbox/www/2025/done_today/app/route_constraints/admin_constraint.rb) routes only an admin's
+  session there, everyone else gets what an unknown path answers (404, the sign-in page when signed out).
+  [AdminController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/admin_controller.rb) checks again through
+  `AdminPolicy` (asked for the user, not a member) and is the base controller of Mission Control
+  ([config/initializers/mission_control.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/initializers/mission_control.rb)).
+  New admin pages go below `Admins::` and inherit from `AdminController`.
+- **Make a user admin** (there is no UI, `admin` is not a permitted param):
+  ```bash
+  bin/rails runner 'User.find_by!(email: "you@example.com").update!(admin: true)'
+  ```
+- **`/dev`** (development and test only): links to **`/dev/letter_opener`** (letter_opener_web), where development mail is delivered
+  instead of being sent.
+
 ### Database Backups
 
 `bin/rails db:seed` truncates every table, and the development database is where the
