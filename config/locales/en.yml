@@ -36,6 +36,8 @@ en:
         password_challenge: "Current password"
     errors:
       models:
+        access_request:
+          already_requested: "You already asked to join %{project}"
         invitation:
           already_a_member: "%{email} is already a member"
           already_participates: "%{email} already participates in %{project}"

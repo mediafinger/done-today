@@ -27,6 +27,10 @@ class Member < ApplicationRecord
   has_many :projects, through: :participations
   has_many :sent_invitations, class_name: "Invitation", foreign_key: :invited_by_id, inverse_of: :invited_by,
     dependent: :nullify
+  # asking to join a project
+  has_many :access_requests, inverse_of: :member, dependent: :destroy
+  has_many :decided_access_requests, class_name: "AccessRequest", foreign_key: :decided_by_id, inverse_of: :decided_by,
+    dependent: :nullify
 
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
