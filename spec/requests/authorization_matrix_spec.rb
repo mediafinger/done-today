@@ -198,7 +198,8 @@ RSpec.describe "Authorization role matrix" do
     get "/admin/mission_control_jobs"
   end
 
-  row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
+  # signed in already: off to / or to changing the password
+  row "GET /session/new", { anonymous: :ok, no_org: :found, member: :found } do
     get new_session_path
   end
 
@@ -207,7 +208,7 @@ RSpec.describe "Authorization role matrix" do
     delete session_path
   end
 
-  row "GET /passwords/new", { anonymous: :ok, member: :ok } do
+  row "GET /passwords/new", { anonymous: :ok, member: :found } do
     get new_password_path
   end
 

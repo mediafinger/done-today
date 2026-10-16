@@ -10,7 +10,9 @@ module Users
 
     layout -> { "logged_out" }, only: %i[ new create ]
 
+    # signed in, the password is changed with the current one instead
     def new
+      redirect_to edit_user_password_path if authenticated?
     end
 
     def create

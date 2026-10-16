@@ -1,6 +1,22 @@
 require "rails_helper"
 
 RSpec.describe "Users::Passwords" do
+  describe "GET /passwords/new" do
+    it "shows the form to a visitor" do
+      get new_password_path
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "sends a signed-in user to changing their password" do
+      sign_in(create(:user))
+
+      get new_password_path
+
+      expect(response).to redirect_to(edit_user_password_path)
+    end
+  end
+
   describe "POST /passwords" do
     it "enqueues the reset mail for a known address" do
       user = create(:user)
