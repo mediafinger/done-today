@@ -30,6 +30,11 @@
 en:
   hello: "Hello world"
 
+  activerecord:
+    attributes:
+      user:
+        password_challenge: "Current password"
+
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
     no_org_selected: "Select an org first"

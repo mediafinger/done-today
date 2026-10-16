@@ -1,0 +1,25 @@
+<h2>Account</h2>
+
+<article>
+  <header><h3>Name</h3></header>
+
+  <%= form_with model: @user, url: user_path, method: :patch, scope: :user do |form| %>
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true, autocomplete: "name", minlength: 3, maxlength: 72 %>
+
+    <%= form.submit "Save name" %>
+  <% end %>
+</article>
+
+<article>
+  <header><h3>Sign-in</h3></header>
+
+  <dl>
+    <dt>Email</dt>
+    <dd><%= current_user.email %> · <%= link_to "Change email", edit_user_email_path %></dd>
+    <dt>Password</dt>
+    <dd><%= link_to "Change password", edit_user_password_path %></dd>
+    <dt>Sessions</dt>
+    <dd><%= link_to "Manage sessions", user_sessions_path %></dd>
+  </dl>
+</article>
