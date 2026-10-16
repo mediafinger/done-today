@@ -15,6 +15,8 @@ module OrgScope
   def set_current_org
     Current.member = current_user.memberships.active.joins(:org).find_by!(org: { slug: params[:org_slug] })
     Current.org = Current.member.org
+
+    current_user.remember_last_visit!(org: Current.org)
   end
 
   # nil outside of an org's pages

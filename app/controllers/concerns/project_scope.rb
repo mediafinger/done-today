@@ -12,6 +12,8 @@ module ProjectScope
 
   def set_current_project
     Current.project = authorized_scope(current_org.projects).find_by!(slug: params[:project_slug])
+
+    current_user.remember_last_visit!(org: current_org, project: Current.project)
   end
 
   # nil outside of a project's pages

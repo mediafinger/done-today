@@ -53,6 +53,8 @@ The app supports multi-tenant organization boundaries and project selection:
   - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (`set_current_org`: `Current.org` and `Current.member`, through the user's active memberships, else 404).
   - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (`set_current_project`: `Current.project`, among the projects the member may read, else 404).
 - Build links with both slugs, e.g. `day_path(org, project, date)` (`Org#to_param` and `Project#to_param` are the slugs).
+- Both scopes remember what was opened on the user (`last_org_id`, `last_project_id`). `/` sends the user to today in that
+  project, or in their only one ([LandingService](file:///Users/andy/Dropbox/www/2025/done_today/app/services/landing_service.rb)), else lists their orgs and projects.
 - Authorization uses [ActionPolicy](https://actionpolicy.evilmartians.io), policies in `app/policies`. The subject is `current_member`
   (roles depend on the org), nil outside of an org. `ApplicationPolicy` denies a nil or archived member and records of another org
   in pre-checks, `ProjectPolicy` lets org owners through (except `create_entry?`).
@@ -65,6 +67,10 @@ The app supports multi-tenant organization boundaries and project selection:
     `spec/requests/authorization_verified_spec.rb` sends a request to every route so a forgotten `authorize!` fails.
 
 ### 5. Domain Model & PostgreSQL-specific Features
+- **Where classes live**:
+  - `app/models`: Active Record models (`ApplicationRecord` subclasses), plus `Current` (`ActiveSupport::CurrentAttributes`).
+  - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`, `OrgSetup`).
+  - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TimeValidation`, `DaysExport`, `MonthExport`). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Arrays**: Membership and participation roles are stored as array columns (`text[]`). Role querying utilizes specialized Postgres operators (e.g., `&&` for intersection, `@>` for containment).
 - **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`).

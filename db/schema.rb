@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -144,7 +144,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_050000) do
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.enum "display_mode", default: "system", null: false, enum_type: "display_mode"
+    t.uuid "last_org_id"
+    t.uuid "last_project_id"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["last_org_id"], name: "index_users_on_last_org_id"
+    t.index ["last_project_id"], name: "index_users_on_last_project_id"
   end
 
   add_foreign_key "days", "orgs"
@@ -162,4 +166,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_050000) do
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
   add_foreign_key "sessions", "users"
+  add_foreign_key "users", "orgs", column: "last_org_id", on_delete: :nullify
+  add_foreign_key "users", "projects", column: "last_project_id", on_delete: :nullify
 end

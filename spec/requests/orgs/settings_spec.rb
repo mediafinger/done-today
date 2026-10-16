@@ -25,7 +25,7 @@ RSpec.describe "Orgs::Settings" do
     end
 
     it "is where the gear leads outside of an org" do
-      get root_path
+      get edit_user_path
 
       expect(gear).to eq(settings_path)
     end

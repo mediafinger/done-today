@@ -16,8 +16,11 @@ class ApplicationController < ActionController::Base
     render :error_404, status: :not_found
   end
 
-  # nothing is selected after signing in: the user's orgs and their projects
+  # today in the project the user worked in last, else their orgs and projects
   def home
+    landing = LandingService.call(user: current_user)
+    return redirect_to edit_day_path(landing.org, landing.project, Time.zone.today) if landing.project
+
     @memberships = current_user.memberships.active.includes(:org, participations: :project).sort_by { it.org.name }
 
     render :home, status: :ok

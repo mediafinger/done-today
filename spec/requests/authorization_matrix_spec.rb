@@ -17,6 +17,7 @@ require "rails_helper"
 #   :listed / :hidden    a link to P on the page
 #   :form / :read_only   the edit page, with or without the new entry field
 #   :written             the write went through
+#   :to_today            redirected to today in P
 #   :to_sign_in          redirected to the sign-in page (nothing written)
 #
 RSpec.describe "Authorization role matrix" do
@@ -80,6 +81,8 @@ RSpec.describe "Authorization role matrix" do
     when :listed, :hidden
       expect(response).to have_http_status(:ok)
       expect(link_to_project?).to be(outcome == :listed)
+    when :to_today
+      expect(response).to redirect_to(edit_day_path(org, project, Time.zone.today))
     when :to_sign_in
       expect(response).to redirect_to(new_session_path)
       expect(instance_exec(&written)).to be(false) if written
@@ -108,10 +111,11 @@ RSpec.describe "Authorization role matrix" do
     end
   end
 
-  # Without an org in the path nothing depends on roles.
-  row "GET / (the user's orgs and projects)", {
-    anonymous: :to_sign_in, no_org: :hidden, archived: :hidden, outsider: :hidden, member: :hidden, observer: :listed,
-    participant: :listed, project_owner: :listed, org_owner: :hidden
+  # Without an org in the path nothing depends on roles. P is the only project of
+  #   whoever takes part in it, so / goes straight there.
+  row "GET / (today in the only project, or the user's orgs and projects)", {
+    anonymous: :to_sign_in, no_org: :hidden, archived: :hidden, outsider: :hidden, member: :hidden, observer: :to_today,
+    participant: :to_today, project_owner: :to_today, org_owner: :hidden
   } do
     get root_path
   end

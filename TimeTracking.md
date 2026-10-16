@@ -270,7 +270,7 @@ past-day-is-read-only. (`rake ui` runs system specs separately — they are excl
 
 **Goal:** one tested, pure-Ruby object that turns a log string into structured data. No UI.
 
-### `app/models/entry_log.rb`
+### `app/values/entry_log.rb`
 
 A value object (PORO, not AR). `EntryLog.new(text)` exposes:
 
@@ -363,7 +363,7 @@ end
 Plus a `rake time_tracking:backfill` task re-saving existing entries (seed data has none of this
 markup, so it is mostly a no-op — but write it anyway, you will re-run it when the grammar grows).
 
-**Tests:** `spec/models/entry_log_spec.rb` is the one spec file that really matters. One example per
+**Tests:** `spec/values/entry_log_spec.rb` is the one spec file that really matters. One example per
 row of the table above, plus round-tripping `#segments` back to the original string.
 
 ---
@@ -392,7 +392,7 @@ helper spec asserting `render_log("<script> #tag")` escapes the script tag.
 
 ## 7. Phase 4 — Times and working-time calculation
 
-### `app/models/time_summary.rb`
+### `app/values/time_summary.rb`
 
 `TimeSummary.new(entries)` — takes *any* entry collection, so **the same object serves the day page,
 the week page, the month page and the project page.** That is the whole reason to build it as a
@@ -439,7 +439,7 @@ is a handful per day.
 - `app/helpers/duration_helper.rb#format_minutes`: `90 → "1h30m"`, `60 → "1h"`, `45 → "45m"`,
   `0 → "0m"`, `nil → "–"`.
 
-**Tests:** `spec/models/time_summary_spec.rb` — one example per issue code, plus a realistic full
+**Tests:** `spec/values/time_summary_spec.rb` — one example per issue code, plus a realistic full
 day (start, four entries, a break, end) asserting every total.
 
 ---
