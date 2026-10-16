@@ -128,7 +128,7 @@ For auditing operations within organizations, we implement a lightweight event-l
   ```bash
   bin/rails runner 'User.find_by!(email: "you@example.com").update!(admin: true)'
   ```
-- **`/dev`** (development and test only): links to **`/dev/letter_opener`** (letter_opener_web), where development mail is delivered
+- **`/dev`** (development only): links to **`/dev/letter_opener`** (letter_opener_web), where development mail is delivered
   instead of being sent.
 
 ### Database Backups

@@ -186,8 +186,9 @@ RSpec.describe "Authorization role matrix" do
     get admin_home_path
   end
 
-  # development and test only, see spec/requests/devs/dev_area_spec.rb
+  # development only, see spec/requests/devs/dev_area_spec.rb
   row "GET /dev", { anonymous: :ok, no_org: :ok, member: :ok, admin: :ok } do
+    allow(DevConstraint).to receive(:matches?).and_return(true)
     get dev_home_path
   end
 

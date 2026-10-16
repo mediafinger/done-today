@@ -107,6 +107,9 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     end.uniq { |verb, _path, controller, action| [ verb == "PUT" ? "PATCH" : verb, controller, action ] }
   end
 
+  # /dev is routed in development only
+  before { allow(DevConstraint).to receive(:matches?).and_return(true) }
+
   app_routes.each do |verb, spec, controller, action|
     it "#{verb} #{spec} (#{controller}##{action})" do
       sign_in(signed_in_user(controller, action))

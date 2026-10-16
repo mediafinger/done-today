@@ -1,5 +1,5 @@
 module Devs
-  # routed in development and test only, see config/routes.rb
+  # routed in development only, see config/routes.rb
   class PagesController < ApplicationController
     # a local page, nothing to authorize
     skip_verify_authorized
