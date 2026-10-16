@@ -47,6 +47,11 @@ class Invitation < ApplicationRecord
     sent_at < EXPIRES_IN.ago
   end
 
+  # accepting reactivates them with the invited role, which takes their owner role
+  def to_deactivated_owner?
+    org.members.archived.owners.joins(:user).exists?(users: { email: })
+  end
+
   # Returns the member: a new one, the user's archived one reactivated with the invited
   #   role (one row per org and user), or their active one left as it is. A guest
   #   invitation also adds the project, so an active member only gains that.

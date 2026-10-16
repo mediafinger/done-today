@@ -100,9 +100,11 @@
               <td><%= invitation.project_role %></td>
               <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
               <td>
-                <%= button_to "Resend", resend_guest_invitation_path(current_org, @project, invitation), method: :patch, class: "slim" %>
-                <%= button_to "Revoke", guest_invitation_path(current_org, @project, invitation), method: :delete, class: "slim secondary",
-                      form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+                <% if allowed_to?(:manage?, invitation) %>
+                  <%= button_to "Resend", resend_guest_invitation_path(current_org, @project, invitation), method: :patch, class: "slim" %>
+                  <%= button_to "Revoke", guest_invitation_path(current_org, @project, invitation), method: :delete, class: "slim secondary",
+                        form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+                <% end %>
               </td>
             </tr>
           <% end %>

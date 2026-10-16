@@ -7,6 +7,12 @@ RSpec.describe InvitationPolicy do
   let(:member) { create(:member, :owner, org:) }
   let(:context) { { member: } }
 
+  # the org keeps an active owner
+  def deactivated_owner
+    create(:member, :owner, org:)
+    create(:member, :owner, org:).tap(&:archive!)
+  end
+
   def project_lead(of: project)
     create(:participant, :lead, project: of).member
   end
@@ -16,6 +22,10 @@ RSpec.describe InvitationPolicy do
 
     succeed "for an org owner, as owner" do
       let(:record) { create(:invitation, :owner, org:) }
+    end
+
+    succeed "for an org owner, to a deactivated owner" do
+      let(:record) { create(:invitation, org:, email: deactivated_owner.user.email) }
     end
 
     context "with a manager" do
@@ -44,6 +54,11 @@ RSpec.describe InvitationPolicy do
       failed "making a pending invitation an owner one" do
         let(:record) { create(:invitation, org:).tap { it.role = "owner" } }
       end
+
+      # accepting would reactivate them without the owner role
+      failed "to a deactivated owner" do
+        let(:record) { create(:invitation, org:, email: deactivated_owner.user.email) }
+      end
     end
 
     context "with a project lead" do
@@ -62,6 +77,10 @@ RSpec.describe InvitationPolicy do
       end
 
       failed "as member"
+
+      failed "as guest to their project, to a deactivated owner" do
+        let(:record) { create(:invitation, :guest, org:, project:, email: deactivated_owner.user.email) }
+      end
     end
 
     failed "for a member" do

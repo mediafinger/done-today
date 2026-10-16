@@ -1,11 +1,12 @@
 # Org managers and owners send, resend and revoke the org's invitations, a project's owners
-#   those of its guests. Only owners invite as owner. Ask with the change assigned.
+#   those of its guests. Only owners invite as owner, or invite a deactivated owner back.
+#   Ask with the change assigned.
 #
 class InvitationPolicy < ApplicationPolicy
   alias_rule :create?, :resend?, :destroy?, to: :manage?
 
   def manage?
-    return false if owner_role? && !allowed_to?(:grant_owner?, Member)
+    return false if (owner_role? || record.to_deactivated_owner?) && !allowed_to?(:grant_owner?, Member)
 
     allowed_to?(:invite?, Member) || guest_of_their_project?
   end

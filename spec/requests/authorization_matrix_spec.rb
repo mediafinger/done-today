@@ -481,6 +481,23 @@ RSpec.describe "Authorization role matrix" do
     delete invitation_path(org, pending_invitation(role: "owner"))
   end
 
+  # accepting reactivates the deactivated owner with the invited role, which takes their owner role
+  row "POST /:org/invitations (to member, a deactivated owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { org.invitations.exists?(email: personas[:archived].user.email) } do
+    post invitations_path(org), params: { invitation: { email: personas[:archived].user.email, role: "member" } }
+  end
+
+  row "PATCH /:org/invitations/:id/resend (to a deactivated owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { org.invitations.find_by!(email: personas[:archived].user.email).sent_at > 1.hour.ago } do
+    invitation = org.invitations.create!(email: personas[:archived].user.email, role: "member", sent_at: 2.days.ago)
+
+    patch resend_invitation_path(org, invitation)
+  end
+
   row "GET /:org/projects/new", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
     org_owner: :ok
@@ -545,6 +562,15 @@ RSpec.describe "Authorization role matrix" do
     org_owner: :written
   }, written: -> { !project.invitations.exists?(email: "guest@example.com") } do
     delete guest_invitation_path(org, project, pending_guest_invitation)
+  end
+
+  # a project lead or manager reactivating a deactivated owner as guest would take their owner role
+  row "POST /:org/:project/guest_invitations (a deactivated owner)", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { project.invitations.exists?(email: personas[:archived].user.email) } do
+    post guest_invitations_path(org, project),
+      params: { invitation: { email: personas[:archived].user.email, project_role: "participant" } }
   end
 
   # nobody invites guests to an archived project
