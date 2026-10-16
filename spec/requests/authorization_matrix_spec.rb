@@ -567,7 +567,7 @@ RSpec.describe "Authorization role matrix" do
   row "PATCH /:org/:project/participants/:id", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
     org_owner: :written
-  }, written: -> { colleague.participations.find_by!(project:).roles == %w[lead] } do
+  }, written: -> { colleague.participations.find_by!(project:).lead? } do
     patch participant_path(org, project, colleague.participations.find_by!(project:)), params: { participant: { role: "lead" } }
   end
 

@@ -61,7 +61,7 @@
     <%= form_with model: Participant.new, url: participants_path(current_org, @project), id: "new-participant" do |form| %>
       <fieldset role="group">
         <%= form.select :member_id, grouped_options_for_select(participant_candidates(@candidates)), {}, aria: { label: "Member" } %>
-        <%= form.select :role, Participant::RANKED_ROLES.reverse, { selected: "participant" }, aria: { label: "Role" } %>
+        <%= form.select :role, Participant::VALID_ROLES, { selected: "participant" }, aria: { label: "Role" } %>
         <%= form.submit "Add", class: "slim" %>
       </fieldset>
     <% end %>

@@ -25,8 +25,8 @@ RSpec.describe Participant do
     it "refuses a guest as project lead" do
       participant = guest.participations.sole
 
-      expect(participant.update(roles: %w[lead])).to be(false)
-      expect(participant.errors[:roles]).to include("lead is not a project role for guests")
+      expect(participant.update(role: "lead")).to be(false)
+      expect(participant.errors[:role]).to include("lead is not a project role for guests")
     end
 
     it "deactivates a guest whose last participation is removed" do
@@ -53,11 +53,21 @@ RSpec.describe Participant do
   end
 
   describe "#role" do
-    # the UI gives each participant one role
-    it "is the strongest of the roles" do
-      expect(described_class.new(roles: %w[observer]).role).to eq("observer")
-      expect(described_class.new(roles: %w[observer participant]).role).to eq("participant")
-      expect(described_class.new(roles: %w[participant lead]).role).to eq("lead")
+    it "takes part as participant by default" do
+      expect(described_class.new.role).to eq("participant")
+    end
+
+    it "refuses an unknown role" do
+      participant = build(:participant, project:, role: "owner")
+
+      expect(participant).not_to be_valid
+      expect(participant.errors[:role]).to include("owner is not a project role")
+    end
+
+    it "lists the roles weakest first, like the Postgres enum" do
+      expect(described_class::VALID_ROLES).to eq(%w[observer participant lead])
+      expect(ActiveRecord::Base.connection.select_values("SELECT unnest(enum_range(NULL::project_role))::text"))
+        .to eq(described_class::VALID_ROLES)
     end
   end
 

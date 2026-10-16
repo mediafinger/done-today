@@ -17,7 +17,7 @@ class ProjectPolicy < ApplicationPolicy
     next relation.none unless active?
     next relation.where(org_id: member.org_id) if org_manager?
 
-    relation.where(id: member.participations.includes_a_role_of(READ_ROLES).select(:project_id))
+    relation.where(id: member.participations.where(role: READ_ROLES).select(:project_id))
   end
 
   # internals know every project of the org, guests only theirs, reading still takes a participation
@@ -32,7 +32,7 @@ class ProjectPolicy < ApplicationPolicy
     next relation.none unless active?
     next relation.where(org_id: member.org_id) if org_manager?
 
-    relation.where(id: member.participations.includes_all_roles(%w[lead]).select(:project_id))
+    relation.where(id: member.participations.leads.select(:project_id))
   end
 
   # a full export covers everybody's entries, so it takes managing the org or leading the project
@@ -44,24 +44,24 @@ class ProjectPolicy < ApplicationPolicy
   def create? = false
 
   def show?
-    roles.intersect?(READ_ROLES)
+    READ_ROLES.include?(role)
   end
 
   def create_entry?
-    !record.archived? && roles.intersect?(WRITE_ROLES)
+    !record.archived? && WRITE_ROLES.include?(role)
   end
 
   def export?
-    roles.include?("lead")
+    role == "lead"
   end
 
   def manage?
-    roles.include?("lead")
+    role == "lead"
   end
 
   # send, resend and revoke the guest invitations of the project
   def invite_guest?
-    !record.archived? && (org_manager? || roles.include?("lead"))
+    !record.archived? && (org_manager? || role == "lead")
   end
 
   # who changed which entry when (RecordHistory)
@@ -71,7 +71,7 @@ class ProjectPolicy < ApplicationPolicy
 
   private
 
-  def roles
-    project_roles(record)
+  def role
+    project_role(record)
   end
 end

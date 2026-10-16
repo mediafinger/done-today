@@ -80,7 +80,7 @@ class Member < ApplicationRecord
 
   # a guest only sees their projects, so they need one, and they lead none
   def guest_with_a_project
-    led = participations.includes_all_roles(%w[lead]).includes(:project).map { it.project.name }
+    led = participations.leads.includes(:project).map { it.project.name }
 
     errors.add(:role, :guest_lead, projects: led.sort.to_sentence) if led.any?
     errors.add(:role, :guest_without_project) if participations.none?

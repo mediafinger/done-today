@@ -9,8 +9,8 @@ class EntryPolicy < ApplicationPolicy
   relation_scope(:editable) do |relation|
     next relation.none unless active?
 
-    led = member.participations.includes_all_roles(%w[lead]).select(:project_id)
-    joined = member.participations.includes_all_roles(%w[participant]).select(:project_id)
+    led = member.participations.leads.select(:project_id)
+    joined = member.participations.where(role: "participant").select(:project_id)
     days = Day.where.not(project_id: Project.archived.select(:id))
 
     relation.where(day: days.where(project_id: led))
@@ -21,9 +21,9 @@ class EntryPolicy < ApplicationPolicy
     project = record.day.project
     return false if project.archived?
 
-    roles = project_roles(project)
+    role = project_role(project)
 
-    roles.include?("lead") || (roles.include?("participant") && record.member_id == member.id)
+    role == "lead" || (role == "participant" && record.member_id == member.id)
   end
 
   def history?

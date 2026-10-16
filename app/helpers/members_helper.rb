@@ -3,7 +3,7 @@
 module MembersHelper
   # a project an internal knows of but may not read
   def join_project_hint(project)
-    leads = project.participants.select { it.roles.include?("lead") && !it.member.archived? }.map { it.member.name }.sort
+    leads = project.participants.select { it.lead? && !it.member.archived? }.map { it.member.name }.sort
 
     leads.any? ? "ask #{leads.to_sentence(last_word_connector: " or ", two_words_connector: " or ")} to join" : "ask an org manager or owner to join"
   end
@@ -15,7 +15,7 @@ module MembersHelper
 
   # guests never lead a project
   def participant_roles_for(member)
-    member.guest? ? Participant::GUEST_ROLES.reverse : Participant::RANKED_ROLES.reverse
+    member.guest? ? Participant::GUEST_ROLES : Participant::VALID_ROLES
   end
 
   def invitation_role(invitation, with_project_role: true)

@@ -169,7 +169,7 @@ RSpec.describe Invitation do
         member = invitation.accept!(user)
 
         expect(member).to have_attributes(role: "guest", archived_at: nil)
-        expect(member.participations.sole).to have_attributes(project:, roles: %w[observer])
+        expect(member.participations.sole).to have_attributes(project:, role: "observer")
       end
 
       it "reactivates an archived member as guest of the project" do

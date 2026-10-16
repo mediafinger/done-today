@@ -171,7 +171,7 @@ RSpec.describe "Org guests" do
 
       post participants_path(org, shop), params: { participant: { member_id: hugo.id, role: "lead" } }
 
-      expect(flash[:alert]).to eq("Roles lead is not a project role for guests")
+      expect(flash[:alert]).to eq("Role lead is not a project role for guests")
       expect(shop.participants.exists?(member: hugo)).to be(false)
     end
   end

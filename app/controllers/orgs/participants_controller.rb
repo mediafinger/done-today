@@ -9,13 +9,13 @@ module Orgs
     def create
       # a deactivated member, one of another org or a guest of another project is a 404, the form does not offer them
       member = authorized_scope(current_org.members.active, as: :addable).find(participant_params[:member_id])
-      participant = current_project.participants.new(member:, roles: [ participant_params[:role] ])
+      participant = current_project.participants.new(member:, role: participant_params[:role])
 
       respond(participant.save, :added, participant)
     end
 
     def update
-      respond(participant.update(roles: [ participant_params[:role] ]), :updated, participant)
+      respond(participant.update(role: participant_params[:role]), :updated, participant)
     end
 
     def destroy

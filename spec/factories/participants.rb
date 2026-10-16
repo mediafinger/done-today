@@ -4,14 +4,14 @@ FactoryBot.define do
     # the member has to belong to the same org as the project, otherwise the
     # policy scopes silently return nothing
     member { association :member, org: project.org }
-    roles { %w[participant] }
+    role { "participant" }
 
     trait :lead do
-      roles { %w[lead] }
+      role { "lead" }
     end
 
     trait :observer do
-      roles { %w[observer] }
+      role { "observer" }
     end
   end
 end

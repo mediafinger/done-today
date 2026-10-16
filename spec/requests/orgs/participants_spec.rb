@@ -67,7 +67,7 @@ RSpec.describe "Orgs::Participants" do
     it "adds a member with a role" do
       post participants_path(org, project), params: { participant: { member_id: carl.id, role: "observer" } }
 
-      expect(project.participants.find_by!(member: carl).roles).to eq(%w[observer])
+      expect(project.participants.find_by!(member: carl).role).to eq("observer")
       expect(response).to redirect_to(edit_project_path(org, project))
       expect(flash[:notice]).to eq("Added Carl as observer")
     end
@@ -88,7 +88,7 @@ RSpec.describe "Orgs::Participants" do
     it "refuses someone who already takes part" do
       post participants_path(org, project), params: { participant: { member_id: anna.member_id, role: "lead" } }
 
-      expect(anna.reload.roles).to eq(%w[participant])
+      expect(anna.reload.role).to eq("participant")
       expect(flash[:alert]).to be_present
     end
 
@@ -114,7 +114,7 @@ RSpec.describe "Orgs::Participants" do
     it "changes the role" do
       patch participant_path(org, project, anna), params: { participant: { role: "lead" } }
 
-      expect(anna.reload.roles).to eq(%w[lead])
+      expect(anna.reload.role).to eq("lead")
       expect(response).to redirect_to(edit_project_path(org, project))
       expect(flash[:notice]).to eq("Anna is now lead")
     end
@@ -125,7 +125,7 @@ RSpec.describe "Orgs::Participants" do
       patch participant_path(org, project, elsewhere), params: { participant: { role: "lead" } }
 
       expect(response).to have_http_status(:not_found)
-      expect(elsewhere.reload.roles).to eq(%w[participant])
+      expect(elsewhere.reload.role).to eq("participant")
     end
 
     it "sends a project lead who stepped down to the project page" do

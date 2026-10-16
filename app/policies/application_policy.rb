@@ -3,7 +3,7 @@
 #
 #   * the org role lives on `Member#role` (guest, member, manager, owner): all but guests are internal,
 #     managers and owners manage the org, only owners touch the owner role
-#   * project roles live on `Participant#roles` (observer, participant, lead)
+#   * project roles live on `Participant#role` (observer, participant, lead)
 #
 #   Rules answer "may this member do X to this record?", relation scopes return
 #   the records a member may see or change. Pre-checks do not run for scopes.
@@ -52,9 +52,11 @@ class ApplicationPolicy < ActionPolicy::Base
     allow! if org_manager?
   end
 
-  # [] when the member does not participate
-  def project_roles(project)
+  # nil when the member does not participate
+  def project_role(project)
     @project_roles ||= {}
-    @project_roles[project.id] ||= member.participations.find_by(project:)&.roles || []
+    return @project_roles[project.id] if @project_roles.key?(project.id)
+
+    @project_roles[project.id] = member.participations.find_by(project:)&.role
   end
 end

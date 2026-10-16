@@ -71,7 +71,7 @@ class Invitation < ApplicationRecord
   private
 
   def join_project(member)
-    member.participations.find_or_create_by!(project:) { it.roles = [ project_role ] } if project
+    member.participations.find_or_create_by!(project:) { it.role = project_role } if project
   end
 
   def project_of_the_org
