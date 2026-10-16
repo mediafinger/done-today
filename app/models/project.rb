@@ -3,6 +3,8 @@
 #   The slug is set once and survives a rename, so links to the project keep working.
 #
 class Project < ApplicationRecord
+  include Sluggable
+
   # The slug is the second segment of every project URL (/acme/website/days/2026-10-15),
   #   next to the org-level pages /acme/members and /acme/settings.
   #   spec/routing/reserved_slugs_spec.rb fails when an org-level route is missing here.
@@ -22,14 +24,8 @@ class Project < ApplicationRecord
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
 
-  before_validation :set_slug, on: :create
-
   validates :name, presence: true, uniqueness: { scope: :org_id }
-  validates :slug, uniqueness: { scope: :org_id }, exclusion: { in: RESERVED_SLUGS }
-
-  def to_param
-    slug
-  end
+  validates :slug, uniqueness: { scope: :org_id }
 
   def archived?
     archived_at.present?
@@ -45,11 +41,11 @@ class Project < ApplicationRecord
 
   private
 
-  def set_slug
-    new_slug = name.to_s.parameterize
+  def slug_scope
+    Project.where(org_id:)
+  end
 
-    new_slug = "#{new_slug}-#{rand(99)}" while RESERVED_SLUGS.include?(new_slug) || Project.exists?(org_id:, slug: new_slug)
-
-    self.slug = new_slug
+  def reserved_path
+    "/#{org&.slug}/#{slug}"
   end
 end

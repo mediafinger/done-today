@@ -1,4 +1,6 @@
 class Org < ApplicationRecord
+  include Sluggable
+
   # The slug is the first segment of every org URL (/acme/website/days/2026-10-15),
   #   config/routes.rb skips these words when matching an org. spec/routing/reserved_slugs_spec.rb
   #   fails when a route or a file in public/ is missing here.
@@ -25,22 +27,17 @@ class Org < ApplicationRecord
 
   has_many :users, through: :members
 
-  before_create :set_slug
-
   validates :name, presence: true, uniqueness: true
-  validates :slug, exclusion: { in: RESERVED_SLUGS }
-
-  def to_param
-    slug
-  end
+  validates :slug, uniqueness: true
 
   private
 
-  def set_slug
-    new_slug = name.parameterize
+  # /:org_slug looks orgs up without any scope, so their slugs are unique across all orgs
+  def slug_scope
+    Org.all
+  end
 
-    new_slug = "#{new_slug}-#{rand(99)}" while RESERVED_SLUGS.include?(new_slug) || Org.exists?(slug: new_slug)
-
-    self.slug = new_slug
+  def reserved_path
+    "/#{slug}"
   end
 end

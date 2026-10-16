@@ -68,6 +68,21 @@ RSpec.describe "Managing projects" do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include("Name can&#39;t be blank")
     end
+
+    # /:org/members is the member list, a project there would be unreachable
+    it "refuses a name that is an org-level page" do
+      expect { post projects_path(org), params: { project: { name: "Members" } } }.not_to change(Project, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Name can&#39;t be used, /#{org.slug}/members is a page of the app")
+    end
+
+    it "refuses a name without a letter or digit" do
+      post projects_path(org), params: { project: { name: "%%" } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Name needs at least one letter or digit")
+    end
   end
 
   describe "GET /:org/:project/edit" do

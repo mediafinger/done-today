@@ -46,6 +46,16 @@ en:
         invitation:
           already_a_member: "%{email} is already a member"
           already_participates: "%{email} already participates in %{project}"
+        org:
+          attributes:
+            name:
+              no_slug: "needs at least one letter or digit"
+              reserved_slug: "can't be used, %{path} is a page of the app"
+        project:
+          attributes:
+            name:
+              no_slug: "needs at least one letter or digit"
+              reserved_slug: "can't be used, %{path} is a page of the app"
         member:
           last_owner: "%{org} needs at least one active owner"
           guest_lead: "guest cannot lead %{projects}, change the project role first"

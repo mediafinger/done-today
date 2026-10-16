@@ -15,11 +15,18 @@ RSpec.describe Project do
       expect([ ours.slug, theirs.slug ]).to eq(%w[website website])
     end
 
-    it "gets a suffix when the slug is taken within the same org" do
+    it "numbers the slug when it is taken within the same org" do
       create(:project, org:, name: "Website")
-      other = create(:project, org:, name: "website!")
 
-      expect(other.slug).to match(/\Awebsite-\d+\z/)
+      expect(create(:project, org:, name: "website!").slug).to eq("website-2")
+      expect(create(:project, org:, name: "WEBSITE").slug).to eq("website-3")
+    end
+
+    it "counts only the projects of the same org" do
+      create(:project, org: create(:org), name: "Website 5")
+      create(:project, org:, name: "Website")
+
+      expect(create(:project, org:, name: "website!").slug).to eq("website-2")
     end
 
     it "is unique per org in the database" do
@@ -43,8 +50,25 @@ RSpec.describe Project do
     end
 
     # /:org/members and /:org/settings sit where /:org/:project would
-    it "steers clear of the org-level paths" do
-      expect(create(:project, name: "Members").slug).to match(/\Amembers-\d+\z/)
+    it "refuses a name that is an org-level path" do
+      project = build(:project, org:, name: "Members")
+
+      expect(project).not_to be_valid
+      expect(project.errors[:name]).to include("can't be used, /#{org.slug}/members is a page of the app")
+    end
+
+    it "refuses a name without a letter or digit" do
+      project = build(:project, name: "???")
+
+      expect(project).not_to be_valid
+      expect(project.errors[:name]).to include("needs at least one letter or digit")
+    end
+
+    it "refuses an empty slug set by hand" do
+      project = create(:project)
+
+      expect(project.update(slug: "")).to be(false)
+      expect(project.errors[:slug]).to be_present
     end
 
     it "refuses a reserved word set by hand" do
