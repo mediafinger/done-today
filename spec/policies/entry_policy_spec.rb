@@ -79,4 +79,18 @@ RSpec.describe EntryPolicy do
     expect(described_class.editable(owner)).to be_empty
     expect(described_class.readable(owner)).to include(own_entry, colleagues_entry)
   end
+
+  it "lets an owner of another org neither read nor edit" do
+    owner = create(:member, :owner)
+
+    expect(described_class.new(owner, colleagues_entry).update?).to be(false)
+    expect(described_class.editable(owner)).to be_empty
+    expect(described_class.readable(owner)).to be_empty
+  end
+
+  it "allows nothing without a member" do
+    expect(described_class.new(nil, colleagues_entry).update?).to be(false)
+    expect(described_class.editable(nil)).to be_empty
+    expect(described_class.readable(nil)).to be_empty
+  end
 end

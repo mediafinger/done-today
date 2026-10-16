@@ -78,6 +78,19 @@ RSpec.describe ProjectPolicy do
       end
     end
 
+    it "keeps an archived project manageable, so it can be unarchived" do
+      project.archive!
+
+      expect(described_class.manageable(member_with(org_roles: %w[member], project_roles: %w[owner]))).to include(project)
+      expect(described_class.manageable(member_with(org_roles: %w[member owner], project_roles: nil))).to include(project)
+    end
+
+    it "lets an owner of another org manage nothing here" do
+      owner = member_with(org_roles: %w[member owner], project_roles: nil, of: create(:org))
+
+      expect(described_class.manageable(owner)).not_to include(project)
+    end
+
     it "lets an archived org owner create nothing" do
       create(:member, :owner, org:)
       owner = member_with(org_roles: %w[member owner], project_roles: nil).tap(&:archive!)
@@ -129,6 +142,9 @@ RSpec.describe ProjectPolicy do
     it "allows nothing" do
       expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
       expect(described_class.readable(nil)).to be_empty
+      expect(described_class.manageable(nil)).to be_empty
+      expect(described_class.exportable(nil)).to be_empty
+      expect(described_class.new(nil, Project).create?).to be(false)
     end
   end
 

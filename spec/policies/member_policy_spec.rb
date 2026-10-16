@@ -44,4 +44,14 @@ RSpec.describe MemberPolicy do
   it "allows nothing without a member" do
     expect([ described_class.new(nil, Member).index?, described_class.new(nil, colleague).manage? ]).to all(be(false))
   end
+
+  it "lets an owner manage a deactivated member, to reactivate them" do
+    owner = create(:member, :owner, org:)
+
+    expect(described_class.new(owner, colleague.tap(&:archive!)).manage?).to be(true)
+  end
+
+  it "lets nobody invite without a member" do
+    expect(described_class.new(nil, Member).invite?).to be(false)
+  end
 end

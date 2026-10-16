@@ -3,6 +3,9 @@ require "rails_helper"
 # Every endpoint against every role, for one project P of one org. Org and project
 #   are part of every path, so nothing is selected beforehand.
 #
+#   anonymous      not signed in
+#   no_org         signed in, member of no org
+#   archived       deactivated member of the org, was org owner and owner of P
 #   outsider       member of another org
 #   member         org member, no participation in P
 #   observer       participates in P as observer
@@ -14,6 +17,7 @@ require "rails_helper"
 #   :listed / :hidden    a link to P on the page
 #   :form / :read_only   the edit page, with or without the new entry field
 #   :written             the write went through
+#   :to_sign_in          redirected to the sign-in page (nothing written)
 #
 RSpec.describe "Authorization role matrix" do
   let(:org) { create(:org) }
@@ -28,18 +32,37 @@ RSpec.describe "Authorization role matrix" do
       observer: create(:participant, :observer, project:).member,
       participant: create(:participant, project:).member,
       project_owner: create(:participant, :owner, project:).member,
-      org_owner: create(:member, :owner, org:)
+      org_owner: create(:member, :owner, org:),
+      # after org_owner, so the org keeps an owner
+      archived: create(:participant, :owner, project:, member: create(:member, :owner, org:)).member.tap(&:archive!)
     }
   end
 
-  # the persona of the running example
+  # the personas without access to any org: they are locked out of every page below /:org
+  def self.locked_out
+    { anonymous: :to_sign_in, no_org: :not_found, archived: :not_found }
+  end
+
+  # the persona of the running example, nil for anonymous and no_org
   def me
-    personas.fetch(RSpec.current_example.metadata[:persona])
+    personas[RSpec.current_example.metadata[:persona]]
+  end
+
+  def sign_in_as(persona)
+    case persona
+    when :anonymous then nil
+    when :no_org then sign_in(create(:user))
+    else sign_in(personas.fetch(persona).user)
+    end
   end
 
   # a member of the org who is none of the personas
   def colleague
     colleagues_entry.member
+  end
+
+  def colleagues_session
+    @colleagues_session ||= colleague.user.sessions.create!(user_agent: "Matrix", ip_address: "127.0.0.1")
   end
 
   def pending_invitation
@@ -57,6 +80,9 @@ RSpec.describe "Authorization role matrix" do
     when :listed, :hidden
       expect(response).to have_http_status(:ok)
       expect(link_to_project?).to be(outcome == :listed)
+    when :to_sign_in
+      expect(response).to redirect_to(new_session_path)
+      expect(instance_exec(&written)).to be(false) if written
     when :form, :read_only
       expect(response).to have_http_status(:ok)
       expect(response.body.include?(%(id="new-entry"))).to be(outcome == :form)
@@ -71,7 +97,8 @@ RSpec.describe "Authorization role matrix" do
     describe name do
       outcomes.each do |persona, outcome|
         it "#{persona}: #{outcome}", persona: do
-          sign_in(me.user)
+          personas
+          sign_in_as(persona)
 
           instance_exec(&request)
 
@@ -81,22 +108,126 @@ RSpec.describe "Authorization role matrix" do
     end
   end
 
+  # Without an org in the path nothing depends on roles.
+  row "GET / (the user's orgs and projects)", {
+    anonymous: :to_sign_in, no_org: :hidden, archived: :hidden, outsider: :hidden, member: :hidden, observer: :listed,
+    participant: :listed, project_owner: :listed, org_owner: :hidden
+  } do
+    get root_path
+  end
+
+  row "GET /settings", {
+    anonymous: :to_sign_in, no_org: :ok, archived: :ok, outsider: :ok, member: :ok, org_owner: :ok
+  } do
+    get settings_path
+  end
+
+  row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
+    get new_session_path
+  end
+
+  # POST /session is how every example signs in
+  row "DELETE /session", { anonymous: :to_sign_in, no_org: :to_sign_in, member: :to_sign_in } do
+    delete session_path
+  end
+
+  row "GET /passwords/new", { anonymous: :ok, member: :ok } do
+    get new_password_path
+  end
+
+  row "POST /passwords", { anonymous: :to_sign_in, member: :to_sign_in } do
+    post passwords_path, params: { email: colleague.user.email }
+  end
+
+  # the token decides, not the session
+  row "GET /passwords/:token/edit", { anonymous: :ok, member: :ok } do
+    get edit_password_path(colleague.user.password_reset_token)
+  end
+
+  row "PATCH /passwords/:token", {
+    anonymous: :written, member: :written
+  }, written: -> { colleague.user.reload.authenticate("a brand new password").present? } do
+    patch password_path(colleague.user.password_reset_token),
+      params: { password: "a brand new password", password_confirmation: "a brand new password" }
+  end
+
+  # another account has to sign out first, see spec/requests/users/invitations_spec.rb
+  row "GET /invitations/:token", { anonymous: :ok, no_org: :forbidden, member: :forbidden } do
+    get accept_invitation_path(pending_invitation.generate_token_for(:acceptance))
+  end
+
+  row "PATCH /invitations/:token", {
+    anonymous: :written, no_org: :forbidden, member: :forbidden
+  }, written: -> { org.members.joins(:user).exists?(user: { email: "pending@example.com" }) } do
+    patch accept_invitation_path(pending_invitation.generate_token_for(:acceptance)),
+      params: { user: { name: "Pending", password: "a brand new password", password_confirmation: "a brand new password" } }
+  end
+
+  # the account pages only ever act on the signed-in user
+  row "GET /user/edit", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get edit_user_path
+  end
+
+  row "PATCH /user", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    patch user_path, params: { user: { name: "Renamed" } }
+  end
+
+  row "GET /user/email/edit", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get edit_user_email_path
+  end
+
+  row "PATCH /user/email", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    patch user_email_path, params: { user: { email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
+  end
+
+  row "GET /user/password/edit", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get edit_user_password_path
+  end
+
+  row "PATCH /user/password", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    patch user_password_path, params: {
+      user: { password: "a brand new password", password_confirmation: "a brand new password", password_challenge: "correct horse battery staple" }
+    }
+  end
+
+  row "GET /user/sessions", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get user_sessions_path
+  end
+
+  row "DELETE /user/sessions/:id of another account", {
+    anonymous: :to_sign_in, no_org: :not_found, member: :not_found
+  }, written: -> { !Session.exists?(colleagues_session.id) } do
+    delete user_session_path(colleagues_session)
+  end
+
+  row "DELETE /user/sessions/destroy_others", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    delete destroy_others_user_sessions_path
+  end
+
+  row "PATCH /user/display_mode", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    patch user_display_mode_path, params: { user: { display_mode: "dark" } }, headers: { "HTTP_REFERER" => root_url }
+  end
+
+  row "GET an unknown path", { anonymous: :to_sign_in, no_org: :not_found, member: :not_found } do
+    get "/no/such/page/at/all"
+  end
+
   row "GET /:org (its projects)", {
-    outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
+    **locked_out, outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
     org_owner: :listed
   } do
     get org_path(org)
   end
 
   row "GET /:org/settings", {
-    outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
+    **locked_out, outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
     org_owner: :listed
   } do
     get org_settings_path(org)
   end
 
   row "GET /:org/:project", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     get project_path(org, project)
   end
@@ -107,27 +238,27 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project/validate_times", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     get validate_times_project_path(org, project)
   end
 
   row "GET /:org/:project/export_csv", {
-    outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
     project_owner: :ok, org_owner: :ok
   } do
     get export_csv_project_path(org, project, month: "2026-03")
   end
 
   row "GET /:org/:project/export_days_csv", {
-    outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
     project_owner: :ok, org_owner: :ok
   } do
     get export_days_csv_project_path(org, project, month: "2026-03", member_id: colleagues_entry.member_id)
   end
 
   row "GET /:org/:project/days/:date", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     colleagues_entry # the day exists
 
@@ -135,7 +266,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project/days/:date/edit", {
-    outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
     org_owner: :read_only
   } do
     colleagues_entry # the day exists
@@ -144,32 +275,32 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project/tags/:tag", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     get tag_path(org, project, "handover")
   end
 
   row "GET /:org/:project/weeks/:week", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     get week_path(org, project, "2026-W38")
   end
 
   row "GET /:org/:project/members/:id/entries", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     get member_entries_path(org, project, colleague)
   end
 
   row "POST /:org/:project/entries", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :written, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :written, project_owner: :written,
     org_owner: :forbidden
   }, written: -> { Entry.exists?(log: "Logged by the matrix") } do
     post entries_path(org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Logged by the matrix" } }
   end
 
   row "PATCH /:org/:project/entries/:id of a colleague", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :forbidden
   }, written: -> { colleagues_entry.reload.log == "Changed by the matrix" } do
     patch entry_path(org, project, colleagues_entry), params: { entry: { log: "Changed by the matrix" } }
@@ -183,35 +314,35 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project/entries/:id/history", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
     org_owner: :ok
   } do
     get entry_history_path(org, project, colleagues_entry)
   end
 
   row "GET /:org/members", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :ok
   } do
     get members_path(org)
   end
 
   row "PATCH /:org/members/:id", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { colleague.reload.roles.include?("owner") } do
     patch member_path(org, colleague), params: { member: { roles: %w[member owner] } }
   end
 
   row "PATCH /:org/members/:id/deactivate", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { colleague.reload.archived? } do
     patch deactivate_member_path(org, colleague)
   end
 
   row "PATCH /:org/members/:id/reactivate", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { !colleague.reload.archived? } do
     colleague.archive!
@@ -220,63 +351,63 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "POST /:org/invitations", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { org.invitations.exists?(email: "invited@example.com") } do
     post invitations_path(org), params: { invitation: { email: "invited@example.com", roles: %w[member] } }
   end
 
   row "PATCH /:org/invitations/:id/resend", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { org.invitations.find_by!(email: "pending@example.com").sent_at > 1.hour.ago } do
     patch resend_invitation_path(org, pending_invitation)
   end
 
   row "DELETE /:org/invitations/:id", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { !org.invitations.exists?(email: "pending@example.com") } do
     delete invitation_path(org, pending_invitation)
   end
 
   row "GET /:org/projects/new", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :ok
   } do
     get new_project_path(org)
   end
 
   row "POST /:org/projects", {
-    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { org.projects.exists?(name: "Created by the matrix") } do
     post projects_path(org), params: { project: { name: "Created by the matrix" } }
   end
 
   row "GET /:org/:project/edit", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
     org_owner: :ok
   } do
     get edit_project_path(org, project)
   end
 
   row "PATCH /:org/:project (rename)", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { project.reload.name == "Renamed by the matrix" } do
     patch project_path(org, project), params: { project: { name: "Renamed by the matrix" } }
   end
 
   row "PATCH /:org/:project/archive", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { project.reload.archived? } do
     patch archive_project_path(org, project)
   end
 
   row "PATCH /:org/:project/unarchive", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { !project.reload.archived? } do
     project.archive!
@@ -285,14 +416,14 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "POST /:org/:project/participants", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { project.participants.exists?(member: personas[:member]) } do
     post participants_path(org, project), params: { participant: { member_id: personas[:member].id, role: "observer" } }
   end
 
   row "PATCH /:org/:project/participants/:id", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { colleague.participations.find_by!(project:).roles == %w[owner] } do
     patch participant_path(org, project, colleague.participations.find_by!(project:)), params: { participant: { role: "owner" } }
@@ -300,7 +431,7 @@ RSpec.describe "Authorization role matrix" do
 
   # the colleague's entries stay, see spec/requests/orgs/participants_spec.rb
   row "DELETE /:org/:project/participants/:id", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
     org_owner: :written
   }, written: -> { !colleague.participations.exists?(project:) } do
     delete participant_path(org, project, colleague.participations.find_by!(project:))
@@ -308,7 +439,7 @@ RSpec.describe "Authorization role matrix" do
 
   # an archived project is read-only for everybody, listed only for those who manage it
   row "GET /:org (its projects) with P archived", {
-    outsider: :not_found, member: :hidden, observer: :hidden, participant: :hidden, project_owner: :listed,
+    **locked_out, outsider: :not_found, member: :hidden, observer: :hidden, participant: :hidden, project_owner: :listed,
     org_owner: :listed
   } do
     project.archive!
@@ -317,7 +448,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project archived", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     project.archive!
 
@@ -334,7 +465,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "POST /:org/:project/entries archived", {
-    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :forbidden
   }, written: -> { Entry.exists?(log: "Logged by the matrix") } do
     project.archive!
@@ -352,7 +483,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "GET /:org/:project/export_csv archived", {
-    outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
+    **locked_out, outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
     project_owner: :ok, org_owner: :ok
   } do
     project.archive!
