@@ -25,4 +25,23 @@ RSpec.describe Day do
       expect { empty.destroy! }.to change(described_class, :count).by(-1)
     end
   end
+
+  describe "validations" do
+    it "needs a date" do
+      expect(build(:day, date: nil)).not_to be_valid
+    end
+
+    it "exists once per project and date" do
+      day = create(:day)
+
+      expect(build(:day, project: day.project, date: day.date)).not_to be_valid
+      expect(build(:day, date: day.date)).to be_valid
+    end
+  end
+
+  it "takes the org from its project" do
+    project = create(:project)
+
+    expect(create(:day, project:).org).to eq(project.org)
+  end
 end
