@@ -23,27 +23,47 @@ Rails.application.routes.draw do
     end
   end
 
-  # resources :switch_current_organizations, only: %i[index show create destroy]
-  get "open/:slug_org(/:slug_project)", to: "switch_orgs#switch_to", as: :open
+  # The org | project switcher used to store the choice in the session, kept for bookmarks.
+  #   The route helpers escape the slugs: "/%{org_slug}" would forward %2Fhost to //host.
+  get "open/:org_slug(/:project_slug)", to: redirect { |params, _request|
+    paths = Rails.application.routes.url_helpers
+    slugs = params.values_at(:org_slug, :project_slug).compact
 
-  scope module: :orgs, path: "/" do
-    resources :days, param: :date, only: %i[ show edit ], constraints: { date: /\d{4}-\d{2}-\d{2}/ }
-    resources :entries, only: %i[ index create update ]
-    resources :tags, param: :tag, only: %i[ show ]
-    resources :weeks, param: :week, only: %i[ show ]
+    slugs.one? ? paths.org_path(*slugs) : paths.project_path(*slugs)
+  }
+
+  # the user's settings, /:org_slug/settings adds those of an org
+  get "settings", to: "orgs/settings#show"
+
+  # Org and project live in the path: /acme, /acme/members, /acme/website/days/2026-10-15.
+  #   Words a top-level path uses are never an org (Org::RESERVED_SLUGS), so routes
+  #   added further down are not swallowed.
+  #
+  scope ":org_slug", module: :orgs, constraints: ->(request) { Org::RESERVED_SLUGS.exclude?(request.path_parameters[:org_slug]) } do
+    get "/", to: "projects#index", as: :org
+    get "settings", to: "settings#show", as: :org_settings
+
     resources :members, only: %i[ index update ] do
       patch :deactivate, on: :member
       patch :reactivate, on: :member
-
-      resources :entries, only: %i[ index ], controller: "member_entries"
-    end
-    resources :projects, param: :slug, only: %i[ index show ] do
-      get :validate_times, on: :member
-      get :export_csv, on: :member
-      get :export_days_csv, on: :member
     end
 
-    get "settings", to: "settings#show"
+    # the org-level paths above are never a project (Project::RESERVED_SLUGS)
+    scope ":project_slug" do
+      get "/", to: "projects#show", as: :project
+      get "validate_times", to: "projects#validate_times", as: :validate_times_project
+      get "export_csv", to: "projects#export_csv", as: :export_csv_project
+      get "export_days_csv", to: "projects#export_days_csv", as: :export_days_csv_project
+
+      resources :days, param: :date, only: %i[ show edit ], constraints: { date: /\d{4}-\d{2}-\d{2}/ }
+      resources :entries, only: %i[ create update ]
+      resources :tags, param: :tag, only: %i[ show ]
+      resources :weeks, param: :week, only: %i[ show ]
+
+      resources :members, only: [] do
+        resources :entries, only: %i[ index ], controller: "member_entries"
+      end
+    end
   end
 
   # namespace :admin do

@@ -6,7 +6,7 @@ RSpec.describe "Orgs::MemberEntries" do
   let(:member) { create(:member, org:) }
   let!(:participant) { create(:participant, project:, member:) }
 
-  before { sign_in_and_open(participant) }
+  before { sign_in(participant.member.user) }
 
   describe "GET /members/:member_id/entries" do
     let(:colleague) { create(:participant, project:, member: create(:member, org:, name: "Anna")).member }
@@ -16,8 +16,8 @@ RSpec.describe "Orgs::MemberEntries" do
       create(:entry, day:, member: by, log:)
     end
 
-    def read_member(of, **params)
-      get member_entries_path(of, project_id: project.id, **params)
+    def read_member(of)
+      get member_entries_path(org, project, of)
       Nokogiri::HTML(response.body)
     end
 
@@ -64,7 +64,7 @@ RSpec.describe "Orgs::MemberEntries" do
 
       arrows = read_member(member).css(".spacing-grid .right a")
 
-      expect(arrows.map { it["href"] }).to all(eq(member_entries_path(colleague, project_id: project.id)))
+      expect(arrows.map { it["href"] }).to all(eq(member_entries_path(org, project, colleague)))
     end
 
     it "walks through the members by name, wrapping around" do
@@ -75,12 +75,12 @@ RSpec.describe "Orgs::MemberEntries" do
       arrows = read_member(member).css(".spacing-grid .right a")
 
       expect(arrows.map { it["href"] }).to eq([
-        member_entries_path(colleague, project_id: project.id),
-        member_entries_path(zoe, project_id: project.id)
+        member_entries_path(org, project, colleague),
+        member_entries_path(org, project, zoe)
       ])
     end
 
-    it "offers to add or edit today in the current project" do
+    it "offers to add or edit today" do
       link = read_member(member).css(".spacing-grid a").find { it.text == "add or edit" }
 
       expect(link).to be_present

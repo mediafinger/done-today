@@ -2,17 +2,17 @@
 
 <div class="project-views">
   <% Orgs::ProjectsController::VIEWS.each do |view| %>
-    <%= link_to view, project_path(@project.slug, view: (view unless view == "days")), method: :get, role: "button",
+    <%= link_to view, project_path(current_org, @project, view: (view unless view == "days")), method: :get, role: "button",
           class: "slim #{'btn-inactive' unless view == @view}", aria: { current: ("page" if view == @view) } %>
   <% end %>
 
-  <%= link_to "validate times", validate_times_project_path(@project.slug), method: :get, role: "button", class: "slim" %>
+  <%= link_to "validate times", validate_times_project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
 </div>
 
 <ul class="bottom-spacer">
   <li class="nude">The participants</li>
   <% @project.participants.each do |participant| %>
-    <li class="nude"><%= link_to participant.member.name, member_entries_path(participant.member_id, project_id: participant.project_id), method: :get %></li>
+    <li class="nude"><%= link_to participant.member.name, member_entries_path(current_org, @project, participant.member_id), method: :get %></li>
   <% end %>
   <li class="nude">Have added <%= @entries_count %> entries since <%= @project.created_at.to_date %></li>
 </ul>

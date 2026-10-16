@@ -7,7 +7,7 @@
   <div class="center"></div>
 
   <div class="right">
-    <%= link_to "project", project_path(@project.slug), method: :get, role: "button", class: "slim" %>
+    <%= link_to "project", project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
   </div>
 
 </div>

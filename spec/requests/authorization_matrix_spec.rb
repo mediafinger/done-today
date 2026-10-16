@@ -1,8 +1,9 @@
 require "rails_helper"
 
-# Every endpoint against every role, for one project P of one org.
+# Every endpoint against every role, for one project P of one org. Org and project
+#   are part of every path, so nothing is selected beforehand.
 #
-#   outsider       member of another org, which is the org they have open
+#   outsider       member of another org
 #   member         org member, no participation in P
 #   observer       participates in P as observer
 #   participant    participates in P as participant
@@ -42,7 +43,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   def link_to_project?
-    Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(project.slug) }
+    Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(org, project) }
   end
 
   def expect_outcome(outcome, written)
@@ -61,14 +62,12 @@ RSpec.describe "Authorization role matrix" do
     end
   end
 
-  # one example per persona: sign in, open the org (and P, where it can be opened),
-  #   send the request, check the outcome
+  # one example per persona: sign in, send the request, check the outcome
   def self.row(name, outcomes, written: nil, &request)
     describe name do
       outcomes.each do |persona, outcome|
         it "#{persona}: #{outcome}", persona: do
           sign_in(me.user)
-          get open_path(me.org.slug, project.slug)
 
           instance_exec(&request)
 
@@ -78,169 +77,159 @@ RSpec.describe "Authorization role matrix" do
     end
   end
 
-  row "GET /open/:org", { outsider: :redirect } do
-    get open_path(org.slug)
-
-    expect(flash[:alert]).to eq("You are not a member of this org")
-  end
-
-  row "GET /projects", {
-    outsider: :hidden, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed, org_owner: :listed
+  row "GET /:org (its projects)", {
+    outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
+    org_owner: :listed
   } do
-    get projects_path
+    get org_path(org)
   end
 
-  row "GET /settings", {
-    outsider: :hidden, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed, org_owner: :listed
+  row "GET /:org/settings", {
+    outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
+    org_owner: :listed
   } do
-    get settings_path
+    get org_settings_path(org)
   end
 
-  row "GET /projects/:slug", {
+  row "GET /:org/:project", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
-    get project_path(project.slug)
+    get project_path(org, project)
   end
 
-  row "GET /projects/:slug/validate_times", {
+  # a project is only found below the slug of its own org
+  row "GET /:own_org/:project of another org", { outsider: :not_found } do
+    get project_path(me.org, project)
+  end
+
+  row "GET /:org/:project/validate_times", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
-    get validate_times_project_path(project.slug)
+    get validate_times_project_path(org, project)
   end
 
-  row "GET /projects/:slug/export_csv", {
+  row "GET /:org/:project/export_csv", {
     outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
     project_owner: :ok, org_owner: :ok
   } do
-    get export_csv_project_path(project.slug, month: "2026-03")
+    get export_csv_project_path(org, project, month: "2026-03")
   end
 
-  row "GET /projects/:slug/export_days_csv", {
+  row "GET /:org/:project/export_days_csv", {
     outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
     project_owner: :ok, org_owner: :ok
   } do
-    get export_days_csv_project_path(project.slug, month: "2026-03", member_id: colleagues_entry.member_id)
+    get export_days_csv_project_path(org, project, month: "2026-03", member_id: colleagues_entry.member_id)
   end
 
-  row "GET /entries?project_id= (old URL)", {
-    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
-    project_owner: :moved_permanently, org_owner: :moved_permanently
-  } do
-    get entries_path(project_id: project.id, mode: "read")
-  end
-
-  row "GET /days/:date?project_id=", {
+  row "GET /:org/:project/days/:date", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
     colleagues_entry # the day exists
 
-    get day_path(Time.zone.today, project_id: project.id)
+    get day_path(org, project, Time.zone.today)
   end
 
-  row "GET /days/:date/edit?project_id=", {
+  row "GET /:org/:project/days/:date/edit", {
     outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
     org_owner: :read_only
   } do
     colleagues_entry # the day exists
 
-    get edit_day_path(Time.zone.today, project_id: project.id)
+    get edit_day_path(org, project, Time.zone.today)
   end
 
-  row "GET /entries?mode=edit&project_id= (old URL)", {
-    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
-    project_owner: :moved_permanently, org_owner: :moved_permanently
-  } do
-    get entries_path(project_id: project.id, mode: "edit")
-  end
-
-  row "GET /tags/:tag?project_id=", {
+  row "GET /:org/:project/tags/:tag", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
-    get tag_path("handover", project_id: project.id)
+    get tag_path(org, project, "handover")
   end
 
-  row "GET /weeks/:week?project_id=", {
+  row "GET /:org/:project/weeks/:week", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
-    get week_path("2026-W38", project_id: project.id)
+    get week_path(org, project, "2026-W38")
   end
 
-  row "GET /members/:id/entries?project_id=", {
+  row "GET /:org/:project/members/:id/entries", {
     outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
   } do
-    get member_entries_path(colleague, project_id: project.id)
+    get member_entries_path(org, project, colleague)
   end
 
-  row "GET /entries?tag=&project_id= (old URL)", {
-    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
-    project_owner: :moved_permanently, org_owner: :moved_permanently
-  } do
-    get entries_path(tag: "handover", project_id: project.id)
-  end
-
-  row "GET /entries?week=&project_id= (old URL)", {
-    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
-    project_owner: :moved_permanently, org_owner: :moved_permanently
-  } do
-    get entries_path(week: "2026-W38", project_id: project.id)
-  end
-
-  row "GET /entries?member_id=&project_id= (old URL)", {
-    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
-    project_owner: :moved_permanently, org_owner: :moved_permanently
-  } do
-    get entries_path(member_id: colleague.id, project_id: project.id)
-  end
-
-  # only a participation selects P as the current project, everyone else is sent to pick one
-  row "POST /entries", {
-    outsider: :redirect, member: :redirect, observer: :forbidden, participant: :written, project_owner: :written,
-    org_owner: :redirect
+  row "POST /:org/:project/entries", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :written, project_owner: :written,
+    org_owner: :forbidden
   }, written: -> { Entry.exists?(log: "Logged by the matrix") } do
-    post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Logged by the matrix" } }
+    post entries_path(org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Logged by the matrix" } }
   end
 
-  row "PATCH a colleague's entry", {
-    outsider: :redirect, member: :redirect, observer: :forbidden, participant: :forbidden, project_owner: :written,
-    org_owner: :redirect
+  row "PATCH /:org/:project/entries/:id of a colleague", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :forbidden
   }, written: -> { colleagues_entry.reload.log == "Changed by the matrix" } do
-    patch entry_path(colleagues_entry), params: { entry: { log: "Changed by the matrix" } }
+    patch entry_path(org, project, colleagues_entry), params: { entry: { log: "Changed by the matrix" } }
   end
 
   # an observer may have entries from before they became one
-  row "PATCH an own entry", {
+  row "PATCH /:org/:project/entries/:id of their own", {
     observer: :forbidden, participant: :written, project_owner: :written
   }, written: -> { own_entry.reload.log == "Changed by the matrix" } do
-    patch entry_path(own_entry), params: { entry: { log: "Changed by the matrix" } }
+    patch entry_path(org, project, own_entry), params: { entry: { log: "Changed by the matrix" } }
   end
 
-  row "GET /members", {
-    outsider: :forbidden, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+  row "GET /:org/members", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :ok
   } do
-    get members_path
+    get members_path(org)
   end
 
-  row "PATCH /members/:id", {
+  row "PATCH /:org/members/:id", {
     outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { colleague.reload.roles.include?("owner") } do
-    patch member_path(colleague), params: { member: { roles: %w[member owner] } }
+    patch member_path(org, colleague), params: { member: { roles: %w[member owner] } }
   end
 
-  row "PATCH /members/:id/deactivate", {
+  row "PATCH /:org/members/:id/deactivate", {
     outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { colleague.reload.archived? } do
-    patch deactivate_member_path(colleague)
+    patch deactivate_member_path(org, colleague)
   end
 
-  row "PATCH /members/:id/reactivate", {
+  row "PATCH /:org/members/:id/reactivate", {
     outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { !colleague.reload.archived? } do
     colleague.archive!
 
-    patch reactivate_member_path(colleague)
+    patch reactivate_member_path(org, colleague)
+  end
+
+  # Nothing is selected in the session: two tabs on two projects of two orgs
+  #   read and write each its own, in any order.
+  describe "two projects in parallel" do
+    it "keeps each request to the project of its path", persona: :participant do
+      membership = create(:member, user: me.user)
+      other = create(:participant, member: membership, project: create(:project, org: membership.org)).project
+      sign_in(me.user)
+      today = Time.zone.today.iso8601
+
+      get edit_day_path(org, project, today)
+      get edit_day_path(other.org, other, today)
+      post entries_path(org, project), params: { entry: { date: today, log: "Logged in P" } }
+      get day_path(org, project, today)
+      post entries_path(other.org, other), params: { entry: { date: today, log: "Logged in Q" } }
+
+      expect(Entry.find_by(log: "Logged in P").project).to eq(project)
+      expect(Entry.find_by(log: "Logged in Q").project).to eq(other)
+
+      get day_path(org, project, today)
+
+      expect(response.body).to include("Logged in P")
+      expect(response.body).not_to include("Logged in Q")
+    end
   end
 end

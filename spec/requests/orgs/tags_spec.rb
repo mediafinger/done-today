@@ -6,7 +6,7 @@ RSpec.describe "Orgs::Tags" do
   let(:member) { create(:member, org:) }
   let!(:participant) { create(:participant, project:, member:) }
 
-  before { sign_in_and_open(participant) }
+  before { sign_in(participant.member.user) }
 
   describe "GET /tags/:tag" do
     let(:colleague) { create(:participant, project:).member }
@@ -16,8 +16,8 @@ RSpec.describe "Orgs::Tags" do
       create(:entry, day:, member: by, log:, status:)
     end
 
-    def read_tag(tag, **params)
-      get tag_path(tag, **params)
+    def read_tag(tag)
+      get tag_path(org, project, tag)
       Nokogiri::HTML(response.body)
     end
 
@@ -98,7 +98,8 @@ RSpec.describe "Orgs::Tags" do
       other = create(:participant, project: create(:project, org:), member:).project
       create(:entry, day: create(:day, project: other), member:, log: "elsewhere #handover")
 
-      page = read_tag("handover", project_id: other.id)
+      get tag_path(org, other, "handover")
+      page = Nokogiri::HTML(response.body)
 
       expect(page.at_css(".spacing-grid h2").text.squish).to eq("#{other.name} #handover")
       expect(page.at_css("#entries").text).to include("elsewhere")

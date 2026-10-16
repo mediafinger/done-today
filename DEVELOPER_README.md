@@ -44,11 +44,15 @@ The project utilizes custom cookie-based signed session handling modeled after s
 ### 4. Multi-Tenancy & Context Scoping
 The app supports multi-tenant organization boundaries and project selection:
 - Thread-safe globals are stored using ActiveSupport's `CurrentAttributes` in the [Current](file:///Users/andy/Dropbox/www/2025/done_today/app/models/current.rb) model.
-- Scoping concerns dynamically load context on each request:
+- Org and project are part of the path, nothing is selected in the session: `/:org_slug` (the org's projects),
+  `/:org_slug/settings`, `/:org_slug/members`, `/:org_slug/:project_slug` (the project page) and below it
+  `days/2026-10-15(/edit)`, `weeks/2026-W42`, `tags/:tag`, `members/:id/entries`, `entries`.
+  `Org::RESERVED_SLUGS` keeps org slugs clear of top-level paths, `Project::RESERVED_SLUGS` of the org-level ones.
+- Scoping concerns load the context from the path on each request:
   - [RequestContext](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/request_context.rb) (IP, request ID, user agent).
-  - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (populates `Current.org` and `Current.member`).
-  - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (populates `Current.project`).
-- Switching context is routed by organization and project slug paths (e.g. `/open/:slug_org(/:slug_project)`) handled by [SwitchOrgsController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/switch_orgs_controller.rb).
+  - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (`set_current_org`: `Current.org` and `Current.member`, through the user's active memberships, else 404).
+  - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (`set_current_project`: `Current.project`, among the projects the member may read, else 404).
+- Build links with both slugs, e.g. `day_path(org, project, date)` (`Org#to_param` and `Project#to_param` are the slugs).
 
 ### 5. Domain Model & PostgreSQL-specific Features
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).

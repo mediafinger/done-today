@@ -2,9 +2,9 @@
 <% path = controller_name == "days" && action_name == "edit" ? :edit_day_path : :day_path %>
 
 <div role="group">
-  <%= link_to "yesterday", public_send(path, Time.zone.yesterday), method: :get, role: "button", class: "slim" %>
-  <%= link_to "today", public_send(path, Time.zone.today), method: :get, role: "button", class: "slim" %>
-  <%= link_to "tomorrow", public_send(path, Time.zone.tomorrow), method: :get, role: "button", class: "slim" %>
+  <%= link_to "yesterday", public_send(path, current_org, current_project, Time.zone.yesterday), method: :get, role: "button", class: "slim" %>
+  <%= link_to "today", public_send(path, current_org, current_project, Time.zone.today), method: :get, role: "button", class: "slim" %>
+  <%= link_to "tomorrow", public_send(path, current_org, current_project, Time.zone.tomorrow), method: :get, role: "button", class: "slim" %>
 
   <%- # TODO: add datepicker to select any day %>
   <%- # <input type="date" id="datepicker" name="any-date" value= <%= Time.zone.today.iso8601 % > class="slimmer" /> %>

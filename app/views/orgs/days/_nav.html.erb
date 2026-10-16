@@ -1,7 +1,5 @@
 <%# locals: (date:, project:, editing: false, unlockable: false, unlocked: false, validatable: false) %>
 
-<%# another project than the current one stays in the links %>
-<% project_id = project.id unless project == current_project %>
 <% writable = policy(project).create_entry? %>
 
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
@@ -11,18 +9,16 @@
   </div>
 
   <div class="center">
-    <% if project != current_project && writable %>
-      <%= link_to "Switch to project '#{project.name}' to add or edit", open_path(project.org.slug, project.slug), method: :get, role: "button", class: "slim" %>
-    <% elsif !editing && writable %>
-      <%= link_to "add or edit", edit_day_path(date), method: :get, role: "button", class: "slim" %>
+    <% if !editing && writable %>
+      <%= link_to "add or edit", edit_day_path(project.org, project, date), method: :get, role: "button", class: "slim" %>
     <% end %>
 
     <% if editing %>
-      <%= link_to "view all", day_path(date, project_id:), method: :get, role: "button", class: "slim" %>
+      <%= link_to "view all", day_path(project.org, project, date), method: :get, role: "button", class: "slim" %>
 
       <%# checks this member's own times of the day -- see DaysController#validate_day %>
       <% if validatable %>
-        <%= link_to "validate", edit_day_path(date, unlocked: (unlocked || nil), validate: "1"),
+        <%= link_to "validate", edit_day_path(project.org, project, date, unlocked: (unlocked || nil), validate: "1"),
               method: :get, role: "button", class: "slim" %>
       <% end %>
 
@@ -30,9 +26,9 @@
           the whole day, and leaving the page drops it again. %>
       <% if unlockable %>
         <% if unlocked %>
-          <%= link_to "🔓 lock again", edit_day_path(date), method: :get, role: "button", class: "slim" %>
+          <%= link_to "🔓 lock again", edit_day_path(project.org, project, date), method: :get, role: "button", class: "slim" %>
         <% else %>
-          <%= link_to "🔒 unlock to edit", edit_day_path(date, unlocked: "1"), method: :get, role: "button", class: "slim" %>
+          <%= link_to "🔒 unlock to edit", edit_day_path(project.org, project, date, unlocked: "1"), method: :get, role: "button", class: "slim" %>
         <% end %>
       <% end %>
     <% end %>
@@ -40,8 +36,8 @@
 
   <div class="right">
     <% path = editing ? :edit_day_path : :day_path %>
-    <%= link_to "⬅️", public_send(path, date - 1.day, project_id:), method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", public_send(path, date + 1.day, project_id:), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", public_send(path, project.org, project, date - 1.day), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", public_send(path, project.org, project, date + 1.day), method: :get, role: "button", class: "slim" %>
   </div>
 
 </div>

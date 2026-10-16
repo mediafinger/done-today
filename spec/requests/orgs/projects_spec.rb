@@ -6,7 +6,7 @@ RSpec.describe "Orgs::Projects" do
   let(:member) { create(:member, org:) }
   let!(:participant) { create(:participant, project:, member:) }
 
-  before { sign_in_and_open(participant) }
+  before { sign_in(participant.member.user) }
 
   def entry_on(date, log, by: member)
     day = Day.find_or_create_by!(project:, date: Date.parse(date))
@@ -14,7 +14,7 @@ RSpec.describe "Orgs::Projects" do
   end
 
   def show_project(of: project)
-    get project_path(of.slug)
+    get project_path(org, of)
     Nokogiri::HTML(response.body)
   end
 
@@ -79,22 +79,22 @@ RSpec.describe "Orgs::Projects" do
       link = show_project.at_css("a.tag")
 
       expect(link.text).to eq("#Handover")
-      expect(link["href"]).to eq(tag_path("handover"))
+      expect(link["href"]).to eq(tag_path(org, project, "handover"))
     end
 
-    it "keeps the project in the tag link when it is not the current one" do
+    it "links the tags to the tag page of their own project" do
       other = create(:participant, project: create(:project, org:), member:).project
       create(:entry, day: create(:day, project: other), member:, log: "elsewhere #handover")
 
       link = show_project(of: other).at_css("a.tag")
 
-      expect(link["href"]).to eq(tag_path("handover", project_id: other.id))
+      expect(link["href"]).to eq(tag_path(org, other, "handover"))
     end
   end
 
   describe "GET /projects/:slug?view=weeks" do
     def show_weeks
-      get project_path(project.slug, view: "weeks")
+      get project_path(org, project, view: "weeks")
       Nokogiri::HTML(response.body)
     end
 
@@ -112,7 +112,7 @@ RSpec.describe "Orgs::Projects" do
       headings = show_weeks.css(".period h3 a")
 
       expect(headings.map(&:text)).to eq([ "2026 / w39", "2026 / w38" ])
-      expect(headings.first["href"]).to eq(week_path("2026-W39", project_id: project.id))
+      expect(headings.first["href"]).to eq(week_path(org, project, "2026-W39"))
     end
 
     it "lists the members of the week alphabetically, with their total and tags" do
@@ -124,9 +124,9 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_weeks.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(org, project, member))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { tag_path(it) }
+        %w[break handover pr123].map { tag_path(org, project, it) }
       )
     end
 
@@ -144,7 +144,7 @@ RSpec.describe "Orgs::Projects" do
 
   describe "GET /projects/:slug?view=months" do
     def show_months
-      get project_path(project.slug, view: "months")
+      get project_path(org, project, view: "months")
       Nokogiri::HTML(response.body)
     end
 
@@ -165,7 +165,7 @@ RSpec.describe "Orgs::Projects" do
       links = show_months.css(".period h3").first.css("a")
 
       expect(links.map { it["href"] }).to eq([
-        week_path("2026-W36", project_id: project.id), week_path("2026-W40", project_id: project.id)
+        week_path(org, project, "2026-W36"), week_path(org, project, "2026-W40")
       ])
     end
 
@@ -178,9 +178,9 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_months.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(org, project, member))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { tag_path(it) }
+        %w[break handover pr123].map { tag_path(org, project, it) }
       )
     end
 
@@ -194,12 +194,12 @@ RSpec.describe "Orgs::Projects" do
 
   describe "GET /projects/:slug/validate_times" do
     def validate
-      get validate_times_project_path(project.slug)
+      get validate_times_project_path(org, project)
       Nokogiri::HTML(response.body)
     end
 
     it "offers the check from the project page" do
-      expect(show_project.at_css(%(a[href="#{validate_times_project_path(project.slug)}"])).text).to eq("validate times")
+      expect(show_project.at_css(%(a[href="#{validate_times_project_path(org, project)}"])).text).to eq("validate times")
     end
 
     it "lists the days that do not add up, newest first, with the reason" do
@@ -219,7 +219,7 @@ RSpec.describe "Orgs::Projects" do
       entry_on("2026-09-21", "start@09:00 kickoff")
 
       expect(validate.at_css(".period h3 a")["href"])
-        .to eq(edit_day_path("2026-09-21", unlocked: "1", project_id: project.id))
+        .to eq(edit_day_path(org, project, "2026-09-21", unlocked: "1"))
     end
 
     it "reports a day without any time markup" do
@@ -247,17 +247,17 @@ RSpec.describe "Orgs::Projects" do
     let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
 
     def months_page
-      get project_path(project.slug, view: "months")
+      get project_path(org, project, view: "months")
       Nokogiri::HTML(response.body)
     end
 
     def export(**params)
-      get export_csv_project_path(project.slug, **params)
+      get export_csv_project_path(org, project, **params)
     end
 
     context "with ownership of the project" do
       before do
-        sign_in_and_open(owning_participant)
+        sign_in(owning_participant.member.user)
         create(:entry, day: create(:day, project:, date: Date.new(2026, 3, 21)), member: owning_participant.member,
                log: "start@09:00 end@17:00 #handover")
       end
@@ -266,7 +266,7 @@ RSpec.describe "Orgs::Projects" do
         link = months_page.at_css(".period h3 a[href*='export_csv']")
 
         expect(link.text).to eq("Export Month")
-        expect(link["href"]).to eq(export_csv_project_path(project.slug, month: "2026-03"))
+        expect(link["href"]).to eq(export_csv_project_path(org, project, month: "2026-03"))
       end
 
       it "sends the month as a CSV, named after org, project and month" do
@@ -281,14 +281,14 @@ RSpec.describe "Orgs::Projects" do
       it "says so when the month cannot be read, rather than exporting another one" do
         export(month: "not-a-month")
 
-        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(response).to redirect_to(project_path(org, project, view: "months"))
         expect(flash[:alert]).to include("not-a-month")
       end
 
       it "says so when no month is given at all" do
         export
 
-        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(response).to redirect_to(project_path(org, project, view: "months"))
         expect(flash[:alert]).to be_present
       end
     end
@@ -308,7 +308,7 @@ RSpec.describe "Orgs::Projects" do
     context "with ownership of the org" do
       it "exports a project the org owner only participates in" do
         org_owner = create(:member, :owner, org:)
-        sign_in_and_open(create(:participant, project:, member: org_owner))
+        sign_in(create(:participant, project:, member: org_owner).member.user)
 
         export(month: "2026-03")
 
@@ -322,17 +322,17 @@ RSpec.describe "Orgs::Projects" do
     let(:owning_participant) { create(:participant, :owner, project:, member: create(:member, org:, name: "Zoe")) }
 
     def months_page
-      get project_path(project.slug, view: "months")
+      get project_path(org, project, view: "months")
       Nokogiri::HTML(response.body)
     end
 
     def export_days(**params)
-      get export_days_csv_project_path(project.slug, **params)
+      get export_days_csv_project_path(org, project, **params)
     end
 
     context "with ownership of the project" do
       before do
-        sign_in_and_open(owning_participant)
+        sign_in(owning_participant.member.user)
         entry_on("2026-03-21", "start@09:00 end@17:00 #handover", by: owning_participant.member)
         entry_on("2026-03-23", "start@09:00 end@12:30 #review", by: owning_participant.member)
       end
@@ -341,7 +341,7 @@ RSpec.describe "Orgs::Projects" do
         link = months_page.at_css(".period li a[href*='export_days_csv']")
 
         expect(link.text).to eq("Export days")
-        expect(link["href"]).to eq(export_days_csv_project_path(project.slug, month: "2026-03", member_id: owning_participant.member.id))
+        expect(link["href"]).to eq(export_days_csv_project_path(org, project, month: "2026-03", member_id: owning_participant.member.id))
       end
 
       it "sends the days as a CSV, named after org, project, member, first and last day" do
@@ -361,7 +361,7 @@ RSpec.describe "Orgs::Projects" do
       it "says so when the month cannot be read" do
         export_days(month: "not-a-month", member_id: owning_participant.member.id)
 
-        expect(response).to redirect_to(project_path(project.slug, view: "months"))
+        expect(response).to redirect_to(project_path(org, project, view: "months"))
         expect(flash[:alert]).to include("not-a-month")
       end
 
@@ -388,7 +388,7 @@ RSpec.describe "Orgs::Projects" do
   it "falls back to the days for an unknown view" do
     entry_on("2026-09-21", "wrote some code")
 
-    get project_path(project.slug, view: "decades")
+    get project_path(org, project, view: "decades")
 
     expect(response.body).to include("wrote some code")
   end

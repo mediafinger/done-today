@@ -17,7 +17,7 @@
         <td><%= member.name %><%= " (you)" if member.id == current_member.id %></td>
         <td><%= member.user.email %></td>
         <td>
-          <%= form_with model: member, url: member_path(member), method: :patch, namespace: dom_id(member) do |form| %>
+          <%= form_with model: member, url: member_path(current_org, member), method: :patch, namespace: dom_id(member) do |form| %>
             <%= form.collection_check_boxes :roles, Member::VALID_ROLES, :itself, :itself do |box| %>
               <%= box.label { box.check_box + " " + box.text } %>
             <% end %>
@@ -25,7 +25,7 @@
           <% end %>
         </td>
         <td>
-          <%= button_to "Deactivate", deactivate_member_path(member), method: :patch, class: "slim secondary",
+          <%= button_to "Deactivate", deactivate_member_path(current_org, member), method: :patch, class: "slim secondary",
                 form: { data: { turbo_confirm: "Deactivate #{member.name}? Their entries stay." } } %>
         </td>
       </tr>
@@ -51,7 +51,7 @@
           <td><%= member.name %></td>
           <td><%= member.user.email %></td>
           <td><%= member.archived_at.to_date %></td>
-          <td><%= button_to "Reactivate", reactivate_member_path(member), method: :patch, class: "slim" %></td>
+          <td><%= button_to "Reactivate", reactivate_member_path(current_org, member), method: :patch, class: "slim" %></td>
         </tr>
       <% end %>
     </tbody>

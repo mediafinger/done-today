@@ -2,8 +2,11 @@ module Orgs
   class ProjectsController < AppOrgBaseController
     VIEWS = %w[days weeks months].freeze
 
+    # every action but the org's list of projects is below /:org_slug/:project_slug
+    before_action :set_current_project, except: :index
+
     def show
-      @project = readable_projects.find_by!(slug: params[:slug])
+      @project = current_project
       @entries_count = @project.entries.size
       @view = view
 
@@ -39,7 +42,7 @@ module Orgs
     end
 
     def index
-      @projects = readable_projects.order(:name)
+      @projects = ProjectPolicy.readable(current_member).order(:name)
     end
 
     # One month of the project as a CSV: a line per member, with their hours and
@@ -47,12 +50,12 @@ module Orgs
     #   an unauthorized slug is a 404 rather than a download.
     #
     def export_csv
-      project = ProjectPolicy.exportable(current_member).find_by!(slug: params[:slug])
+      project = exportable_project
 
       # an export is named after its month, so a month that cannot be read has to be
       #   corrected rather than guessed
       if month.nil?
-        return redirect_to project_path(project.slug, view: "months"),
+        return redirect_to project_path(current_org, project, view: "months"),
           alert: t("controllers.unknown_month", month: params[:month].presence || "nothing")
       end
 
@@ -65,11 +68,11 @@ module Orgs
     #   the tags they used most. Same permission as the month export.
     #
     def export_days_csv
-      project = ProjectPolicy.exportable(current_member).find_by!(slug: params[:slug])
+      project = exportable_project
       member = project.org.members.find(params[:member_id])
 
       if month.nil?
-        return redirect_to project_path(project.slug, view: "months"),
+        return redirect_to project_path(current_org, project, view: "months"),
           alert: t("controllers.unknown_month", month: params[:month].presence || "nothing")
       end
 
@@ -82,7 +85,7 @@ module Orgs
     #   add up can be corrected before anyone reads a total off them.
     #
     def validate_times
-      @project = readable_projects.find_by!(slug: params[:slug])
+      @project = current_project
 
       @days_with_issues =
         @project.days
@@ -96,9 +99,9 @@ module Orgs
 
     private
 
-    # a project the member may not read is a 404, like one that does not exist
-    def readable_projects
-      ProjectPolicy.readable(current_member)
+    # a project the member may read but not export is a 404 as well
+    def exportable_project
+      ProjectPolicy.exportable(current_member).find(current_project.id)
     end
 
     # an unknown view falls back to the days, rather than raising

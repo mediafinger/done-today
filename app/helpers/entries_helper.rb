@@ -14,13 +14,10 @@ module EntriesHelper
     "grid-template-columns: #{tracks.join(' ')};"
   end
 
-  # Links a tag to the page listing its entries. The project only goes into the URL
-  #   when it is not the current one -- the tag page falls back to that anyway.
+  # Links a tag to the project's page listing its entries.
   #
   def tag_link(tag, project:, label: "##{tag}")
-    project_id = project.id unless project == current_project
-
-    link_to label, tag_path(tag, project_id:), class: "tag"
+    link_to label, tag_path(project.org, project, tag), class: "tag"
   end
 
   # The log with its #tags linked. Walks the segments EntryLog tokenized, so a
@@ -80,12 +77,12 @@ module EntriesHelper
   def period_heading(period, view:, project:)
     case view
     when "weeks"
-      link_to week_label(period.start), week_path(week_param(period.start), project_id: project.id),
+      link_to week_label(period.start), week_path(project.org, project, week_param(period.start)),
         method: :get, class: "camouflage s-link"
     when "months"
       weeks = [ period.start, period.start.end_of_month ].map do |date|
         # no `s-link` of their own: its 65% font size would shrink them a second time
-        link_to date.strftime("w%V"), week_path(week_param(date), project_id: project.id), method: :get, class: "camouflage"
+        link_to date.strftime("w%V"), week_path(project.org, project, week_param(date)), method: :get, class: "camouflage"
       end
 
       tag.span(safe_join([ period.start.strftime("%Y-%m"), " (", weeks.first, " - ", weeks.last, ")" ]), class: "s-link")

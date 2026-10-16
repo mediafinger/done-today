@@ -1,7 +1,7 @@
 <%# locals: (entry:, unlocked: false) %>
 
 <li class="nude" id="new-entry">
-  <%= form_with(model: entry, method: :post, data: {
+  <%= form_with(model: entry, url: entries_path(entry.org, entry.day.project), method: :post, data: {
         controller: "entry-form",
         action: "keydown.esc->entry-form#revert submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
       }) do |form| %>
