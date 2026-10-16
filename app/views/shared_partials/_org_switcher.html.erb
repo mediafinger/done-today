@@ -11,6 +11,7 @@
       <li class="without-bullet">
         <b>
           <%= link_to member.org.name, org_path(member.org), method: :get, class: "links slim camouflage" %>
+          <% if member.guest? %><small>(guest)</small><% end %>
         </b>
       </li>
 
