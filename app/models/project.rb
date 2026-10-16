@@ -7,16 +7,17 @@ class Project < ApplicationRecord
   has_many :entries, through: :days
   has_many :members, through: :participants
 
-  before_create :set_slug
+  before_validation :set_slug, on: :create
 
   validates :name, presence: true, uniqueness: { scope: :org_id }
+  validates :slug, uniqueness: { scope: :org_id }
 
   private
 
   def set_slug
-    new_slug = name.parameterize
+    new_slug = name.to_s.parameterize
 
-    new_slug = "#{new_slug}-#{rand(99)}" while Project.exists?(slug: new_slug)
+    new_slug = "#{new_slug}-#{rand(99)}" while Project.exists?(org_id:, slug: new_slug)
 
     self.slug = new_slug
   end

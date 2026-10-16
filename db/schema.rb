@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -89,7 +89,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_120000) do
     t.string "slug"
     t.datetime "updated_at", null: false
     t.index ["org_id", "name"], name: "index_projects_on_org_id_and_name", unique: true
-    t.index ["slug"], name: "index_projects_on_slug", unique: true
+    t.index ["org_id", "slug"], name: "index_projects_on_org_id_and_slug", unique: true
   end
 
   create_table "record_histories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
