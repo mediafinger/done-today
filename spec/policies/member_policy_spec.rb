@@ -21,6 +21,10 @@ RSpec.describe MemberPolicy do
       let(:member) { create(:member, org:, role: "owner") }
     end
 
+    succeed "for a manager" do
+      let(:member) { create(:member, :manager, org:) }
+    end
+
     # the directory is read-only for them
     succeed "for a member" do
       let(:member) { create(:member, org:) }
@@ -56,6 +60,29 @@ RSpec.describe MemberPolicy do
       let(:record) { colleague.tap(&:archive!) }
     end
 
+    context "with a manager" do
+      let(:member) { create(:member, :manager, org:) }
+
+      succeed "about a member"
+
+      succeed "about another manager" do
+        let(:record) { create(:member, :manager, org:) }
+      end
+
+      succeed "about themselves" do
+        let(:record) { member }
+      end
+
+      # owners are the owners' business
+      failed "about an owner" do
+        let(:record) { create(:member, :owner, org:) }
+      end
+
+      failed "about a deactivated owner" do
+        let(:record) { archived_owner }
+      end
+    end
+
     failed "for a member" do
       let(:member) { create(:member, org:) }
     end
@@ -70,6 +97,21 @@ RSpec.describe MemberPolicy do
 
     failed "without a member" do
       let(:member) { nil }
+    end
+  end
+
+  # give or take the owner role, also by invitation
+  describe_rule :grant_owner? do
+    let(:record) { colleague }
+
+    succeed "for an owner"
+
+    failed "for a manager" do
+      let(:member) { create(:member, :manager, org:) }
+    end
+
+    failed "for a member" do
+      let(:member) { create(:member, org:) }
     end
   end
 
@@ -94,6 +136,12 @@ RSpec.describe MemberPolicy do
 
     it "offers an org owner everybody of the org" do
       expect(addable).to include(colleague, own_guest, other_guest, member)
+    end
+
+    context "with a manager" do
+      let(:member) { create(:member, :manager, org:) }
+
+      it("offers everybody of the org") { expect(addable).to include(colleague, own_guest, other_guest, member) }
     end
 
     context "with a project owner" do

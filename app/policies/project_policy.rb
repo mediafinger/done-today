@@ -5,8 +5,8 @@ class ProjectPolicy < ApplicationPolicy
   READ_ROLES = %w[observer participant owner].freeze
   WRITE_ROLES = %w[participant owner].freeze
 
-  # org owners have to join a project to log time in it, and nobody invites guests to an archived one
-  pre_check :allow_org_owner, except: %i[ create_entry? invite_guest? ]
+  # org managers and owners have to join a project to log time in it, and nobody invites guests to an archived one
+  pre_check :allow_org_manager, except: %i[ create_entry? invite_guest? ]
 
   alias_rule :validate_times?, to: :show?
   alias_rule :export_csv?, :export_days_csv?, to: :export?
@@ -15,7 +15,7 @@ class ProjectPolicy < ApplicationPolicy
 
   relation_scope do |relation|
     next relation.none unless active?
-    next relation.where(org_id: member.org_id) if org_owner?
+    next relation.where(org_id: member.org_id) if org_manager?
 
     relation.where(id: member.participations.includes_a_role_of(READ_ROLES).select(:project_id))
   end
@@ -27,10 +27,10 @@ class ProjectPolicy < ApplicationPolicy
     authorized_scope(relation)
   end
 
-  # owners of the org or of the project
+  # managers and owners of the org, owners of the project
   relation_scope(:manageable) do |relation|
     next relation.none unless active?
-    next relation.where(org_id: member.org_id) if org_owner?
+    next relation.where(org_id: member.org_id) if org_manager?
 
     relation.where(id: member.participations.includes_all_roles(%w[owner]).select(:project_id))
   end
@@ -40,7 +40,7 @@ class ProjectPolicy < ApplicationPolicy
     authorized_scope(relation, as: :manageable)
   end
 
-  # ask with the Project class, org owners only (pre-check)
+  # ask with the Project class, org managers and owners only (pre-check)
   def create? = false
 
   def show?
@@ -61,7 +61,7 @@ class ProjectPolicy < ApplicationPolicy
 
   # send, resend and revoke the guest invitations of the project
   def invite_guest?
-    !record.archived? && (org_owner? || roles.include?("owner"))
+    !record.archived? && (org_manager? || roles.include?("owner"))
   end
 
   # who changed which entry when (RecordHistory)

@@ -57,9 +57,10 @@ The app supports multi-tenant organization boundaries and project selection:
   project, or in their only one ([LandingService](file:///Users/andy/Dropbox/www/2025/done_today/app/services/landing_service.rb)), else lists their orgs and projects.
 - Authorization uses [ActionPolicy](https://actionpolicy.evilmartians.io), policies in `app/policies`. The subject is `current_member`
   (roles depend on the org), nil outside of an org. `ApplicationPolicy` denies a nil or archived member and records of another org
-  in pre-checks, `ProjectPolicy` lets org owners through (except `create_entry?`).
-  - Org roles: `member` and `owner` are internals, they list every project of the org (`ProjectPolicy` scope `:listable`) and
-    the members (`/:org/members`, read-only unless owner). A `guest` is an external: they only see the projects they participate in,
+  in pre-checks, `ProjectPolicy` lets org managers and owners through (except `create_entry?`).
+  - Org roles: `member`, `manager` and `owner` are internals, they list every project of the org (`ProjectPolicy` scope `:listable`) and
+    the members (`/:org/members`, read-only for members). A `manager` does what an owner does, except giving or taking the owner role
+    (`MemberPolicy#grant_owner?`, also for invitations) and changing, deactivating or reactivating an owner. A `guest` is an external: they only see the projects they participate in,
     are never a project owner, and are deactivated when their last participation is removed. Project owners only add the guests
     of the projects they manage (`MemberPolicy` scope `:addable`), and invite new guests to them (`ProjectPolicy#invite_guest?`,
     `Orgs::GuestInvitationsController`). A guest invitation carries the project and the project role.
@@ -78,7 +79,7 @@ The app supports multi-tenant organization boundaries and project selection:
   - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TimeValidation`, `DaysExport`, `MonthExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Arrays**: Participation roles are stored as an array column (`text[]`). Role querying utilizes specialized Postgres operators (e.g., `&&` for intersection, `@>` for containment).
-- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "owner"]`).
+- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "manager", "owner"]`).
 - **Array Validation**: To validate postgres array columns, we use a custom [ArrayInclusionValidator](file:///Users/andy/Dropbox/www/2025/done_today/app/validators/array_inclusion_validator.rb).
 
 ### 6. Auditing & Record History

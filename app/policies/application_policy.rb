@@ -1,7 +1,8 @@
 # ActionPolicy policies, one per record type, always asked for one Member (the
 #   signed-in user within the org of the path, nil outside of one).
 #
-#   * the org role lives on `Member#role` (guest, member, owner): members and owners are internal
+#   * the org role lives on `Member#role` (guest, member, manager, owner): all but guests are internal,
+#     managers and owners manage the org, only owners touch the owner role
 #   * project roles live on `Participant#roles` (observer, participant, owner)
 #
 #   Rules answer "may this member do X to this record?", relation scopes return
@@ -30,6 +31,10 @@ class ApplicationPolicy < ActionPolicy::Base
     active? && member.internal?
   end
 
+  def org_manager?
+    active? && member.managing?
+  end
+
   def org_owner?
     active? && member.owner?
   end
@@ -38,13 +43,13 @@ class ApplicationPolicy < ActionPolicy::Base
     deny! unless active?
   end
 
-  # keeps allow_org_owner to the owner's own org
+  # keeps allow_org_manager to the manager's own org
   def deny_other_org
     deny! if record.respond_to?(:org_id) && record.org_id != member.org_id
   end
 
-  def allow_org_owner
-    allow! if org_owner?
+  def allow_org_manager
+    allow! if org_manager?
   end
 
   # [] when the member does not participate

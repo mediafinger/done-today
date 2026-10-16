@@ -1,10 +1,11 @@
+<% can_change = @can_manage && allowed_to?(:manage?, member) %>
 <tr id="<%= dom_id(member) %>">
   <td><%= member.name %><%= " (you)" if member.id == current_member.id %></td>
   <td><%= member.user.email %></td>
   <td>
-    <% if @manager %>
+    <% if can_change %>
       <%= form_with model: member, url: member_path(current_org, member), method: :patch, namespace: dom_id(member) do |form| %>
-        <%= form.select :role, Member::VALID_ROLES, {}, aria: { label: "Role" } %>
+        <%= form.select :role, assignable_org_roles(Member::VALID_ROLES), {}, aria: { label: "Role" } %>
         <%= form.submit "Save role", class: "slim" %>
       <% end %>
     <% else %>
@@ -14,10 +15,12 @@
   <% if local_assigns[:with_projects] %>
     <td><%= member.participations.map { it.project.name }.sort.join(", ") %></td>
   <% end %>
-  <% if @manager %>
+  <% if @can_manage %>
     <td>
-      <%= button_to "Deactivate", deactivate_member_path(current_org, member), method: :patch, class: "slim secondary",
-            form: { data: { turbo_confirm: "Deactivate #{member.name}? Their entries stay." } } %>
+      <% if can_change %>
+        <%= button_to "Deactivate", deactivate_member_path(current_org, member), method: :patch, class: "slim secondary",
+              form: { data: { turbo_confirm: "Deactivate #{member.name}? Their entries stay." } } %>
+      <% end %>
     </td>
   <% end %>
 </tr>

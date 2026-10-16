@@ -19,8 +19,8 @@ RSpec.describe Member do
   describe "guests" do
     let(:project) { create(:project, org:) }
 
-    it "counts members and owners as internal, guests not" do
-      expect(%w[guest member owner].map { build(:member, role: it).internal? }).to eq([ false, true, true ])
+    it "counts members, managers and owners as internal, guests not" do
+      expect(%w[guest member manager owner].map { build(:member, role: it).internal? }).to eq([ false, true, true, true ])
     end
 
     it "lets a member become a guest who participates in a project" do
@@ -78,6 +78,20 @@ RSpec.describe Member do
 
       expect(Entry.exists?(entry.id)).to be(true)
       expect(Participant.exists?(participant.id)).to be(true)
+    end
+  end
+
+  describe "managers" do
+    it "lets managers and owners manage the org, nobody else" do
+      expect(%w[guest member manager owner].map { build(:member, role: it).managing? }).to eq([ false, false, true, true ])
+    end
+
+    it "does not count a manager as the org's owner" do
+      owner = create(:member, :owner, org:)
+      create(:member, :manager, org:)
+      owner.role = "manager"
+
+      expect(owner).not_to be_valid
     end
   end
 

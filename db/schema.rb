@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -19,7 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_080000) do
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "display_mode", ["system", "light", "dark"]
   create_enum "entry_status", ["todo", "doing", "done"]
-  create_enum "org_role", ["guest", "member", "owner"]
+  create_enum "org_role", ["guest", "member", "manager", "owner"]
 
   create_table "days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false

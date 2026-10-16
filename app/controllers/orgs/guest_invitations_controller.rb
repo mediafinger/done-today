@@ -1,5 +1,5 @@
 module Orgs
-  # Org and project owners invite guests (externals) to the project, and resend or
+  # Org managers and owners, and project owners, invite guests (externals) to the project, and resend or
   #   revoke those invitations. The invitee accepts in Users::InvitationsController.
   #
   class GuestInvitationsController < AppOrgBaseController
@@ -16,7 +16,7 @@ module Orgs
       attributes = params.expect(invitation: %i[ email name project_role ])
       invitation = current_org.invitations.pending.find_or_initialize_by(email: attributes[:email])
 
-      # an org owner decides what somebody invited to the org or another project becomes
+      # an org manager decides what somebody invited to the org or another project becomes
       if invitation.persisted? && invitation.project != current_project
         return redirect_to back_path, alert: t("controllers.invitations.already_invited", email: invitation.email)
       end

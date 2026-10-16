@@ -21,7 +21,7 @@ class LandingService
       ProjectPolicy.new(member:).apply_scope(member.org.projects.active, type: :active_record_relation)
     end
 
-    # org owners read every project, but only land in one they take part in
+    # org managers and owners read every project, but only land in one they take part in
     def joined_projects(member)
       member.org.projects.active.where(id: member.participations.select(:project_id))
     end
