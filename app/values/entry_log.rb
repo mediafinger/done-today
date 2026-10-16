@@ -31,10 +31,9 @@ class EntryLog
 
   Issue = Data.define(:code, :severity, :message)
 
-  # Hours run to 29 rather than 23: `end@25:30` is an unambiguous way to say "01:30
-  # the next day" and needs no date arithmetic. An activity that keeps running past
-  # that gets a new entry on the next day.
-  MAX_HOUR = 29
+  # Clock times run from 0:00, the start of the day, to 24:00, its end. Work that goes
+  #   on past midnight is logged on the next day.
+  END_OF_DAY = 24 * 60
   MAX_MINUTE = 59
 
   # A token may only start at the beginning of the string or right after whitespace --
@@ -141,12 +140,12 @@ class EntryLog
   end
 
   def time_token(scanner, raw)
-    hours = scanner[:h].to_i
     minutes = scanner[:m].to_i
+    clock = (scanner[:h].to_i * 60) + minutes
 
-    return invalid_time(raw) if hours > MAX_HOUR || minutes > MAX_MINUTE
+    return invalid_time(raw) if minutes > MAX_MINUTE || clock > END_OF_DAY
 
-    [ :time, TIME_KINDS.fetch(scanner[:kind].downcase), (hours * 60) + minutes, raw ]
+    [ :time, TIME_KINDS.fetch(scanner[:kind].downcase), clock, raw ]
   end
 
   # Fractional hours are rounded to whole minutes: `for~0.33h` => 20. A Rational

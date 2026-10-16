@@ -23,8 +23,8 @@ class TimeSummary
       .map { |member, member_entries| [ member, new(member_entries) ] }
   end
 
-  # Minutes since midnight as a clock time: 570 => "09:30". Hours run past 23 on
-  #   purpose (`end@25:30`, see EntryLog::MAX_HOUR), so they are not wrapped.
+  # Minutes since midnight as a clock time: 570 => "09:30". The end of the day
+  #   stays "24:00" (`end@24:00`, see EntryLog::END_OF_DAY) instead of wrapping.
   #
   def self.format_clock(minutes)
     format("%02d:%02d", *minutes.divmod(60))

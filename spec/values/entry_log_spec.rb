@@ -70,8 +70,9 @@ RSpec.describe EntryLog do
       expect(log.day_end_minutes).to eq(1110)
     end
 
-    it "accepts hours up to 29, so end@25:30 unambiguously means 01:30 the next day" do
-      expect(parse("end@25:30").day_end_minutes).to eq(1530)
+    it "accepts 0:00 as the start and 24:00 as the end of the day" do
+      expect(parse("start@0:00").day_start_minutes).to eq(0)
+      expect(parse("end@24:00").day_end_minutes).to eq(1440)
     end
 
     it "accepts a single-digit hour" do
@@ -92,7 +93,7 @@ RSpec.describe EntryLog do
       expect(parse("start@900").day_start_minutes).to eq(540)
       expect(parse("start@0900").day_start_minutes).to eq(540)
       expect(parse("to@1230").to_minutes).to eq(750)
-      expect(parse("end@2530").day_end_minutes).to eq(1530)
+      expect(parse("end@2400").day_end_minutes).to eq(1440)
     end
 
     it "leaves a full stop that ends the sentence as prose" do
@@ -154,12 +155,17 @@ RSpec.describe EntryLog do
       expect(log.segments).to eq([ [ :text, "from@10:75" ] ])
     end
 
-    it "reports hours over 29 as invalid_time and renders the token as plain text" do
-      log = parse("end@30:00")
+    it "reports a time after 24:00 as invalid_time and renders the token as plain text" do
+      log = parse("end@25:30")
 
-      expect(codes("end@30:00")).to eq([ :invalid_time ])
+      expect(codes("end@25:30")).to eq([ :invalid_time ])
       expect(log.day_end_minutes).to be_nil
-      expect(log.segments).to eq([ [ :text, "end@30:00" ] ])
+      expect(log.segments).to eq([ [ :text, "end@25:30" ] ])
+    end
+
+    it "rejects any minute past 24:00" do
+      expect(parse("to@24:01").to_minutes).to be_nil
+      expect(codes("to@24:01")).to eq([ :invalid_time ])
     end
 
     it "rejects a three digit minute rather than reading the first two" do

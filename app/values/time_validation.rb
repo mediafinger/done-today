@@ -103,17 +103,14 @@ class TimeValidation
 
     return [] if net.nil?
 
-    # a day of no working time at all is thin but possible; less than none is not
-    if net.negative?
-      return [ issue(:negative_total, "the breaks add up to #{TimeSummary.format_minutes(summary.break_minutes)}, " \
-                                      "longer than the #{TimeSummary.format_minutes(summary.end_minutes - summary.start_minutes)} " \
-                                      "between #{TimeSummary.format_clock(summary.start_minutes)} and " \
-                                      "#{TimeSummary.format_clock(summary.end_minutes)}", member, nil) ]
-    end
+    # a day of no working time at all is thin but possible; less than none is not.
+    #   More than 24h cannot happen: start@ and end@ both lie between 0:00 and 24:00
+    return [] unless net.negative?
 
-    return [] if net <= DAY_MINUTES
-
-    [ issue(:over_a_day, "the day adds up to #{TimeSummary.format_minutes(net)}, more than 24h", member, nil) ]
+    [ issue(:negative_total, "the breaks add up to #{TimeSummary.format_minutes(summary.break_minutes)}, " \
+                             "longer than the #{TimeSummary.format_minutes(summary.end_minutes - summary.start_minutes)} " \
+                             "between #{TimeSummary.format_clock(summary.start_minutes)} and " \
+                             "#{TimeSummary.format_clock(summary.end_minutes)}", member, nil) ]
   end
 
   # An entry that starts at a time and runs for a duration finishes at a time, and
