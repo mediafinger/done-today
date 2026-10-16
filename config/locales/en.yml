@@ -36,6 +36,10 @@ en:
         password_challenge: "Current password"
         unconfirmed_email: "New email"
     errors:
+      messages:
+        no_slug: "needs at least one letter or digit"
+        numbered_slug: "can't start with a number of up to 3 digits"
+        reserved_slug: "can't be used, %{slug} is reserved for the app"
       models:
         user:
           attributes:

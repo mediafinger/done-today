@@ -37,10 +37,10 @@ Rails.application.routes.draw do
   get "settings", to: "orgs/settings#show"
 
   # Org and project live in the path: /acme, /acme/members, /acme/website/days/2026-10-15.
-  #   Words a top-level path uses are never an org (Org::RESERVED_SLUGS), so routes
+  #   Reserved words are never an org (Sluggable::RESERVED_SLUGS), so routes
   #   added further down are not swallowed.
   #
-  scope ":org_slug", module: :orgs, constraints: ->(request) { Org::RESERVED_SLUGS.exclude?(request.path_parameters[:org_slug]) } do
+  scope ":org_slug", module: :orgs, constraints: ->(request) { !Sluggable.reserved?(request.path_parameters[:org_slug]) } do
     get "/", to: "projects#index", as: :org
     get "settings", to: "settings#show", as: :org_settings
 
@@ -55,7 +55,7 @@ Rails.application.routes.draw do
 
     resources :projects, only: %i[ new create ]
 
-    # the org-level paths above are never a project (Project::RESERVED_SLUGS)
+    # the org-level paths above are never a project (Sluggable::RESERVED_SLUGS)
     scope ":project_slug" do
       get "/", to: "projects#show", as: :project
       patch "/", to: "projects#update", as: nil

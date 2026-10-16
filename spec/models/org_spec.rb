@@ -3,11 +3,35 @@ require "rails_helper"
 RSpec.describe Org do
   describe "slug" do
     # /:org_slug looks orgs up without any scope, so their slugs stay globally unique
-    it "gets a suffix when another org has the same slug" do
+    it "numbers the slug when another org has the same one" do
       create(:org, name: "Acme")
-      other = create(:org, name: "acme!")
 
-      expect(other.slug).to match(/\Aacme-\d+\z/)
+      expect(create(:org, name: "acme!").slug).to eq("acme-2")
+      expect(create(:org, name: "ACME").slug).to eq("acme-3")
+    end
+
+    it "takes the next number after the highest one" do
+      create(:org, name: "Acme")
+      create(:org, name: "Acme 7")
+
+      expect(create(:org, name: "acme!").slug).to eq("acme-8")
+    end
+
+    # numbers compare as numbers, not as text: 22 < 110 < 005000
+    it "takes the next number after the highest one, whatever its length" do
+      create(:org, name: "Acme")
+      create(:org, name: "Acme 22")
+      create(:org, name: "Acme 110")
+      create(:org, name: "Acme 005000")
+
+      expect(create(:org, name: "acme!").slug).to eq("acme-5001")
+    end
+
+    it "ignores slugs that only start like the name" do
+      create(:org, name: "Acme")
+      create(:org, name: "Acme 9 Labs")
+
+      expect(create(:org, name: "acme!").slug).to eq("acme-2")
     end
 
     it "is the URL param" do
@@ -15,14 +39,59 @@ RSpec.describe Org do
     end
 
     # the slug is the first segment of every org URL, next to /session, /settings, /up, ...
-    it "steers clear of the top-level paths" do
-      expect(create(:org, name: "Settings").slug).to match(/\Asettings-\d+\z/)
+    it "refuses a name that is a top-level path" do
+      org = build(:org, name: "Settings")
+
+      expect(org).not_to be_valid
+      expect(org.errors[:name]).to include("can't be used, settings is reserved for the app")
+    end
+
+    it "refuses the words reserved for projects too" do
+      expect(build(:org, name: "Invitations")).not_to be_valid
+    end
+
+    it "refuses the words reserved for future pages" do
+      expect(%w[Support FAQ Contact Blog Site].map { build(:org, name: it) }).to all(be_invalid)
+    end
+
+    # error pages live at /404.html, /500.html, ...
+    it "refuses a name that starts with a number of up to 3 digits" do
+      org = build(:org, name: "404 Club")
+
+      expect(org).not_to be_valid
+      expect(org.errors[:name]).to include("can't start with a number of up to 3 digits")
+      expect(%w[1st 42 500].map { build(:org, name: it) }).to all(be_invalid)
+    end
+
+    it "allows a name that starts with a longer number" do
+      expect(create(:org, name: "2026 Retro").slug).to eq("2026-retro")
+    end
+
+    it "refuses a name without a letter or digit" do
+      org = build(:org, name: "!!!")
+
+      expect(org).not_to be_valid
+      expect(org.errors[:name]).to include("needs at least one letter or digit")
+    end
+
+    it "refuses an empty slug set by hand" do
+      org = create(:org)
+
+      expect(org.update(slug: "")).to be(false)
+      expect(org.errors[:slug]).to be_present
     end
 
     it "refuses a reserved word set by hand" do
       org = create(:org)
 
       expect(org.update(slug: "help")).to be(false)
+      expect(org.errors[:slug]).to be_present
+    end
+
+    it "refuses a slug set by hand that starts with a number of up to 3 digits" do
+      org = create(:org)
+
+      expect(org.update(slug: "404")).to be(false)
       expect(org.errors[:slug]).to be_present
     end
   end
