@@ -34,3 +34,14 @@
     <% end %>
   </ul>
 <% end %>
+
+<% if allowed_to?(:access?, :admin) %>
+  <section>
+    <h2>Admin</h2>
+
+    <ul>
+      <li><%= link_to "Admin area", admin_home_path %></li>
+      <li><%= link_to "Jobs (Mission Control)", admin_mission_control_jobs_path %></li>
+    </ul>
+  </section>
+<% end %>

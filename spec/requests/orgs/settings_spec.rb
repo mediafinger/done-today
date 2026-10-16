@@ -50,4 +50,24 @@ RSpec.describe "Orgs::Settings" do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "admin links" do
+    let(:admin_links) { [ admin_home_path, admin_mission_control_jobs_path ] }
+
+    it "are hidden from a user who is no admin" do
+      get settings_path
+
+      expect(links).not_to include(*admin_links)
+    end
+
+    it "are shown to an admin, on /settings and on /:org/settings" do
+      participant.member.user.update!(admin: true)
+
+      [ settings_path, org_settings_path(org) ].each do |path|
+        get path
+
+        expect(links).to include(*admin_links)
+      end
+    end
+  end
 end
