@@ -24,14 +24,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
   create_enum "project_role", ["observer", "participant", "lead"]
 
   create_table "access_requests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "org_id", null: false
-    t.uuid "project_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "decided_at"
+    t.uuid "decided_by_id"
     t.uuid "member_id", null: false
     t.text "message"
+    t.uuid "org_id", null: false
+    t.uuid "project_id", null: false
     t.enum "status", default: "pending", null: false, enum_type: "access_request_status"
-    t.uuid "decided_by_id"
-    t.datetime "decided_at"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["decided_by_id"], name: "index_access_requests_on_decided_by_id"
     t.index ["member_id"], name: "index_access_requests_on_member_id"
@@ -71,17 +71,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
   end
 
   create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "org_id", null: false
-    t.uuid "invited_by_id"
-    t.string "email", null: false
-    t.string "name"
-    t.datetime "sent_at", null: false
     t.datetime "accepted_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.enum "role", default: "member", null: false, enum_type: "org_role"
+    t.string "email", null: false
+    t.uuid "invited_by_id"
+    t.string "name"
+    t.uuid "org_id", null: false
     t.uuid "project_id"
     t.string "project_role"
+    t.enum "role", default: "member", null: false, enum_type: "org_role"
+    t.datetime "sent_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
     t.index ["org_id", "email"], name: "index_invitations_on_org_id_and_email_pending", unique: true, where: "(accepted_at IS NULL)"
     t.index ["org_id"], name: "index_invitations_on_org_id"
@@ -89,14 +89,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
   end
 
   create_table "members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "archived_at"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.uuid "org_id", null: false
+    t.enum "role", default: "member", null: false, enum_type: "org_role"
     t.datetime "send_reminder_at"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
-    t.datetime "archived_at"
-    t.enum "role", default: "member", null: false, enum_type: "org_role"
     t.index ["org_id", "user_id"], name: "index_members_on_org_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_members_on_user_id"
   end
@@ -115,20 +115,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
     t.uuid "member_id", null: false
     t.uuid "org_id", null: false
     t.uuid "project_id", null: false
-    t.datetime "updated_at", null: false
     t.enum "role", default: "participant", null: false, enum_type: "project_role"
+    t.datetime "updated_at", null: false
     t.index ["member_id"], name: "index_participants_on_member_id"
     t.index ["org_id"], name: "index_participants_on_org_id"
     t.index ["project_id", "member_id"], name: "index_participants_on_project_id_and_member_id", unique: true
   end
 
   create_table "projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "archived_at"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.uuid "org_id", null: false
     t.string "slug"
     t.datetime "updated_at", null: false
-    t.datetime "archived_at"
     t.index ["org_id", "name"], name: "index_projects_on_org_id_and_name", unique: true
     t.index ["org_id", "slug"], name: "index_projects_on_org_id_and_slug", unique: true
   end
@@ -162,14 +162,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
     t.boolean "admin", default: false
     t.text "bio"
     t.datetime "created_at", null: false
-    t.string "email", null: false
-    t.string "name", null: false
-    t.string "password_digest", null: false
-    t.datetime "updated_at", null: false
     t.enum "display_mode", default: "system", null: false, enum_type: "display_mode"
+    t.string "email", null: false
     t.uuid "last_org_id"
     t.uuid "last_project_id"
+    t.string "name", null: false
+    t.string "password_digest", null: false
     t.string "unconfirmed_email"
+    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["last_org_id"], name: "index_users_on_last_org_id"
     t.index ["last_project_id"], name: "index_users_on_last_project_id"

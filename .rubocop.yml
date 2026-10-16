@@ -26,7 +26,7 @@ AllCops:
     - "**/bin/*"
     - "**/config.ru"
     - "**/db/**/*"
-    - "**/schema.rb"
+    - "**/*schema.rb"
     - "**/node_modules/**/*"
     - "**/vendor/**/*"
     - "**/vendor/**/*.txt"

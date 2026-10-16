@@ -123,6 +123,8 @@ GEM
       railties (>= 6.1.0)
     faker (3.8.0)
       i18n (>= 1.8.11, < 2)
+    fix-db-schema-conflicts (3.1.2)
+      rubocop (>= 0.38.0)
     freezolite (0.7.0)
       require-hooks (~> 0.4)
     fugit (1.14.0)
@@ -441,6 +443,7 @@ DEPENDENCIES
   factory_bot-awesome_linter (~> 1.0)
   factory_bot_rails (~> 6.2)
   faker (~> 3.4)
+  fix-db-schema-conflicts
   freezolite (~> 0.5)
   importmap-rails
   json (< 3.0)
