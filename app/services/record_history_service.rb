@@ -7,9 +7,7 @@ class RecordHistoryService
   class MissingContextError < StandardError; end
 
   class << self
-    #
-    # TODO: instead of creating now, push to background job to retry errors
-    #
+    # synchronous on purpose: runs inside the record's transaction, so a failed write rolls the change back
     def call(record:, event:, org: Current.org, user: Current.user, done_by_admin: Current.admin_flag.present?)
       raise MissingContextError, "no org in scope, pass `org:` explicitly" if org.blank?
       raise MissingContextError, "no user in scope, pass `user:` explicitly" if user.blank?
