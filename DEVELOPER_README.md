@@ -124,7 +124,9 @@ For auditing operations within organizations, we implement a lightweight event-l
   `AdminPolicy` (asked for the user, not a member) and is the base controller of Mission Control
   ([config/initializers/mission_control.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/initializers/mission_control.rb)).
   New admin pages go below `Admins::` and inherit from `AdminController`.
-- **Make a user admin** (there is no UI, `admin` is not a permitted param):
+- **Admins are the developers of the app**, unrelated to the org roles (owner, manager) and project leads.
+  Admins see the list of admins on `/settings`.
+- **Make a user admin** only in the console or a data migration, never through the UI (`admin` is not a permitted param):
   ```bash
   bin/rails runner 'User.find_by!(email: "you@example.com").update!(admin: true)'
   ```

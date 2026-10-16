@@ -43,6 +43,15 @@
       <li><%= link_to "Admin area", admin_home_path %></li>
       <li><%= link_to "Jobs (Mission Control)", admin_mission_control_jobs_path %></li>
     </ul>
+
+    <%# set in the console or a data migration only, see DEVELOPER_README %>
+    <h3>Admins</h3>
+
+    <ul id="admins">
+      <% @admins.each do |admin| %>
+        <li><%= admin.name %> (<%= admin.email %>)</li>
+      <% end %>
+    </ul>
   </section>
 <% end %>
 

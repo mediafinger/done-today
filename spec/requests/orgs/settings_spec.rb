@@ -69,6 +69,25 @@ RSpec.describe "Orgs::Settings" do
         expect(links).to include(*admin_links)
       end
     end
+
+    it "list the admins to an admin" do
+      participant.member.user.update!(admin: true)
+      other = create(:user, name: "Ada", email: "ada@example.com", admin: true)
+      create(:user, name: "Bob", admin: false)
+
+      get settings_path
+
+      admins = Nokogiri::HTML(response.body).css("#admins li").map { it.text.squish }
+      expect(admins).to contain_exactly("#{other.name} (#{other.email})", "#{participant.member.user.name} (#{participant.member.user.email})")
+    end
+
+    it "keep the admins hidden from a user who is no admin" do
+      create(:user, name: "Ada", admin: true)
+
+      get settings_path
+
+      expect(Nokogiri::HTML(response.body).css("#admins")).to be_empty
+    end
   end
 
   # /dev is routed in development only (DevConstraint), letter_opener_web is in the development group

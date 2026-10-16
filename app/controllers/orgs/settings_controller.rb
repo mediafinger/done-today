@@ -13,6 +13,7 @@ module Orgs
     def show
       @projects = authorized_scope(Project.all).active.order(:name)
       @orgs = current_user.orgs.merge(Member.active).order(:name)
+      @admins = User.where(admin: true).order(:name) if allowed_to?(:access?, :admin)
     end
   end
 end
