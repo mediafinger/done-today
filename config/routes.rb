@@ -13,11 +13,14 @@ Rails.application.routes.draw do
     resource :session, only: %i[ new create destroy ]
     resources :passwords, param: :token, only: %i[ new create edit update ]
 
-    get "/preferences", to: "preferences#show"
-
-    patch "dark_mode", to: "display_modes#dark"
-    patch "light_mode", to: "display_modes#light"
-    patch "system_mode", to: "display_modes#system"
+    resource :user, only: %i[ edit update ] do
+      resource :email, only: %i[ edit update ], controller: "user_emails"
+      resource :password, only: %i[ edit update ], controller: "user_passwords"
+      resources :sessions, only: %i[ index destroy ], controller: "user_sessions" do
+        delete :destroy_others, on: :collection
+      end
+      resource :display_mode, only: %i[ update ]
+    end
   end
 
   # resources :switch_current_organizations, only: %i[index show create destroy]

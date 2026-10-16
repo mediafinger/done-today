@@ -17,6 +17,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "display_mode", ["system", "light", "dark"]
   create_enum "entry_status", ["todo", "doing", "done"]
 
   create_table "days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -130,6 +131,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
     t.string "name", null: false
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
+    t.enum "display_mode", default: "system", null: false, enum_type: "display_mode"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 

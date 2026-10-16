@@ -31,11 +31,13 @@ en:
   hello: "Hello world"
 
   activerecord:
+    attributes:
+      user:
+        password_challenge: "Current password"
     errors:
       models:
         member:
           last_owner: "%{org} needs at least one active owner"
-
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
     members:
