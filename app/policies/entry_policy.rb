@@ -2,20 +2,19 @@
 #   the entries of an archived project.
 #
 class EntryPolicy < ApplicationPolicy
-  def self.readable(member)
-    Entry.where(day: Day.where(project: ProjectPolicy.readable(member)))
+  relation_scope do |relation|
+    relation.where(day: Day.where(project: authorized_scope(Project.all)))
   end
 
-  def self.editable(member)
-    return Entry.none unless active?(member)
+  relation_scope(:editable) do |relation|
+    next relation.none unless active?
 
     owned = member.participations.includes_all_roles(%w[owner]).select(:project_id)
     joined = member.participations.includes_all_roles(%w[participant]).select(:project_id)
+    days = Day.where.not(project_id: Project.archived.select(:id))
 
-    days = Day.where(org_id: member.org_id).where.not(project_id: Project.archived.select(:id))
-
-    Entry.where(day: days.where(project_id: owned))
-      .or(Entry.where(member:, day: days.where(project_id: joined)))
+    relation.where(day: days.where(project_id: owned))
+      .or(relation.where(member:, day: days.where(project_id: joined)))
   end
 
   def update?
@@ -28,6 +27,6 @@ class EntryPolicy < ApplicationPolicy
   end
 
   def history?
-    ProjectPolicy.new(member, record.day.project).entry_history?
+    allowed_to?(:entry_history?, record.day.project)
   end
 end

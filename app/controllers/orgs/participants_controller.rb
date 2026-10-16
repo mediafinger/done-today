@@ -4,7 +4,7 @@ module Orgs
   #
   class ParticipantsController < AppOrgBaseController
     before_action :set_current_project
-    before_action { authorize!(current_project, :manage?) }
+    before_action { authorize! current_project, to: :manage? }
 
     def create
       # a deactivated member or one of another org is a 404, the form does not offer them
@@ -43,10 +43,13 @@ module Orgs
       end
     end
 
-    # a project owner who stepped down or removed themselves cannot manage the project any more
+    # A project owner who stepped down or removed themselves cannot manage the project
+    #   any more. A fresh policy, the memoized one answered before the change.
     def after_change_path
-      return edit_project_path(current_org, current_project) if policy(current_project).manage?
-      return project_path(current_org, current_project) if policy(current_project).show?
+      policy = ProjectPolicy.new(current_project, member: current_member)
+
+      return edit_project_path(current_org, current_project) if policy.apply(:manage?)
+      return project_path(current_org, current_project) if policy.apply(:show?)
 
       org_path(current_org)
     end

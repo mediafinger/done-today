@@ -11,7 +11,7 @@ module ProjectScope
   private
 
   def set_current_project
-    Current.project = ProjectPolicy.readable(current_member).find_by!(slug: params[:project_slug])
+    Current.project = authorized_scope(current_org.projects).find_by!(slug: params[:project_slug])
   end
 
   # nil outside of a project's pages

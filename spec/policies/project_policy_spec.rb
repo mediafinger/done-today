@@ -3,11 +3,23 @@ require "rails_helper"
 RSpec.describe ProjectPolicy do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
+  let(:record) { project }
+  let(:member) { nil }
+  let(:context) { { member: } }
 
   def member_with(org_roles:, project_roles:, of: org)
     create(:member, org: of, roles: org_roles).tap do |member|
       create(:participant, project:, member:, roles: project_roles) if project_roles
     end
+  end
+
+  # show?, create_entry?, export?, manage?
+  def allowed
+    %i[show? create_entry? export? manage?].map { policy.apply(it) }
+  end
+
+  def scope(name = :default)
+    described_class.new(member:).apply_scope(Project.all, type: :active_record_relation, name:)
   end
 
   # org roles, project roles => show?, create_entry?, export?, manage?
@@ -23,21 +35,20 @@ RSpec.describe ProjectPolicy do
   }.each do |(org_roles, project_roles), (show, create_entry, export, manage)|
     context "with org roles #{org_roles} and project roles #{project_roles.inspect}" do
       let(:member) { member_with(org_roles:, project_roles:) }
-      let(:policy) { described_class.new(member, project) }
 
-      it { expect(policy.show?).to be(show) }
-      it { expect(policy.create_entry?).to be(create_entry) }
-      it { expect(policy.export?).to be(export) }
-      it { expect(policy.manage?).to be(manage) }
+      it { expect(policy.apply(:show?)).to be(show) }
+      it { expect(policy.apply(:create_entry?)).to be(create_entry) }
+      it { expect(policy.apply(:export?)).to be(export) }
+      it { expect(policy.apply(:manage?)).to be(manage) }
       # the edit trail of the entries is for those who manage the project
-      it { expect(policy.entry_history?).to be(manage) }
+      it { expect(policy.apply(:entry_history?)).to be(manage) }
 
-      it "lists the project as readable exactly when it may be shown" do
-        expect(described_class.readable(member).include?(project)).to be(show)
+      it "scopes the project as readable exactly when it may be shown" do
+        expect(scope.include?(project)).to be(show)
       end
 
-      it "lists the project as exportable exactly when it may be exported" do
-        expect(described_class.exportable(member).include?(project)).to be(export)
+      it "scopes the project as exportable exactly when it may be exported" do
+        expect(scope(:exportable).include?(project)).to be(export)
       end
     end
   end
@@ -54,15 +65,21 @@ RSpec.describe ProjectPolicy do
       [ %w[member owner], nil ] => [ true, false, true, true ],
       [ %w[member owner], %w[participant] ] => [ true, false, true, true ]
     }.each do |(org_roles, project_roles), expected|
-      it "allows #{expected} with org roles #{org_roles} and project roles #{project_roles.inspect}" do
-        policy = described_class.new(member_with(org_roles:, project_roles:), project)
+      context "with org roles #{org_roles} and project roles #{project_roles.inspect}" do
+        let(:member) { member_with(org_roles:, project_roles:) }
 
-        expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to eq(expected)
+        it("allows #{expected}") { expect(allowed).to eq(expected) }
+
+        it "scopes it as manageable exactly when it may be managed, so it can be unarchived" do
+          expect(scope(:manageable).include?(project)).to be(expected.last)
+        end
       end
     end
   end
 
-  describe "#create? and .manageable" do
+  describe "create? and the manageable scope" do
+    let(:record) { Project }
+
     # org roles, project roles => create?, manageable includes the project
     {
       [ %w[member], nil ] => [ false, false ],
@@ -70,78 +87,72 @@ RSpec.describe ProjectPolicy do
       [ %w[member], %w[owner] ] => [ false, true ],
       [ %w[member owner], nil ] => [ true, true ]
     }.each do |(org_roles, project_roles), (create, manageable)|
-      it "allows #{[ create, manageable ]} with org roles #{org_roles} and project roles #{project_roles.inspect}" do
-        member = member_with(org_roles:, project_roles:)
+      context "with org roles #{org_roles} and project roles #{project_roles.inspect}" do
+        let(:member) { member_with(org_roles:, project_roles:) }
 
-        expect(described_class.new(member, Project).create?).to be(create)
-        expect(described_class.manageable(member).include?(project)).to be(manageable)
+        it("allows #{[ create, manageable ]}") do
+          expect([ policy.apply(:create?), scope(:manageable).include?(project) ]).to eq([ create, manageable ])
+        end
       end
     end
 
-    it "lets an archived org owner create nothing" do
-      create(:member, :owner, org:)
-      owner = member_with(org_roles: %w[member owner], project_roles: nil).tap(&:archive!)
+    context "with an owner of another org" do
+      let(:member) { member_with(org_roles: %w[member owner], project_roles: nil, of: create(:org)) }
 
-      expect(described_class.new(owner, Project).create?).to be(false)
-      expect(described_class.manageable(owner)).to be_empty
+      it { expect(scope(:manageable)).not_to include(project) }
+    end
+
+    context "with an archived org owner" do
+      let(:member) { member_with(org_roles: %w[member owner], project_roles: nil).tap(&:archive!) }
+
+      before { create(:member, :owner, org:) } # the org keeps an owner
+
+      it "lets them create and manage nothing" do
+        expect(policy.apply(:create?)).to be(false)
+        expect(scope(:manageable)).to be_empty
+      end
     end
   end
 
   context "with an owner of another org" do
     let(:member) { member_with(org_roles: %w[member owner], project_roles: nil, of: create(:org)) }
-    let(:policy) { described_class.new(member, project) }
 
     it "allows nothing" do
-      expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
-      expect(described_class.readable(member)).not_to include(project)
-      expect(described_class.exportable(member)).not_to include(project)
-    end
-  end
-
-  context "with a member without roles" do
-    # roles are validated, so this is only reachable in memory
-    let(:member) { member_with(org_roles: %w[member owner], project_roles: %w[owner]).tap { it.roles = [] } }
-    let(:policy) { described_class.new(member, project) }
-
-    it "allows nothing" do
-      expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
-      expect(described_class.readable(member)).to be_empty
-      expect(described_class.exportable(member)).to be_empty
+      expect(allowed).to all(be(false))
+      expect(scope).not_to include(project)
+      expect(scope(:exportable)).not_to include(project)
     end
   end
 
   context "with an archived owner of the org and the project" do
     let(:member) { member_with(org_roles: %w[member owner], project_roles: %w[owner]).tap(&:archive!) }
-    let(:policy) { described_class.new(member, project) }
 
     before { create(:member, :owner, org:) } # the org keeps an owner
 
     it "allows nothing" do
-      expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
-      expect(described_class.readable(member)).to be_empty
-      expect(described_class.exportable(member)).to be_empty
+      expect(allowed).to all(be(false))
+      expect(scope).to be_empty
+      expect(scope(:exportable)).to be_empty
     end
   end
 
   context "without a member" do
-    let(:policy) { described_class.new(nil, project) }
+    let(:member) { nil }
 
     it "allows nothing" do
-      expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to all(be(false))
-      expect(described_class.readable(nil)).to be_empty
+      expect(allowed).to all(be(false))
+      expect(described_class.new(Project, member:).apply(:create?)).to be(false)
+      expect([ scope, scope(:manageable), scope(:exportable) ]).to all(be_empty)
     end
   end
 
-  describe "#authorize!" do
-    let(:member) { member_with(org_roles: %w[member], project_roles: %w[observer]) }
+  it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
 
-    it "returns the record when allowed" do
-      expect(described_class.new(member, project).authorize!(:show?)).to eq(project)
-    end
+  %i[export_csv? export_days_csv?].each do |rule|
+    it { expect(policy.resolve_rule(rule)).to eq(:export?) }
+  end
 
-    it "raises when refused" do
-      expect { described_class.new(member, project).authorize!(:create_entry?) }
-        .to raise_error(ApplicationPolicy::NotAuthorizedError, "ProjectPolicy#create_entry?")
-    end
+  %i[edit? update? archive? unarchive?].each do |rule|
+    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
   end
 end

@@ -5,6 +5,8 @@ module Orgs
   class TagsController < AppOrgBaseController
     include ProjectEntries
 
+    before_action { authorize! project, to: :show? }
+
     def show
       # EntryLog stores tags downcased, so `Handover` and `%23handover` find `#handover`
       @tag = params[:tag].delete_prefix("#").downcase

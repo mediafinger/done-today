@@ -44,5 +44,8 @@ module DoneToday
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # policies are asked on behalf of the Member, see ApplicationPolicy
+    config.action_policy.controller_authorize_current_user = false
   end
 end

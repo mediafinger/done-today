@@ -53,6 +53,16 @@ The app supports multi-tenant organization boundaries and project selection:
   - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (`set_current_org`: `Current.org` and `Current.member`, through the user's active memberships, else 404).
   - [ProjectScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/project_scope.rb) (`set_current_project`: `Current.project`, among the projects the member may read, else 404).
 - Build links with both slugs, e.g. `day_path(org, project, date)` (`Org#to_param` and `Project#to_param` are the slugs).
+- Authorization uses [ActionPolicy](https://actionpolicy.evilmartians.io), policies in `app/policies`. The subject is `current_member`
+  (roles depend on the org), nil outside of an org. `ApplicationPolicy` denies a nil or archived member and records of another org
+  in pre-checks, `ProjectPolicy` lets org owners through (except `create_entry?`).
+  - A record the member may not read is a 404: look it up through a scope, `authorized_scope(current_org.projects).find_by!(...)`.
+  - A record they may read but not change is a 403: `authorize! record` (rule from the action name, see the `alias_rule`s),
+    `ActionPolicy::Unauthorized` renders `application/error_403`. In views: `allowed_to?(:manage?, project)`.
+  - `verify_authorized` and `verify_authorized_scoped` are on for every controller: an action calls `authorize!` and
+    `authorized_scope` (the project lookup counts), or declares `skip_verify_authorized(_scoped)` with a comment why.
+  - `spec/requests/authorization_matrix_spec.rb` checks every endpoint against every persona, `spec/policies` the rules and scopes,
+    `spec/requests/authorization_verified_spec.rb` sends a request to every route so a forgotten `authorize!` fails.
 
 ### 5. Domain Model & PostgreSQL-specific Features
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).

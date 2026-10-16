@@ -7,7 +7,7 @@
   </div>
 
   <div class="center">
-    <% if policy(@project).create_entry? %>
+    <% if allowed_to?(:create_entry?, @project) %>
       <%= link_to "add or edit", edit_day_path(current_org, @project, Time.zone.today), method: :get, role: "button", class: "slim" %>
     <% end %>
   </div>

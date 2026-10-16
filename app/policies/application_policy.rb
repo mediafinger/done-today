@@ -1,48 +1,49 @@
-# Plain Ruby authorization, one policy per record type, always asked for one Member
-#   (the signed-in user within the current org).
+# ActionPolicy policies, one per record type, always asked for one Member (the
+#   signed-in user within the org of the path, nil outside of one).
 #
 #   * org roles live on `Member#roles` (member, owner)
 #   * project roles live on `Participant#roles` (observer, participant, owner)
 #
-#   Instance predicates answer "may this member do X to this record?".
-#   Class methods return the records a member may see or change, as relations.
+#   Rules answer "may this member do X to this record?", relation scopes return
+#   the records a member may see or change. Pre-checks do not run for scopes.
 #
-class ApplicationPolicy
-  class NotAuthorizedError < StandardError; end
+class ApplicationPolicy < ActionPolicy::Base
+  # roles depend on the org, so the member is the subject, not the user
+  authorization_targets.delete(:user)
+  authorize :member, allow_nil: true
 
-  attr_reader :member, :record
+  # an unknown rule raises instead of falling back to manage?
+  default_rule nil
 
-  def initialize(member, record)
-    @member = member
-    @record = record
-  end
-
-  # an archived member keeps their entries, but no access
-  def self.active?(member)
-    member.present? && !member.archived? && member.roles.intersect?(Member::VALID_ROLES)
-  end
-
-  def self.org_owner?(member)
-    active?(member) && member.roles.include?("owner")
-  end
-
-  # Returns the record, so it can be used inline: `entry = authorize!(:update?)`
-  def authorize!(query)
-    return record if public_send(query)
-
-    raise NotAuthorizedError, "#{self.class.name}##{query}"
-  end
+  pre_check :deny_inactive
+  pre_check :deny_other_org
 
   private
 
-  def org_owner_of?(project)
-    self.class.org_owner?(member) && project.org_id == member.org_id
+  # an archived member keeps their entries, but no access
+  def active?
+    member.present? && !member.archived?
   end
 
-  # [] when the member does not participate or belongs to another org
-  def project_roles(project)
-    return [] unless self.class.active?(member) && project&.org_id == member.org_id
+  def org_owner?
+    active? && member.roles.include?("owner")
+  end
 
+  def deny_inactive
+    deny! unless active?
+  end
+
+  # keeps allow_org_owner to the owner's own org
+  def deny_other_org
+    deny! if record.respond_to?(:org_id) && record.org_id != member.org_id
+  end
+
+  def allow_org_owner
+    allow! if org_owner?
+  end
+
+  # [] when the member does not participate
+  def project_roles(project)
     @project_roles ||= {}
     @project_roles[project.id] ||= member.participations.find_by(project:)&.roles || []
   end

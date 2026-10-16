@@ -4,6 +4,7 @@ ruby file: ".ruby-version"
 
 gem "rails", "~> 8.1.4"
 
+gem "action_policy", "~> 0.7" # authorization: policies, scopes, verify_authorized [https://actionpolicy.evilmartians.io]
 gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
