@@ -41,8 +41,8 @@ class Entry < ApplicationRecord
     status == "done"
   end
 
-  # `Time.zone` is pinned to AppConf.timezone, so these agree with the date the
-  #   user sees in the navigation regardless of the server's own zone
+  # `Time.zone` is the signed-in user's zone (ApplicationController#use_time_zone), so
+  #   these agree with the date the user sees in the navigation, whatever the server's zone
   #
   def today?
     Time.zone.today == day.date

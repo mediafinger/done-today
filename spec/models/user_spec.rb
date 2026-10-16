@@ -107,6 +107,18 @@ RSpec.describe User do
     it "refuses an unknown display mode" do
       expect(build(:user, display_mode: "sepia")).not_to be_valid
     end
+
+    it "refuses an unknown time zone, and a Rails zone name instead of an IANA identifier" do
+      expect(build(:user, time_zone: "Mars/Olympus_Mons")).not_to be_valid
+      expect(build(:user, time_zone: "Berlin")).not_to be_valid
+      expect(build(:user, time_zone: "America/New_York")).to be_valid
+    end
+  end
+
+  describe "time_zone" do
+    it "defaults to Europe/Berlin" do
+      expect(create(:user).reload.time_zone).to eq("Europe/Berlin")
+    end
   end
 
   describe "#theme" do

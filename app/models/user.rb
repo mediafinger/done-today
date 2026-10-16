@@ -4,6 +4,8 @@
 #
 class User < ApplicationRecord
   DISPLAY_MODES = %w[system light dark].freeze
+  # IANA identifiers of the zones Rails offers, e.g. "Europe/Berlin"
+  TIME_ZONES = ActiveSupport::TimeZone.all.map { it.tzinfo.identifier }.uniq.freeze
   EMAIL_CONFIRMATION_EXPIRES_IN = 1.day
   EMAIL_REVERT_EXPIRES_IN = 7.days
 
@@ -36,6 +38,7 @@ class User < ApplicationRecord
   validates :password, not_pwned: { message: "might easily be guessed" }, if:  :production_env
   validates :password_digest, presence: true
   validates :display_mode, inclusion: { in: DISPLAY_MODES }
+  validates :time_zone, inclusion: { in: TIME_ZONES, message: "%{value} is not a known time zone" }
   validates :unconfirmed_email, allow_nil: true,
     format: { with: URI::MailTo::EMAIL_REGEXP, message: "%{value} is not a valid email format" }
   validate :unconfirmed_email_available, if: -> { unconfirmed_email_changed? && unconfirmed_email }

@@ -72,6 +72,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "users/user_passwords#update"
       { user: { password: "a brand new password", password_confirmation: "a brand new password", password_challenge: "correct horse battery staple" } }
     when "users/display_modes#update" then { user: { display_mode: "dark" } }
+    when "users/time_zones#update" then { user: { time_zone: "America/New_York" } }
     when "orgs/entries#create" then { entry: { date: Time.zone.today.iso8601, log: "Logged" } }
     when "orgs/entries#update" then { entry: { log: "Changed" } }
     when "orgs/members#update" then { member: { role: "owner" } }

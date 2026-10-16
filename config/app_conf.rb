@@ -91,7 +91,8 @@ class AppConf
   register :done_name, default: "done"
   register :done_port, default: environment == "test" ? 3334 : 3333
   register :done_version, default: env_and_version
-  # entry dates are local dates, so "today" has to be resolved in a fixed zone
+  # entry dates are local dates, so "today" has to be resolved in a zone:
+  #   the user's own (User#time_zone), this one without a user
   register :timezone, default: "Europe/Berlin"
 
   # Database setup

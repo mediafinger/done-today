@@ -288,6 +288,10 @@ RSpec.describe "Authorization role matrix" do
     patch user_display_mode_path, params: { user: { display_mode: "dark" } }, headers: { "HTTP_REFERER" => root_url }
   end
 
+  row "PATCH /user/time_zone", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    patch user_time_zone_path, params: { user: { time_zone: "America/New_York" } }
+  end
+
   row "GET an unknown path", { anonymous: :to_sign_in, no_org: :not_found, member: :not_found } do
     get "/no/such/page/at/all"
   end
