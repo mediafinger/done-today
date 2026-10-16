@@ -89,9 +89,19 @@ Rails.application.routes.draw do
     end
   end
 
-  # namespace :admin do
-  #   mount MissionControl::Jobs::Engine, at: "/jobs"
-  # end
+  # only admins are routed here, everyone else ends in the catch-all below (AdminConstraint)
+  namespace :admin, module: "admins", constraints: ->(request) { AdminConstraint.matches?(request) } do
+    get "", to: "pages#show", as: "home"
+
+    # inherits from AdminController, see config/initializers/mission_control.rb
+    mount MissionControl::Jobs::Engine, at: "/mission_control_jobs"
+  end
+
+  # development and test only, letter_opener_web is in the development group of the Gemfile
+  namespace :dev, module: "devs", constraints: ->(_request) { Rails.env.local? } do
+    get "", to: "pages#show", as: "home"
+    mount LetterOpenerWeb::Engine, at: "/letter_opener" if defined?(LetterOpenerWeb)
+  end
 
   # keep this at the bottom of the routes file
   # catch all unknown routes to NOT throw a FATAL ActionController::RoutingError

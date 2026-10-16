@@ -9,7 +9,6 @@ gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: 
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
 gem "faker", "~> 3.4"
-gem "freezolite", "~> 0.5" # Freeze your strings
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "json", "< 3.0"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
@@ -48,6 +47,6 @@ end
 
 group :development do
   gem "fix-db-schema-conflicts" # to keep the schema.rb file sorted alphabetically without strong_migrations
-  gem "letter_opener", "~> 1.10" # Preview mail in the browser instead of sending
+  gem "letter_opener_web", "~> 3.0" # Preview sent mail at /dev/letter_opener instead of sending
   gem "web-console" # Use console on exceptions pages [https://github.com/rails/web-console]
 end

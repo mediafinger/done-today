@@ -125,8 +125,6 @@ GEM
       i18n (>= 1.8.11, < 2)
     fix-db-schema-conflicts (3.1.2)
       rubocop (>= 0.38.0)
-    freezolite (0.7.0)
-      require-hooks (~> 0.4)
     fugit (1.14.0)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -163,6 +161,11 @@ GEM
       logger (~> 1.6)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
+    letter_opener_web (3.0.0)
+      actionmailer (>= 6.1)
+      letter_opener (~> 1.9)
+      railties (>= 6.1)
+      rexml
     lint_roller (1.1.0)
     logger (1.7.0)
     loofah (2.25.2)
@@ -176,7 +179,6 @@ GEM
       net-smtp
     marcel (1.2.1)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
@@ -205,9 +207,6 @@ GEM
       net-protocol
     net-ssh (7.3.6)
     nio4r (2.7.5)
-    nokogiri (1.19.4)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.19.4-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.4-aarch64-linux-musl)
@@ -301,7 +300,7 @@ GEM
     regexp_parser (2.13.1)
     reline (0.7.0)
       io-console (~> 0.5)
-    require-hooks (0.5.1)
+    rexml (3.4.4)
     rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
@@ -444,11 +443,10 @@ DEPENDENCIES
   factory_bot_rails (~> 6.2)
   faker (~> 3.4)
   fix-db-schema-conflicts
-  freezolite (~> 0.5)
   importmap-rails
   json (< 3.0)
   kamal
-  letter_opener (~> 1.10)
+  letter_opener_web (~> 3.0)
   mission_control-jobs (~> 1.0)
   pg (~> 1.1)
   propshaft

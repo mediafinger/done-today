@@ -3,7 +3,8 @@ require "rails_helper"
 # ApplicationController verifies that every action called `authorize!` and
 #   `authorized_scope`, or skipped the check explicitly, and raises otherwise.
 #   This sends one request per route of the app as an owner of the org and lead of the project (as a member
-#   outside the project to ask to join it), so every action runs to its end and its verification with it.
+#   outside the project to ask to join it, as an admin in the admin area), so every action runs to its end and its
+#   verification with it.
 #
 #   A new route needs its params below, or this fails. The engines' routes have no
 #   ApplicationController action and are left out.
@@ -89,6 +90,13 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     end
   end
 
+  def signed_in_user(controller, action)
+    return create(:user, :admin) if controller.start_with?("admins/")
+    return requester.user if "#{controller}##{action}" == "orgs/access_requests#create"
+
+    me.user
+  end
+
   def self.app_routes
     Rails.application.routes.routes.filter_map do |route|
       controller, action = route.defaults.values_at(:controller, :action)
@@ -101,7 +109,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
 
   app_routes.each do |verb, spec, controller, action|
     it "#{verb} #{spec} (#{controller}##{action})" do
-      sign_in("#{controller}##{action}" == "orgs/access_requests#create" ? requester.user : me.user)
+      sign_in(signed_in_user(controller, action))
       path = spec.gsub(/[:*](\w+)/) { path_value(Regexp.last_match(1), controller).to_s }
 
       public_send(verb.downcase, path, params: request_params(controller, action), headers: { "HTTP_REFERER" => root_url })

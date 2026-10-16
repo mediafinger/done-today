@@ -81,6 +81,11 @@ RSpec.describe Org do
       expect(org.errors[:slug]).to be_present
     end
 
+    # /admin and /dev are areas of the app, not orgs
+    it "steers clear of the admin and dev areas" do
+      expect { create(:org, name: "Admin") }.to raise_error(ActiveRecord::RecordInvalid)
+    end
+
     it "refuses a reserved word set by hand" do
       org = create(:org)
 
