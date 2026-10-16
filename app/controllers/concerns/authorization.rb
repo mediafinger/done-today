@@ -18,6 +18,25 @@ module Authorization
 
   private
 
+  # The action already ran: in production a missed check is reported, not turned into a 500.
+  def verify_authorized
+    super
+  rescue ActionPolicy::UnauthorizedAction => e
+    report_missed_check(e)
+  end
+
+  def verify_authorized_scoped
+    super
+  rescue ActionPolicy::UnscopedAction => e
+    report_missed_check(e)
+  end
+
+  def report_missed_check(error)
+    raise error unless Rails.env.production?
+
+    Rails.error.report(error)
+  end
+
   def render_forbidden
     respond_to do |format|
       format.html { render "application/error_403", status: :forbidden }
