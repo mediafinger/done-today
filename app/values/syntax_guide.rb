@@ -21,6 +21,12 @@ class SyntaxGuide
       parsed: { day_start_minutes: 9 * 60 }
     ),
     Example.new(
+      markup: "start@", log: "start@9.00",
+      meaning: "The same. Every clock time can be written as 9:00, 09:00, 9.00, 900 or 0900: " \
+               "the last two digits are the minutes.",
+      parsed: { day_start_minutes: 9 * 60 }
+    ),
+    Example.new(
       markup: "end@", log: "end@17:30",
       meaning: "Your working day ends at 17:30.",
       parsed: { day_end_minutes: (17 * 60) + 30 }
@@ -75,8 +81,8 @@ class SyntaxGuide
       parsed: { duration_minutes: nil, issues: %i[invalid_duration] }
     ),
     Example.new(
-      markup: nil, log: "start@9.00",
-      meaning: "Clock times need a colon: start@9:00 or start@09:00.",
+      markup: nil, log: "start@9",
+      meaning: "A clock time needs its two minute digits: start@9:00, start@9.00 or start@900.",
       parsed: { day_start_minutes: nil, issues: %i[invalid_time] }
     )
   ].freeze

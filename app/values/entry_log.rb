@@ -44,14 +44,17 @@ class EntryLog
   # cannot look behind it: an inline lookbehind would silently always succeed.
   #
   TAG      = /\#(?<name>\p{Alnum}[\p{Alnum}_\/-]*)/
-  TIME     = /(?<kind>start|end|from|to)@(?<h>\d{1,2}):(?<m>\d{2})\b/i
+  # `9:00`, `09.00`, `900` and `0900` are the same time: the last two digits are
+  #   always the minutes, so the separator is optional.
+  TIME     = /(?<kind>start|end|from|to)@(?<h>\d{1,2})[:.]?(?<m>\d{2})\b/i
   # Hours may carry a decimal point or comma (`for~2.5h`, `for~2,5h`); minutes may not.
   DURATION = /for~(?=\d)(?:(?<h>\d+(?:[.,]\d+)?)h)?(?:(?<m>\d+)m)?(?![\p{Alnum}])/i
 
   # Fallbacks, tried only where the strict patterns fail. They recognise "this was
   # meant to be time markup" so the typo can be reported instead of silently ignored.
   # `to@bob` does not look like a time at all and stays prose without an issue.
-  MALFORMED_TIME     = /(?<kind>start|end|from|to)@(?=[\d:])[\p{Alnum}:]*/i
+  # Takes in a full stop only when more follows, like MALFORMED_DURATION.
+  MALFORMED_TIME     = /(?<kind>start|end|from|to)@(?=[\d:])[\p{Alnum}:]*(?:\.[\p{Alnum}:]+)*/i
   # Takes in a decimal separator only when more follows, so `for~2.5hh` is reported
   #   whole while the full stop after `for~2x.` stays prose.
   MALFORMED_DURATION = /for~\p{Alnum}*(?:[.,]\p{Alnum}+)*/i
