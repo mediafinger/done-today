@@ -23,15 +23,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # The org | project switcher used to store the choice in the session, kept for bookmarks.
-  #   The route helpers escape the slugs: "/%{org_slug}" would forward %2Fhost to //host.
-  get "open/:org_slug(/:project_slug)", to: redirect { |params, _request|
-    paths = Rails.application.routes.url_helpers
-    slugs = params.values_at(:org_slug, :project_slug).compact
-
-    slugs.one? ? paths.org_path(*slugs) : paths.project_path(*slugs)
-  }
-
   # the user's settings, /:org_slug/settings adds those of an org
   get "settings", to: "orgs/settings#show"
 
