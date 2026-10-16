@@ -3,6 +3,7 @@ require_relative "boot"
 # Read ENV variables and make AppConf settings available
 require_relative "app_conf"
 require_relative "mail_settings"
+require_relative "../lib/middleware/request_id_sanitizer"
 
 require "rails"
 # Pick the frameworks you want:
@@ -30,7 +31,7 @@ module DoneToday
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets middleware tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -58,6 +59,8 @@ module DoneToday
       ActionDispatch::RequestId,
       ::Rack::RequestID, include_response_header: true, overwrite: false
     )
+    # Rack::RequestID copies the incoming id to the response unchanged, so clean it first
+    config.middleware.insert_before(::Rack::RequestID, RequestIdSanitizer)
 
     # start the timer once the request has its id, start with DEBUG=true for 300 seconds
     config.middleware.insert_after(
