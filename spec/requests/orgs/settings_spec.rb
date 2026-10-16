@@ -50,4 +50,51 @@ RSpec.describe "Orgs::Settings" do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe "admin links" do
+    let(:admin_links) { [ admin_home_path, admin_mission_control_jobs_path ] }
+
+    it "are hidden from a user who is no admin" do
+      get settings_path
+
+      expect(links).not_to include(*admin_links)
+    end
+
+    it "are shown to an admin, on /settings and on /:org/settings" do
+      participant.member.user.update!(admin: true)
+
+      [ settings_path, org_settings_path(org) ].each do |path|
+        get path
+
+        expect(links).to include(*admin_links)
+      end
+    end
+  end
+
+  # /dev is routed in development and test only (DevConstraint), letter_opener_web is in the development group
+  describe "dev links" do
+    it "lead to the dev area in development and test, for everyone" do
+      get settings_path
+
+      expect(links).to include(dev_home_path)
+      expect(links).not_to include("/dev/letter_opener")
+    end
+
+    it "lead to the sent mail when letter_opener_web is loaded" do
+      stub_const("LetterOpenerWeb", Module.new)
+
+      get org_settings_path(org)
+
+      expect(links).to include(dev_home_path, "/dev/letter_opener")
+    end
+
+    it "are hidden when the dev area is not routed" do
+      allow(Rails.env).to receive(:local?).and_return(false)
+      stub_const("LetterOpenerWeb", Module.new)
+
+      get settings_path
+
+      expect(links.grep(%r{\A/dev})).to be_empty
+    end
+  end
 end

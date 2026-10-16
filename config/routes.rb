@@ -98,7 +98,7 @@ Rails.application.routes.draw do
   end
 
   # development and test only, letter_opener_web is in the development group of the Gemfile
-  namespace :dev, module: "devs", constraints: ->(_request) { Rails.env.local? } do
+  namespace :dev, module: "devs", constraints: ->(request) { DevConstraint.matches?(request) } do
     get "", to: "pages#show", as: "home"
     mount LetterOpenerWeb::Engine, at: "/letter_opener" if defined?(LetterOpenerWeb)
   end
