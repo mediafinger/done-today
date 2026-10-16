@@ -1,5 +1,6 @@
 # Org managers and owners send, resend and revoke the org's invitations, a project's owners
 #   those of its guests. Only owners invite as owner, or invite a deactivated owner back.
+#   Only managers and owners bring a deactivated internal back, even as guest.
 #   Ask with the change assigned.
 #
 class InvitationPolicy < ApplicationPolicy
@@ -14,6 +15,7 @@ class InvitationPolicy < ApplicationPolicy
   private
 
   def guest_of_their_project?
-    record.guest? && record.project.present? && allowed_to?(:invite_guest?, record.project)
+    record.guest? && record.project.present? && !record.to_deactivated_internal? &&
+      allowed_to?(:invite_guest?, record.project)
   end
 end

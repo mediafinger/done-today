@@ -52,6 +52,11 @@ class Invitation < ApplicationRecord
     org.members.archived.owners.joins(:user).exists?(users: { email: })
   end
 
+  # a deactivated member, manager or owner, not a guest deactivated with their last project
+  def to_deactivated_internal?
+    org.members.archived.internal.joins(:user).exists?(users: { email: })
+  end
+
   # Returns the member: a new one, the user's archived one reactivated with the invited
   #   role (one row per org and user), or their active one left as it is. A guest
   #   invitation also adds the project, so an active member only gains that.
