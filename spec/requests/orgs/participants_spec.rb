@@ -38,7 +38,7 @@ RSpec.describe "Orgs::Participants" do
       get edit_project_path(org, project)
 
       expect(page.css("#new-participant select[name='participant[role]'] option").pluck("value")).to eq(%w[observer participant lead])
-      expect(page.text.squish).to include("leads also edit everybody's entries and manage the project")
+      expect(page.text.squish).to include("Leads manage the project and can (optionally) log entries and times")
     end
 
     it "offers the active members of the org who do not take part yet" do

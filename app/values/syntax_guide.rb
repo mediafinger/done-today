@@ -34,12 +34,12 @@ class SyntaxGuide
     ),
     Example.new(
       markup: "start@", log: "start@0:00",
-      meaning: "Midnight, the start of the day. Times run from 0:00 to 24:00, so work past midnight has to logged on the next day.",
-      parsed: { day_end_minutes: 24 * 60 }
+      meaning: "Midnight, the start of the day. Times run from 0:00 to 24:00, so work past midnight has to be logged on the next day.",
+      parsed: { day_start_minutes: 0 }
     ),
     Example.new(
       markup: "end@", log: "end@24:00",
-      meaning: "Midnight, the end of the day. Times run from 0:00 to 24:00, so work past midnight has to logged on the next day.",
+      meaning: "Midnight, the end of the day. Times run from 0:00 to 24:00, so work past midnight has to be logged on the next day.",
       parsed: { day_end_minutes: 24 * 60 }
     ),
     Example.new(
