@@ -122,19 +122,74 @@ RSpec.describe "Authorization role matrix" do
     get export_days_csv_project_path(project.slug, month: "2026-03", member_id: colleagues_entry.member_id)
   end
 
-  row "GET /entries?project_id=", {
-    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  row "GET /entries?project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
   } do
     get entries_path(project_id: project.id, mode: "read")
   end
 
-  row "GET /entries?mode=edit&project_id=", {
+  row "GET /days/:date?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    colleagues_entry # the day exists
+
+    get day_path(Time.zone.today, project_id: project.id)
+  end
+
+  row "GET /days/:date/edit?project_id=", {
     outsider: :not_found, member: :not_found, observer: :read_only, participant: :form, project_owner: :form,
     org_owner: :read_only
   } do
     colleagues_entry # the day exists
 
+    get edit_day_path(Time.zone.today, project_id: project.id)
+  end
+
+  row "GET /entries?mode=edit&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
     get entries_path(project_id: project.id, mode: "edit")
+  end
+
+  row "GET /tags/:tag?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    get tag_path("handover", project_id: project.id)
+  end
+
+  row "GET /weeks/:week?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    get week_path("2026-W38", project_id: project.id)
+  end
+
+  row "GET /members/:id/entries?project_id=", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    get member_entries_path(colleague, project_id: project.id)
+  end
+
+  row "GET /entries?tag=&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
+    get entries_path(tag: "handover", project_id: project.id)
+  end
+
+  row "GET /entries?week=&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
+    get entries_path(week: "2026-W38", project_id: project.id)
+  end
+
+  row "GET /entries?member_id=&project_id= (old URL)", {
+    outsider: :not_found, member: :not_found, observer: :moved_permanently, participant: :moved_permanently,
+    project_owner: :moved_permanently, org_owner: :moved_permanently
+  } do
+    get entries_path(member_id: colleague.id, project_id: project.id)
   end
 
   # only a participation selects P as the current project, everyone else is sent to pick one

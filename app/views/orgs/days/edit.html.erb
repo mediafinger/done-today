@@ -1,0 +1,18 @@
+<%= render "orgs/days/nav", date: @date, project: @project, editing: true,
+      unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
+
+<%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes, asked: @asked_to_validate if @issues %>
+
+<ul class="bottom-spacer" id="editable-entries">
+  <% if @locked %>
+    <% @entries.each_with_index do |entry, index| %>
+      <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index %>
+    <% end %>
+  <% else %>
+    <% @entries.each do |entry| %>
+      <%= render "orgs/entries/editable_entry", entry: entry, unlocked: @unlocked %>
+    <% end %>
+
+    <%= render "orgs/entries/new_entry", entry: @new_entry, unlocked: @unlocked %>
+  <% end %>
+</ul>

@@ -47,3 +47,4 @@ en:
     no_org_selected: "Select an org first"
     no_project_selected: "Select a project first"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"
+    unknown_week: "%{week} is not a week, it has to look like 2026-W39"

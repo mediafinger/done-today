@@ -79,7 +79,7 @@ RSpec.describe "Orgs::Projects" do
       link = show_project.at_css("a.tag")
 
       expect(link.text).to eq("#Handover")
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read"))
+      expect(link["href"]).to eq(tag_path("handover"))
     end
 
     it "keeps the project in the tag link when it is not the current one" do
@@ -88,7 +88,7 @@ RSpec.describe "Orgs::Projects" do
 
       link = show_project(of: other).at_css("a.tag")
 
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read", project_id: other.id))
+      expect(link["href"]).to eq(tag_path("handover", project_id: other.id))
     end
   end
 
@@ -112,7 +112,7 @@ RSpec.describe "Orgs::Projects" do
       headings = show_weeks.css(".period h3 a")
 
       expect(headings.map(&:text)).to eq([ "2026 / w39", "2026 / w38" ])
-      expect(headings.first["href"]).to eq(entries_path(week: "2026-W39", project_id: project.id))
+      expect(headings.first["href"]).to eq(week_path("2026-W39", project_id: project.id))
     end
 
     it "lists the members of the week alphabetically, with their total and tags" do
@@ -124,9 +124,9 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_weeks.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+        %w[break handover pr123].map { tag_path(it) }
       )
     end
 
@@ -165,7 +165,7 @@ RSpec.describe "Orgs::Projects" do
       links = show_months.css(".period h3").first.css("a")
 
       expect(links.map { it["href"] }).to eq([
-        entries_path(week: "2026-W36", project_id: project.id), entries_path(week: "2026-W40", project_id: project.id)
+        week_path("2026-W36", project_id: project.id), week_path("2026-W40", project_id: project.id)
       ])
     end
 
@@ -178,9 +178,9 @@ RSpec.describe "Orgs::Projects" do
     it "links the members and their tags" do
       line = show_months.css(".period").first.css("li").last
 
-      expect(line.at_css("a")["href"]).to eq(entries_path(member_id: member.id, project_id: project.id))
+      expect(line.at_css("a")["href"]).to eq(member_entries_path(member, project_id: project.id))
       expect(line.css("a.tag").map { it["href"] }).to eq(
-        %w[break handover pr123].map { entries_path(tag: it, mode: "read") }
+        %w[break handover pr123].map { tag_path(it) }
       )
     end
 
@@ -219,7 +219,7 @@ RSpec.describe "Orgs::Projects" do
       entry_on("2026-09-21", "start@09:00 kickoff")
 
       expect(validate.at_css(".period h3 a")["href"])
-        .to eq(entries_path(date: "2026-09-21", mode: "edit", unlocked: "1", project_id: project.id))
+        .to eq(edit_day_path("2026-09-21", unlocked: "1", project_id: project.id))
     end
 
     it "reports a day without any time markup" do

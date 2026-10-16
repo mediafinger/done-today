@@ -8,134 +8,68 @@ RSpec.describe "Orgs::Entries" do
 
   before { sign_in_and_open(participant) }
 
-  describe "GET /entries" do
-    it "defaults to today when no date is given" do
-      get entries_path(mode: "edit")
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(Time.zone.today.iso8601)
+  describe "the URLs from before the split" do
+    def expect_moved_to(path)
+      expect(response).to redirect_to(path)
+      expect(response).to have_http_status(:moved_permanently)
     end
 
-    it "falls back to today when the date cannot be parsed" do
+    it "sends a bare /entries to today's entries" do
+      get entries_path
+
+      expect_moved_to(day_path(Time.zone.today))
+    end
+
+    it "sends the edit mode to the day's edit page, keeping unlocked and validate" do
+      get entries_path(date: "2026-03-01", mode: "edit", unlocked: "1", validate: "1")
+
+      expect_moved_to(edit_day_path("2026-03-01", unlocked: "1", validate: "1"))
+    end
+
+    it "sends an unparseable date to today" do
       get entries_path(date: "not-a-date", mode: "edit")
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(Time.zone.today.iso8601)
+      expect_moved_to(edit_day_path(Time.zone.today))
     end
 
-    it "shows the requested day, not today" do
-      get entries_path(date: "2026-03-01", mode: "edit")
+    it "sends a day of another project to that day, keeping the project" do
+      other = create(:participant, project: create(:project, org:), member:).project
 
-      # the date nav always links to today, so assert on the heading
-      expect(response.body).to include("Day 2026-03-01 (Sunday)")
-      expect(response.body).not_to include("Day #{Time.zone.today.iso8601}")
+      get entries_path(date: "2026-03-01", project_id: other.id)
+
+      expect_moved_to(day_path("2026-03-01", project_id: other.id))
     end
 
-    it "renders the project grouping without blowing up on a missing partial" do
+    it "sends the project grouping to the project page" do
       get entries_path(project_id: project.id, mode: "read")
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(project.name)
-    end
-  end
-
-  describe "the editable entry form" do
-    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
-
-    it "renders the status controls as submit buttons inside the form" do
-      get entries_path(mode: "edit")
-
-      expect(response.body).to include(%(<button name="entry[status]" type="submit" value="done"))
+      expect_moved_to(project_path(project.slug))
     end
 
-    # ENTER submits a form through its first submit button. When that was the "todo"
-    #   status button, every ENTER in the log field reset the status to todo.
-    it "makes a button without a status the one ENTER submits through" do
-      get entries_path(mode: "edit")
+    it "sends the week to the week page" do
+      get entries_path(week: "2026-W38", project_id: project.id)
 
-      form = Nokogiri::HTML(response.body).at_css("##{ActionView::RecordIdentifier.dom_id(entry)} form")
-      default_button = form.at_css("button[type=submit]")
-
-      expect(default_button["name"]).to be_nil
-      expect(form.css("button[name='entry[status]']").size).to eq(Entry::STATES.size)
+      expect_moved_to(week_path("2026-W38", project_id: project.id))
     end
 
-    it "no longer links the status to a PATCH url that drops the typed log" do
-      get entries_path(mode: "edit")
+    it "sends the tag to the tag page, keeping the project" do
+      other = create(:participant, project: create(:project, org:), member:).project
 
-      expect(response.body).not_to include("entry%5Bstatus%5D")
+      get entries_path(tag: "handover", mode: "read", project_id: other.id)
+
+      expect_moved_to(tag_path("handover", project_id: other.id))
     end
 
-    it "wires the entry-form controller up to the field and to the status buttons" do
-      get entries_path(mode: "edit")
+    it "sends the member to the member's page" do
+      get entries_path(member_id: member.id, project_id: project.id)
 
-      expect(response.body).to include(%(data-controller="entry-form"))
-      expect(response.body).to include("keydown.esc-&gt;entry-form#revert")
-      expect(response.body).to include("blur-&gt;entry-form#saveIfChanged")
-      expect(response.body).to include("mousedown-&gt;entry-form#noteStatusPress")
+      expect_moved_to(member_entries_path(member, project_id: project.id))
     end
 
-    it "gives every entry a stable dom id so a Turbo Stream can address it" do
-      get entries_path(mode: "edit")
+    it "is a 404 for a project the member cannot read" do
+      get entries_path(project_id: create(:project, org:).id)
 
-      expect(response.body).to include(%(id="#{ActionView::RecordIdentifier.dom_id(entry)}"))
-    end
-
-    it "gives each log field its own id instead of repeating entry_log" do
-      create(:entry, day: entry.day, member:, log: "A second entry")
-
-      get entries_path(mode: "edit")
-
-      expect(response.body.scan(%(id="entry_log")).count).to eq(0)
-    end
-
-    it "focuses the new entry field without an inline script" do
-      get entries_path(mode: "edit")
-
-      expect(response.body).not_to include("document.location.hash")
-      expect(response.body).to include(%(data-controller="autofocus"))
-    end
-  end
-
-  describe "past days" do
-    let!(:old_entry) { create(:entry, day: create(:day, project:, date: Time.zone.yesterday), member:) }
-
-    it "renders a past day read-only and offers to unlock it" do
-      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit")
-
-      expect(response.body).not_to include(%(data-controller="entry-form"))
-      expect(response.body).to include(old_entry.log)
-      expect(response.body).to include("unlock to edit")
-    end
-
-    it "does not offer a new entry field while the day is locked" do
-      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit")
-
-      expect(response.body).not_to include(%(id="new-entry"))
-    end
-
-    it "edits the day once it has been unlocked" do
-      get entries_path(date: Time.zone.yesterday.iso8601, mode: "edit", unlocked: "1")
-
-      expect(response.body).to include(%(data-controller="entry-form"))
-      expect(response.body).to include(%(id="new-entry"))
-      expect(response.body).to include("lock again")
-    end
-
-    it "keeps today editable without unlocking" do
-      create(:entry, day: create(:day, project:, date: Time.zone.today), member:)
-
-      get entries_path(mode: "edit")
-
-      expect(response.body).to include(%(data-controller="entry-form"))
-      expect(response.body).not_to include("unlock to edit")
-    end
-
-    it "keeps a future day editable without unlocking" do
-      get entries_path(date: Time.zone.tomorrow.iso8601, mode: "edit")
-
-      expect(response.body).to include(%(id="new-entry"))
-      expect(response.body).not_to include("unlock to edit")
+      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -148,7 +82,7 @@ RSpec.describe "Orgs::Entries" do
       patch entry_path(old_entry), params: { entry: { log: "Changed in passing" } }
 
       expect(old_entry.reload.log).to eq("Wrote some code")
-      expect(response).to redirect_to(entries_path(date: yesterday, mode: "edit"))
+      expect(response).to redirect_to(edit_day_path(yesterday))
       expect(flash[:alert]).to eq("#{yesterday.iso8601} is locked, unlock the day to change it")
     end
 
@@ -164,7 +98,7 @@ RSpec.describe "Orgs::Entries" do
       patch entry_path(old_entry), params: { entry: { log: "Fixed it after all" }, unlocked: "1" }
 
       expect(old_entry.reload.log).to eq("Fixed it after all")
-      expect(response).to redirect_to(entries_path(date: yesterday, mode: "edit", unlocked: true))
+      expect(response).to redirect_to(edit_day_path(yesterday, unlocked: true))
     end
 
     it "refuses a new entry on a locked past day, without creating the day" do
@@ -186,366 +120,8 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
-  describe "validating a day in edit mode" do
-    let(:day) { create(:day, project:, date: Time.zone.yesterday) }
-
-    def edit_day(**params)
-      get entries_path(date: day.date.iso8601, mode: "edit", unlocked: "1", **params)
-      Nokogiri::HTML(response.body)
-    end
-
-    def validate_day
-      edit_day(validate: "1")
-    end
-
-    it "offers the check once the day has entries" do
-      create(:entry, day:, member:, log: "start@09:00 kickoff")
-
-      link = edit_day.at_css(".spacing-grid a[href*='validate']")
-
-      expect(link.text).to eq("validate")
-      expect(link["href"]).to eq(entries_path(date: day.date, mode: "edit", unlocked: true, validate: "1"))
-    end
-
-    it "does not offer it for a day without entries" do
-      expect(edit_day.at_css("a[href*='validate']")).to be_nil
-    end
-
-    it "explains the issues without being asked" do
-      create(:entry, day:, member:, log: "start@09:00 kickoff")
-
-      page = edit_day
-
-      expect(page.at_css("#time-issues").text).to include("has no end@")
-      expect(page.at_css("#validation-ok")).to be_nil
-    end
-
-    it "keeps quiet about a day that adds up until the button is pressed" do
-      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
-
-      page = edit_day
-
-      expect(page.at_css("#time-issues")).to be_nil
-      expect(page.at_css("#validation-ok")).to be_nil
-    end
-
-    it "explains the issues in a box above the entries" do
-      create(:entry, day:, member:, log: "start@09:00 kickoff")
-      create(:entry, day:, member:, log: "end@25:00 for~40h wrapped up", status: "todo")
-
-      box = validate_day.at_css("#time-issues")
-
-      expect(box.css("li").map { it.text.squish }).to eq([
-        "#{member.name} for~40h exceeds 24h",
-        "#{member.name} end@25:00 for~40h is still marked as todo"
-      ])
-      expect(response.body.index("time-issues")).to be < response.body.index(%(id="editable-entries"))
-    end
-
-    it "reports the all-clear with the day's total" do
-      create(:entry, day:, member:, log: "start@09:00 kickoff")
-      create(:entry, day:, member:, log: "#break for~30m")
-      create(:entry, day:, member:, log: "end@17:00 wrapped up")
-
-      page = validate_day
-
-      expect(page.at_css("#validation-ok").text.squish).to eq("Everything ok — 7h30m total")
-      expect(page.at_css("#time-issues")).to be_nil
-    end
-
-    it "checks only this member's own entries" do
-      colleague = create(:participant, project:).member
-      create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")
-      create(:entry, day:, member: colleague, log: "start@09:00 an open day of theirs")
-
-      page = validate_day
-
-      expect(page.at_css("#validation-ok")).to be_present
-      expect(page.at_css("#time-issues")).to be_nil
-    end
-  end
-
-  describe "the time and tag information of a day" do
-    let(:day) { create(:day, project:, date: Date.new(2026, 9, 21)) }
-
-    def log(text, status: "done")
-      create(:entry, day:, member:, log: text, status:)
-    end
-
-    def read_day
-      get entries_path(date: day.date.iso8601, mode: "read")
-      Nokogiri::HTML(response.body)
-    end
-
-    it "shows start, end, breaks and the total above the entries" do
-      log("start@09:00")
-      log("#break for~30m")
-      log("end@17:30")
-
-      page = read_day
-      info = page.at_css(".time-summary .time-info").text.squish
-
-      expect(info).to eq("#{member.name} 09:00 – 17:30 · 30m break · 8h total")
-      expect(response.body.index("time-summary")).to be < response.body.index(%(id="entries"))
-    end
-
-    it "shows an open end while the day is still running" do
-      log("start@09:00")
-
-      expect(read_day.at_css(".time-info").text.squish).to eq("#{member.name} 09:00 – …")
-    end
-
-    it "lists every tag of the day in one line" do
-      log("start@09:00 #Handover")
-      log("paired on #PR123 and #handover")
-
-      expect(read_day.css(".tag-info .tag").map(&:text)).to eq(%w[#handover #pr123])
-    end
-
-    it "colours the time red while a time entry is todo" do
-      log("start@09:00", status: "doing")
-      log("end@17:00", status: "todo")
-
-      expect(read_day.at_css(".time-info")["class"]).to include("time-todo")
-    end
-
-    it "colours the time yellow while a time entry is doing" do
-      log("start@09:00", status: "doing")
-      log("end@17:00")
-
-      expect(read_day.at_css(".time-info")["class"]).to include("time-doing")
-    end
-
-    it "keeps the time uncoloured once every time entry is done" do
-      log("start@09:00")
-      log("unrelated", status: "todo")
-
-      expect(read_day.at_css(".time-info")["class"]).not_to match(/time-(todo|doing)/)
-    end
-
-    it "keeps the members' times apart" do
-      colleague = create(:participant, project:).member
-      log("start@09:00")
-      create(:entry, day:, member: colleague, log: "start@11:00")
-
-      expect(read_day.css(".time-info").map { it.text.squish }).to contain_exactly(
-        "#{member.name} 09:00 – …", "#{colleague.name} 11:00 – …"
-      )
-    end
-
-    it "leaves out the block on a day without markup" do
-      log("wrote some code")
-
-      expect(read_day.at_css(".time-summary")).to be_nil
-    end
-
-    it "does not add up start and end times across days" do
-      log("start@09:00")
-
-      get entries_path(mode: "read")
-
-      expect(response.body).not_to include("time-summary")
-    end
-
-    it "links the tags of the tag line to their overview page" do
-      log("handed over #Handover")
-
-      link = read_day.at_css(".tag-info a.tag")
-
-      expect(link.text).to eq("#handover")
-      expect(link["href"]).to eq(entries_path(tag: "handover", mode: "read"))
-    end
-
-    it "links the tags inside a log, keeping how they were written" do
-      log("reviewed #PR123 today")
-
-      link = read_day.at_css("#entries a.tag")
-
-      expect(link.text).to eq("#PR123")
-      expect(link["href"]).to eq(entries_path(tag: "pr123", mode: "read"))
-    end
-
-    it "still escapes the rest of the log" do
-      log("<b>bold</b> #tagged")
-
-      read_day
-
-      expect(response.body).to include("&lt;b&gt;bold&lt;/b&gt;")
-      expect(response.body).not_to include("<b>bold</b>")
-    end
-  end
-
-  describe "GET /entries?week=" do
-    def entry_on(date, log)
-      day = Day.find_or_create_by!(project:, date: Date.parse(date))
-      create(:entry, day:, member:, log:)
-    end
-
-    def read_week(week, **params)
-      get entries_path(week:, project_id: project.id, **params)
-      Nokogiri::HTML(response.body)
-    end
-
-    it "lists the entries of the ISO week, newest day first" do
-      entry_on("2026-09-13", "sunday before")
-      entry_on("2026-09-14", "monday of w38")
-      entry_on("2026-09-20", "sunday of w38")
-      entry_on("2026-09-21", "monday after")
-
-      text = read_week("2026-W38").at_css("#entries").text
-
-      expect(text).to match(/sunday of w38.*monday of w38/m)
-      expect(text).not_to include("before")
-      expect(text).not_to include("after")
-    end
-
-    it "shows each member's total on the first line of every day" do
-      entry_on("2026-09-15", "start@09:00 end@14:30")
-      entry_on("2026-09-15", "wrote code")
-      entry_on("2026-09-14", "start@10:00 end@12:00")
-
-      rows = read_week("2026-W38").css("#entries .entry-heading-row").map { it.text.squish }
-
-      expect(rows).to eq([ "2026-09-15 #{member.name} (5h30m)", "2026-09-14 #{member.name} (2h)" ])
-    end
-
-    it "names the project and the week in the headline, without a project column" do
-      entry_on("2026-09-14", "monday of w38")
-
-      page = read_week("2026-W38")
-
-      expect(page.at_css(".spacing-grid h2").text.squish).to eq("#{project.name} 2026 / w38")
-      expect(page.css("#entries .entry-group-heading").map { it.text.squish }).to eq([ "2026-09-14", member.name ])
-    end
-
-    it "links to the previous and the next week, across the turn of the year" do
-      arrows = read_week("2026-W53").css(".spacing-grid .right a")
-
-      expect(arrows.map(&:text)).to eq(%w[⬅️ ➡️])
-      expect(arrows.map { it["href"] }).to eq([
-        entries_path(week: "2026-W52", project_id: project.id),
-        entries_path(week: "2027-W01", project_id: project.id)
-      ])
-    end
-
-    it "stays read-only, even when asked to edit" do
-      entry_on("2026-09-14", "monday of w38")
-
-      expect(read_week("2026-W38", mode: "edit").at_css("form")).to be_nil
-    end
-
-    it "ignores a week it cannot read instead of failing" do
-      read_week("2026-W99")
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).not_to include("w99")
-    end
-  end
-
-  describe "GET /entries?tag=" do
-    let(:colleague) { create(:participant, project:).member }
-
-    def entry_on(date, log, by: member, status: "done")
-      day = Day.find_or_create_by!(project:, date: Date.parse(date))
-      create(:entry, day:, member: by, log:, status:)
-    end
-
-    def read_tag(tag, **params)
-      get entries_path(tag:, mode: "read", **params)
-      Nokogiri::HTML(response.body)
-    end
-
-    # the date and member heading of every listed line
-    def lines(page)
-      page.css("#entries li").map { |line| line.css(".entry-group-heading").map { it.text.squish } }
-    end
-
-    it "names the project and the tag in the headline" do
-      expect(read_tag("handover").at_css(".spacing-grid h2").text.squish).to eq("#{project.name} #handover")
-    end
-
-    it "lists the tagged entries newest first, showing date and member only where they change" do
-      entry_on("2026-09-01", "first #handover")
-      entry_on("2026-09-03", "third #handover", by: colleague)
-      entry_on("2026-09-03", "fourth #handover", by: colleague)
-      entry_on("2026-09-02", "untagged")
-
-      page = read_tag("handover")
-
-      expect(page.css("#entries li").map { it.text.squish }).to all(include("handover"))
-      expect(lines(page)).to eq([
-        [ "2026-09-03", colleague.name ],
-        [],
-        [ "2026-09-01", member.name ]
-      ])
-      expect(page.at_css("#entries").text).to match(/fourth.*third.*first/m)
-    end
-
-    it "puts the headings of a group on a row of their own, above its entries" do
-      entry_on("2026-09-01", "first #handover")
-      entry_on("2026-09-01", "second #handover")
-
-      page = read_tag("handover")
-      heading_rows = page.css("#entries .entry-heading-row")
-
-      expect(heading_rows.map { it.text.squish }).to eq([ "2026-09-01 #{member.name}" ])
-      expect(heading_rows.css(".btn-done")).to be_empty
-      expect(page.css("#entries .entry-grid:not(.entry-heading-row)").map { it.text.squish })
-        .to all(match(/handover todo doing done\z/))
-    end
-
-    it "shows the status of each entry" do
-      entry_on("2026-09-01", "waiting #handover", status: "todo")
-
-      expect(read_tag("handover").at_css("#entries .btn-todo").text).to eq("todo")
-    end
-
-    it "leaves out entries of other projects" do
-      other = create(:participant, project: create(:project, org:), member:).project
-      create(:entry, day: create(:day, project: other), member:, log: "elsewhere #handover")
-
-      expect(read_tag("handover").at_css("#entries").text).not_to include("elsewhere")
-    end
-
-    it "finds the tag however it is written in the URL" do
-      entry_on("2026-09-01", "done #Handover")
-
-      expect(lines(read_tag("#HandOver")).size).to eq(1)
-    end
-
-    it "stays read-only, even when asked to edit" do
-      entry_on(Time.zone.today.iso8601, "today #handover")
-
-      page = read_tag("handover", mode: "edit")
-
-      expect(page.at_css("form")).to be_nil
-      expect(page.to_html).not_to include("add or edit")
-    end
-
-    it "says so when nothing carries the tag" do
-      expect(read_tag("nothing").text).to include("No entries are tagged #nothing yet.")
-    end
-  end
-
   describe "as an observer of the project" do
-    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
-
     before { sign_in_and_open(create(:participant, :observer, project:)) }
-
-    it "does not offer to add or edit" do
-      get entries_path(mode: "read")
-
-      expect(response.body).not_to include("add or edit")
-    end
-
-    it "shows the day read-only in edit mode, with everybody's entries and no way to unlock" do
-      get entries_path(mode: "edit")
-
-      expect(response.body).to include(entry.log)
-      expect(response.body).not_to include(%(id="new-entry"))
-      expect(response.body).not_to include(%(data-controller="entry-form"))
-      expect(response.body).not_to include("unlock to edit")
-    end
 
     it "refuses to create an entry" do
       expect { post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Only watching" } } }
@@ -570,6 +146,18 @@ RSpec.describe "Orgs::Entries" do
 
       expect(response).to have_http_status(:redirect)
       expect(flash[:alert]).to be_present
+    end
+
+    # a project_id passed the project check, then the missing current project raised
+    it "sends an org owner without a current project to pick one, even with a project_id" do
+      owner = create(:member, :owner, org:)
+      sign_in(owner.user)
+      get open_path(org.slug)
+
+      post entries_path(project_id: project.id), params: { entry: { date: Time.zone.today.iso8601, log: "Not here" } }
+
+      expect(response).to redirect_to(projects_path)
+      expect(Entry.exists?(log: "Not here")).to be(false)
     end
   end
 
@@ -631,7 +219,7 @@ RSpec.describe "Orgs::Entries" do
     it "stays on the unlocked past day instead of locking it again" do
       patch entry_path(entry), params: { entry: { log: "Fixed it after all" }, unlocked: "1" }
 
-      expect(response).to redirect_to(entries_path(date: entry.day.date, mode: "edit", unlocked: true))
+      expect(response).to redirect_to(edit_day_path(entry.day.date, unlocked: true))
     end
   end
 
