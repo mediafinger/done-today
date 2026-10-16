@@ -1,9 +1,9 @@
 module Orgs
-  # Org owners list the members of their org, change their role, and deactivate
-  #   or reactivate them. Deactivating archives the member, their entries stay.
+  # Internals list the members of their org, guests apart. Org owners change their
+  #   role, and deactivate or reactivate them. Deactivating archives the member, their entries stay.
   #
   class MembersController < AppOrgBaseController
-    # members are looked up in current_org, only owners get here
+    # members are looked up in current_org, only internals get here
     skip_verify_authorized_scoped
 
     def index
@@ -11,7 +11,11 @@ module Orgs
 
       members = current_org.members.includes(:user).order(:name)
 
-      @active_members = members.active
+      @active_members = members.active.internal
+      @guests = members.active.guests.includes(participations: :project)
+      @manager = allowed_to?(:manage?, Member)
+      return unless @manager
+
       @archived_members = members.archived
       @invitations = current_org.invitations.pending.includes(:invited_by).order(:email)
     end

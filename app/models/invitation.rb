@@ -29,6 +29,7 @@ class Invitation < ApplicationRecord
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP, message: "%{value} is not a valid email format" }
   validates :email, uniqueness: { scope: :org_id, conditions: -> { pending } }, unless: :accepted? # mirrors the partial index
   validates :sent_at, :role, presence: true
+  validates :role, inclusion: { in: Member::INTERNAL_ROLES, message: "%{value} cannot be invited yet" }
   validate :not_a_member_yet, unless: :accepted?
 
   def accepted?

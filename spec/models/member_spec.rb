@@ -16,6 +16,35 @@ RSpec.describe Member do
     end
   end
 
+  describe "guests" do
+    let(:project) { create(:project, org:) }
+
+    it "counts members and owners as internal, guests not" do
+      expect(%w[guest member owner].map { build(:member, role: it).internal? }).to eq([ false, true, true ])
+    end
+
+    it "lets a member become a guest who participates in a project" do
+      member = create(:participant, project:).member
+
+      expect(member.update(role: "guest")).to be(true)
+    end
+
+    # guests only see their projects, so they need at least one
+    it "refuses to make a member without a project a guest" do
+      member = create(:member, org:)
+
+      expect(member.update(role: "guest")).to be(false)
+      expect(member.errors[:role]).to include("guest has to participate in a project first")
+    end
+
+    it "refuses to make a project owner a guest, naming the project" do
+      member = create(:participant, :owner, project:).member
+
+      expect(member.update(role: "guest")).to be(false)
+      expect(member.errors[:role]).to include("guest cannot own #{project.name}, change the project role first")
+    end
+  end
+
   describe "#archive! and #unarchive!" do
     let(:member) { create(:member, org:) }
 

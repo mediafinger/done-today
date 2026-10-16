@@ -58,6 +58,10 @@ The app supports multi-tenant organization boundaries and project selection:
 - Authorization uses [ActionPolicy](https://actionpolicy.evilmartians.io), policies in `app/policies`. The subject is `current_member`
   (roles depend on the org), nil outside of an org. `ApplicationPolicy` denies a nil or archived member and records of another org
   in pre-checks, `ProjectPolicy` lets org owners through (except `create_entry?`).
+  - Org roles: `member` and `owner` are internals, they list every project of the org (`ProjectPolicy` scope `:listable`) and
+    the members (`/:org/members`, read-only unless owner). A `guest` is an external: they only see the projects they participate in,
+    are never a project owner, and are deactivated when their last participation is removed. Project owners only add the guests
+    of the projects they manage (`MemberPolicy` scope `:addable`).
   - A record the member may not read is a 404: look it up through a scope, `authorized_scope(current_org.projects).find_by!(...)`.
   - A record they may read but not change is a 403: `authorize! record` (rule from the action name, see the `alias_rule`s),
     `ActionPolicy::Unauthorized` renders `application/error_403`. In views: `allowed_to?(:manage?, project)`.
@@ -73,7 +77,7 @@ The app supports multi-tenant organization boundaries and project selection:
   - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TimeValidation`, `DaysExport`, `MonthExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Arrays**: Participation roles are stored as an array column (`text[]`). Role querying utilizes specialized Postgres operators (e.g., `&&` for intersection, `@>` for containment).
-- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["member", "owner"]`).
+- **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "owner"]`).
 - **Array Validation**: To validate postgres array columns, we use a custom [ArrayInclusionValidator](file:///Users/andy/Dropbox/www/2025/done_today/app/validators/array_inclusion_validator.rb).
 
 ### 6. Auditing & Record History

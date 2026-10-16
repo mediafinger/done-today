@@ -12,9 +12,14 @@ require "rails_helper"
 #   participant    participates in P as participant
 #   project_owner  participates in P as owner
 #   org_owner      owner of the org, no participation in P
+#   guest          external, participates in P as participant
+#   outside_guest  external, participates in another project of the org
+#
+# A row that names no outcome for guest takes participant's, for outside_guest member's.
 #
 # Outcomes: an HTTP status, or
-#   :listed / :hidden    a link to P on the page
+#   :listed / :hidden    a link to P on the page, or none and not its name either
+#   :named               P's name on the list of projects, without a link
 #   :form / :read_only   the edit page, with or without the new entry field
 #   :written             the write went through
 #   :to_today            redirected to today in P
@@ -34,6 +39,8 @@ RSpec.describe "Authorization role matrix" do
       participant: create(:participant, project:).member,
       project_owner: create(:participant, :owner, project:).member,
       org_owner: create(:member, :owner, org:),
+      guest: create(:participant, project:, member: create(:member, :guest, org:)).member,
+      outside_guest: create(:participant, project: create(:project, org:), member: create(:member, :guest, org:)).member,
       # after org_owner, so the org keeps an owner
       archived: create(:participant, :owner, project:, member: create(:member, :owner, org:)).member.tap(&:archive!)
     }
@@ -74,6 +81,10 @@ RSpec.describe "Authorization role matrix" do
     Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(org, project) }
   end
 
+  def project_named?
+    Nokogiri::HTML(response.body).at_css("main ##{ActionView::RecordIdentifier.dom_id(project)}").present?
+  end
+
   def expect_outcome(outcome, written)
     case outcome
     when :written
@@ -81,6 +92,10 @@ RSpec.describe "Authorization role matrix" do
     when :listed, :hidden
       expect(response).to have_http_status(:ok)
       expect(link_to_project?).to be(outcome == :listed)
+      expect(project_named?).to be(false) if outcome == :hidden
+    when :named
+      expect(response).to have_http_status(:ok)
+      expect([ link_to_project?, project_named? ]).to eq([ false, true ])
     when :to_today
       expect(response).to redirect_to(edit_day_path(org, project, Time.zone.today))
     when :to_sign_in
@@ -97,6 +112,8 @@ RSpec.describe "Authorization role matrix" do
 
   # one example per persona: sign in, send the request, check the outcome
   def self.row(name, outcomes, written: nil, &request)
+    outcomes = { guest: outcomes[:participant], outside_guest: outcomes[:member] }.compact.merge(outcomes)
+
     describe name do
       outcomes.each do |persona, outcome|
         it "#{persona}: #{outcome}", persona: do
@@ -112,10 +129,10 @@ RSpec.describe "Authorization role matrix" do
   end
 
   # Without an org in the path nothing depends on roles. P is the only project of
-  #   whoever takes part in it, so / goes straight there.
+  #   whoever takes part in it, so / goes straight there. outside_guest lands in their own project.
   row "GET / (today in the only project, or the user's orgs and projects)", {
-    anonymous: :to_sign_in, no_org: :hidden, archived: :hidden, outsider: :hidden, member: :hidden, observer: :to_today,
-    participant: :to_today, project_owner: :to_today, org_owner: :hidden
+    anonymous: :to_sign_in, no_org: :hidden, archived: :hidden, outsider: :hidden, member: :hidden,
+    outside_guest: :found, observer: :to_today, participant: :to_today, project_owner: :to_today, org_owner: :hidden
   } do
     get root_path
   end
@@ -228,8 +245,9 @@ RSpec.describe "Authorization role matrix" do
     get "/no/such/page/at/all"
   end
 
+  # internals know every project, reading it takes a participation
   row "GET /:org (its projects)", {
-    **locked_out, outsider: :not_found, member: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
+    **locked_out, outsider: :not_found, member: :named, outside_guest: :hidden, observer: :listed, participant: :listed, project_owner: :listed,
     org_owner: :listed
   } do
     get org_path(org)
@@ -336,9 +354,10 @@ RSpec.describe "Authorization role matrix" do
     get entry_history_path(org, project, colleagues_entry)
   end
 
+  # read-only for internals, guests only see their projects
   row "GET /:org/members", {
-    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
-    org_owner: :ok
+    **locked_out, outsider: :not_found, member: :ok, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok,
+    guest: :forbidden, outside_guest: :forbidden
   } do
     get members_path(org)
   end

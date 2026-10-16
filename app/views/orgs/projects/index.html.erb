@@ -4,7 +4,13 @@
 
     <ul id="active-projects">
       <% @projects.each do |project| %>
-        <li class="nude"><%= link_to project.name, project_path(current_org, project), method: :get, role: "button", class: "slim" %></li>
+        <li class="nude" id="<%= dom_id(project) %>">
+          <% if @readable_ids.include?(project.id) %>
+            <%= link_to project.name, project_path(current_org, project), method: :get, role: "button", class: "slim" %>
+          <% else %>
+            <%= project.name %> <small>(<%= join_project_hint(project) %>)</small>
+          <% end %>
+        </li>
       <% end %>
     </ul>
 

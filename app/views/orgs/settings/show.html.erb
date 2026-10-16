@@ -10,7 +10,7 @@
     <li>
       Org: <b><%= current_org.name %></b>
       <% if allowed_to?(:index?, Member) %>
-        (<%= link_to "manage members", members_path(current_org) %>)
+        (<%= link_to allowed_to?(:manage?, Member) ? "manage members" : "members", members_path(current_org) %>)
       <% end %>
     </li>
     <li>Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>

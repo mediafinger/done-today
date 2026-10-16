@@ -1,42 +1,7 @@
 <h2>Members of <%= current_org.name %></h2>
 
-<%= form_with model: Invitation.new, url: invitations_path(current_org), id: "new-invitation" do |form| %>
-  <fieldset>
-    <legend>Invite by email, the link is valid for <%= distance_of_time_in_words(Invitation::EXPIRES_IN) %></legend>
-    <%= form.email_field :email, required: true, placeholder: "Email address", aria: { label: "Email address" } %>
-    <%= form.text_field :name, placeholder: "Name (optional, they can change it)", aria: { label: "Name" } %>
-    <%= form.select :role, Member::VALID_ROLES, {}, aria: { label: "Role" } %>
-  </fieldset>
-  <%= form.submit "Invite", class: "slim" %>
-<% end %>
-
-<% if @invitations.any? %>
-  <h3>Invited</h3>
-
-  <table id="pending-invitations">
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Sent on</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @invitations.each do |invitation| %>
-        <tr id="<%= dom_id(invitation) %>">
-          <td><%= invitation.email %><%= " (#{invitation.name})" if invitation.name %></td>
-          <td><%= invitation.role %></td>
-          <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
-          <td>
-            <%= button_to "Resend", resend_invitation_path(current_org, invitation), method: :patch, class: "slim" %>
-            <%= button_to "Revoke", invitation_path(current_org, invitation), method: :delete, class: "slim secondary",
-                  form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+<% if @manager %>
+  <%= render "invitations" %>
 <% end %>
 
 <h3>Members</h3>
@@ -47,30 +12,35 @@
       <th>Name</th>
       <th>Email</th>
       <th>Role</th>
-      <th></th>
+      <% if @manager %><th></th><% end %>
     </tr>
   </thead>
   <tbody>
-    <% @active_members.each do |member| %>
-      <tr id="<%= dom_id(member) %>">
-        <td><%= member.name %><%= " (you)" if member.id == current_member.id %></td>
-        <td><%= member.user.email %></td>
-        <td>
-          <%= form_with model: member, url: member_path(current_org, member), method: :patch, namespace: dom_id(member) do |form| %>
-            <%= form.select :role, Member::VALID_ROLES, {}, aria: { label: "Role" } %>
-            <%= form.submit "Save role", class: "slim" %>
-          <% end %>
-        </td>
-        <td>
-          <%= button_to "Deactivate", deactivate_member_path(current_org, member), method: :patch, class: "slim secondary",
-                form: { data: { turbo_confirm: "Deactivate #{member.name}? Their entries stay." } } %>
-        </td>
-      </tr>
-    <% end %>
+    <%= render partial: "member", collection: @active_members %>
   </tbody>
 </table>
 
-<% if @archived_members.any? %>
+<% if @guests.any? %>
+  <h3>Guests (external)</h3>
+  <p>Guests only see the projects they participate in.</p>
+
+  <table id="guests">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Projects</th>
+        <% if @manager %><th></th><% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "member", collection: @guests, locals: { with_projects: true } %>
+    </tbody>
+  </table>
+<% end %>
+
+<% if @manager && @archived_members.any? %>
   <h3>Deactivated</h3>
 
   <table id="archived-members">

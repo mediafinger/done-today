@@ -20,6 +20,13 @@ class ProjectPolicy < ApplicationPolicy
     relation.where(id: member.participations.includes_a_role_of(READ_ROLES).select(:project_id))
   end
 
+  # internals know every project of the org, guests only theirs, reading still takes a participation
+  relation_scope(:listable) do |relation|
+    next relation.where(org_id: member.org_id) if internal?
+
+    authorized_scope(relation)
+  end
+
   # owners of the org or of the project
   relation_scope(:manageable) do |relation|
     next relation.none unless active?

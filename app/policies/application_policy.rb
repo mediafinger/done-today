@@ -1,7 +1,7 @@
 # ActionPolicy policies, one per record type, always asked for one Member (the
 #   signed-in user within the org of the path, nil outside of one).
 #
-#   * the org role lives on `Member#role` (member, owner)
+#   * the org role lives on `Member#role` (guest, member, owner): members and owners are internal
 #   * project roles live on `Participant#roles` (observer, participant, owner)
 #
 #   Rules answer "may this member do X to this record?", relation scopes return
@@ -23,6 +23,11 @@ class ApplicationPolicy < ActionPolicy::Base
   # an archived member keeps their entries, but no access
   def active?
     member.present? && !member.archived?
+  end
+
+  # guests are externals, they only see their own projects
+  def internal?
+    active? && member.internal?
   end
 
   def org_owner?

@@ -64,8 +64,17 @@ RSpec.describe "Orgs::Members" do
     end
   end
 
-  it "is not linked from the settings page of a member who is not an owner" do
+  it "is linked read-only from the settings page of a member who is not an owner" do
     sign_in(colleague.user)
+
+    get org_settings_path(org)
+
+    expect(page.css("a").find { it["href"] == members_path(org) }.text).to eq("members")
+  end
+
+  it "is not linked from the settings page of a guest" do
+    guest = create(:participant, project: create(:project, org:), member: create(:member, :guest, org:)).member
+    sign_in(guest.user)
 
     get org_settings_path(org)
 
