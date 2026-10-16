@@ -126,6 +126,14 @@ RSpec.describe "Authorization role matrix" do
     get settings_path
   end
 
+  row "GET /impressum", { anonymous: :ok, no_org: :ok, member: :ok } do
+    get imprint_path
+  end
+
+  row "GET /datenschutz", { anonymous: :ok, no_org: :ok, member: :ok } do
+    get privacy_path
+  end
+
   row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
     get new_session_path
   end

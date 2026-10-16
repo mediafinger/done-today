@@ -1,0 +1,13 @@
+<%# Remove the draft notice only after a lawyer has reviewed the texts, see docs/runbooks/legal_pages.md %>
+<p>
+  <mark>Entwurf – rechtlich noch nicht geprüft.</mark>
+</p>
+
+<% if legal_unconfigured_keys.any? %>
+  <p>
+    <mark>Nicht konfiguriert: <%= legal_unconfigured_keys.map(&:upcase).join(", ") %>.</mark>
+    <small>Siehe docs/runbooks/legal_pages.md</small>
+  </p>
+<% end %>
+
+<p lang="en"><small>The legal pages are in German, as the service is operated in Germany.</small></p>

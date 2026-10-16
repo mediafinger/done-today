@@ -146,6 +146,18 @@ class AppConf
   register :smtp_password, required: production_env?
   register :smtp_authentication, default: "plain"
 
+  # Impressum and privacy policy, see docs/runbooks/legal_pages.md
+  register :legal_operator_name, required: production_env?
+  register :legal_street, required: production_env?
+  register :legal_city, required: production_env? # postal code and city
+  register :legal_email, required: production_env?
+  register :legal_phone
+  register :legal_representative # for legal entities: "vertreten durch"
+  register :legal_register # e.g. "Amtsgericht Berlin-Charlottenburg, HRB 12345"
+  register :legal_vat_id
+  register :legal_hosting_provider, required: production_env? # name and address
+  register :legal_mail_provider, required: production_env? # name and address
+
   # external service configuration
 
   # S3 credentials

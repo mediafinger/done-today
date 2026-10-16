@@ -5,6 +5,9 @@ Rails.application.routes.draw do
 
   root "application#home"
 
+  get "impressum", to: "legal#imprint", as: :imprint
+  get "datenschutz", to: "legal#privacy", as: :privacy
+
   # As neiter the 'users' nor the 'orgs' module are namespaced,
   #   pathes and 'as: :names' in them have to be uniquely named.
   #   e.g. you can not define get "/settings" in both modules and expect it to work.
