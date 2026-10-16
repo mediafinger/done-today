@@ -2,11 +2,31 @@
   <h2>Writing entries</h2>
 
   <p>
-    Type what you did and press Enter. Markup anywhere in the line adds tags and times;
-    the text is always saved the way you typed it.
+    Type what you have <b>DONE</b> and press Enter. Markup anywhere in the line adds tags and times, but is completely optional.
+    The text is always saved the way you typed it.
+  </p>
+
+  <p>
+    Feel free to add <b>TODO</b>s for the coming days. Or copy a task you didn't finish and left as <b>DOING</b> to the next day. It's all up to you, we won't take assumptions how you want to use your data.
+  </p>
+
+  <h3>Working time</h3>
+
+  <p>
+    Working time is between <code>start@</code> and <code>end@</code> minus the <code>#break</code> durations. Logging
+    <% SyntaxGuide::DAY.each do |log| %><code><%= log %></code> <% end %>
+    on one line or as separate entries adds up to <strong><%= SyntaxGuide::DAY_TOTAL %></strong>.
+  </p>
+
+  <p>
+    Times and durations without <code>end@</code>, <code>start@</code> or <code>#break</code> are currently not used. In a future version they should sum up the time for the <b>#tags</b> they are besides.
   </p>
 
   <%= render "help/syntax_table" %>
+
+  <p>
+    <i>Using times is completely optional. Unless you use this app for time tracking...</i>
+  </p>
 
   <h3>What stays plain text</h3>
 
@@ -15,12 +35,4 @@
       <li><code><%= example.log %></code> &mdash; <%= example.meaning %></li>
     <% end %>
   </ul>
-
-  <h3>Working time</h3>
-
-  <p>
-    Working time is end@ minus start@ minus the #break durations. Logging
-    <% SyntaxGuide::DAY.each do |log| %><code><%= log %></code> <% end %>
-    as separate entries adds up to <strong><%= SyntaxGuide::DAY_TOTAL %></strong>.
-  </p>
 </section>

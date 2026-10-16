@@ -17,7 +17,7 @@ class SyntaxGuide
     ),
     Example.new(
       markup: "start@", log: "start@09:00",
-      meaning: "Your working day starts at 09:00.",
+      meaning: "Your working day started / will start at 09:00.",
       parsed: { day_start_minutes: 9 * 60 }
     ),
     Example.new(
@@ -27,14 +27,25 @@ class SyntaxGuide
       parsed: { day_start_minutes: 9 * 60 }
     ),
     Example.new(
-      markup: "end@", log: "end@17:30",
-      meaning: "Your working day ends at 17:30.",
-      parsed: { day_end_minutes: (17 * 60) + 30 }
+      markup: "start@", log: "start@0900",
+      meaning: "The same. Every clock time can be written as 9:00, 09:00, 9.00, 09.00, 900 or 0900: " \
+               "the last two digits are the minutes.",
+      parsed: { day_start_minutes: 9 * 60 }
+    ),
+    Example.new(
+      markup: "start@", log: "start@0:00",
+      meaning: "Midnight, the start of the day. Times run from 0:00 to 24:00, so work past midnight has to logged on the next day.",
+      parsed: { day_end_minutes: 24 * 60 }
     ),
     Example.new(
       markup: "end@", log: "end@24:00",
-      meaning: "Midnight, the end of the day. Times run from 0:00 to 24:00, so work past midnight is logged on the next day.",
+      meaning: "Midnight, the end of the day. Times run from 0:00 to 24:00, so work past midnight has to logged on the next day.",
       parsed: { day_end_minutes: 24 * 60 }
+    ),
+    Example.new(
+      markup: "end@", log: "end@17:30",
+      meaning: "Your working day ended / will end at 17:30.",
+      parsed: { day_end_minutes: (17 * 60) + 30 }
     ),
     Example.new(
       markup: "from@ to@", log: "Call with the client from@11:00 to@12:30",
@@ -42,17 +53,17 @@ class SyntaxGuide
       parsed: { from_minutes: 11 * 60, to_minutes: (12 * 60) + 30, duration_minutes: 90 }
     ),
     Example.new(
-      markup: "for~", log: "Planning for~1h30m",
+      markup: "for~", log: "#Planning for~1h30m",
       meaning: "A duration without clock times.",
       parsed: { duration_minutes: 90 }
     ),
     Example.new(
-      markup: "for~", log: "Code review for~45m",
+      markup: "for~", log: "#CodeReview for~45m",
       meaning: "Minutes only.",
       parsed: { duration_minutes: 45 }
     ),
     Example.new(
-      markup: "for~", log: "Workshop for~2.5h",
+      markup: "for~", log: "#Workshop for~2.5h",
       meaning: "Decimal hours: 2h30m.",
       parsed: { duration_minutes: 150 }
     ),

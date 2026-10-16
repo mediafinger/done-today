@@ -64,7 +64,13 @@
 <section>
   <h3>Participants</h3>
 
-  <p>Observers read the project, participants also log their time, leads also edit everybody's entries and manage the project. Removing someone keeps their entries.</p>
+  <ul>
+    <li>Observers can only read the project entries</li>
+    <li>Participants can also log entries and times</li>
+    <li>Leads manage the project and can (optionally) log entries and times</li>
+  </ul>
+
+  <p>Removing someone keeps their entries.</p>
 
   <table id="participants">
     <thead>
@@ -110,7 +116,7 @@
   <section>
     <h3>Invite a guest</h3>
 
-    <p>Guests are externals: they only see the projects they participate in, and never own one.</p>
+    <p>Guests are externals (not members of your organization): they only see or work in the projects they participate in.</p>
 
     <%= form_with model: Invitation.new, url: guest_invitations_path(current_org, @project), id: "new-guest-invitation" do |form| %>
       <fieldset role="group">
