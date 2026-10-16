@@ -216,7 +216,7 @@ RSpec.describe ProjectPolicy do
       expect(described_class.new(project, member: create(:member)).apply(:request_access?)).to be(false)
     end
   end
-  
+
   # send, resend and revoke the guest invitations of the project
   describe_rule :invite_guest? do
     succeed "for a project lead" do
@@ -261,7 +261,7 @@ RSpec.describe ProjectPolicy do
   end
 
   it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
-  
+
   %i[validate_times?].each do |rule|
     it { expect(rule).to be_an_alias_of(policy, :show?) }
   end
