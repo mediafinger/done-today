@@ -85,5 +85,29 @@ RSpec.describe "Request id and timeout middlewares" do
     it "takes the timeout from AppConf" do
       expect(middlewares.find { it.klass == Rack::Timeout }.args).to eq([ { service_timeout: AppConf.rack_timeout } ])
     end
+
+    %w[RequestTimeoutException RequestTimeoutError].each do |name|
+      it "maps Rack::Timeout::#{name} to 503" do
+        expect(ActionDispatch::ExceptionWrapper.status_code_for_exception("Rack::Timeout::#{name}")).to eq(503)
+      end
+    end
+
+    it "answers a request that runs too long with 503 instead of 500" do
+      allow_any_instance_of(Users::SessionsController).to receive(:new) do # rubocop:disable RSpec/AnyInstance
+        raise Rack::Timeout::RequestTimeoutException.new({}), "Request ran for longer than 6000ms"
+      end
+
+      get "/session/new"
+
+      expect(response).to have_http_status(:service_unavailable)
+    end
+
+    it "serves public/503.html for it" do
+      status, _headers, body = ActionDispatch::PublicExceptions.new(Rails.public_path)
+        .call(Rack::MockRequest.env_for("/503", "HTTP_ACCEPT" => "text/html"))
+
+      expect(status).to eq(503)
+      expect(body.join).to include("Error 503")
+    end
   end
 end

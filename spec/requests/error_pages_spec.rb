@@ -16,7 +16,7 @@ RSpec.describe "Error pages" do
   end
 
   describe "static pages in public/" do
-    %w[400 404 406-unsupported-browser 422 500].each do |name|
+    %w[400 404 406-unsupported-browser 422 500 503].each do |name|
       describe "public/#{name}.html" do
         let(:page) { Nokogiri::HTML(Rails.public_path.join("#{name}.html").read) }
 

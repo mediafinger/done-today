@@ -68,5 +68,11 @@ module DoneToday
       Rack::Timeout, service_timeout: AppConf.rack_timeout # seconds
     )
     Rack::Timeout::Logger.disable # we only log the errors, not the verbose status messages
+
+    # a timeout is our capacity problem, not a bug in the request: 503 with public/503.html
+    config.action_dispatch.rescue_responses.merge!(
+      "Rack::Timeout::RequestTimeoutException" => :service_unavailable,
+      "Rack::Timeout::RequestTimeoutError" => :service_unavailable
+    )
   end
 end

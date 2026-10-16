@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Temporarily unavailable (503) · Done Today</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+
+    <!-- static page: no asset pipeline, so the Pico amber look is inlined -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --background: #fff;
+        --color: #373c44;
+        --muted: #646b79;
+        --primary-background: #ffbf00;
+        --primary-hover-background: #e8ae01;
+        --primary-inverse: #000;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #13171f;
+          --color: #c2c7d0;
+          --muted: #7b8495;
+          --primary-hover-background: #fecc63;
+        }
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--color);
+        font-family: system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif;
+        line-height: 1.5;
+      }
+
+      header, main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      header { font-weight: 700; }
+      main { padding-top: 4rem; }
+      h1 { margin: 0 0 1rem; font-size: 2rem; }
+      main > p:first-child { margin: 0; color: var(--muted); }
+
+      a[role="button"] {
+        display: inline-block;
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        background: var(--primary-background);
+        color: var(--primary-inverse);
+        text-decoration: none;
+      }
+
+      a[role="button"]:hover { background: var(--primary-hover-background); }
+    </style>
+  </head>
+
+  <body>
+    <!-- This file lives in public/503.html -->
+    <header>Done today</header>
+
+    <main>
+      <p>Error 503</p>
+      <h1>Temporarily unavailable</h1>
+      <p>This took too long, we are probably busy. Please try again in a moment.</p>
+      <p><a href="/" role="button">Back to Done Today</a></p>
+    </main>
+  </body>
+</html>
