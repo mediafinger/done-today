@@ -118,7 +118,7 @@ RSpec.describe "Orgs::Invitations" do
 
       form = Nokogiri::HTML(response.body).at_css("form#new-invitation")
       expect(form["action"]).to eq(invitations_path(org))
-      expect(form.css("select option[selected]").pluck("value")).to eq(%w[member])
+      expect(form.css("select[name='invitation[role]'] option[selected]").pluck("value")).to eq(%w[member])
     end
 
     it "lists the pending invitations, expired ones marked" do

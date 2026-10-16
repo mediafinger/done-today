@@ -43,6 +43,50 @@ RSpec.describe Invitation do
     end
   end
 
+  describe "guest invitations" do
+    let(:project) { create(:project, org:) }
+
+    it "need a project and a project role" do
+      invitation = build(:invitation, org:, role: "guest")
+
+      expect(invitation).not_to be_valid
+      expect(invitation.errors.attribute_names).to include(:project, :project_role)
+    end
+
+    it "refuse a project of another org" do
+      expect(build(:invitation, :guest, org:, project: create(:project))).not_to be_valid
+    end
+
+    it "refuse an archived project" do
+      expect(build(:invitation, :guest, org:, project: create(:project, org:).tap(&:archive!))).not_to be_valid
+    end
+
+    # guests never own a project
+    it "refuse the project role owner" do
+      expect(build(:invitation, :guest, org:, project:, project_role: "owner")).not_to be_valid
+    end
+
+    it "keep members and owners out of a project" do
+      expect(build(:invitation, org:, project:, project_role: "participant")).not_to be_valid
+    end
+
+    it "accept somebody who is already active in the org, but not yet in the project" do
+      member = create(:member, :guest, org:)
+      create(:participant, member:, project: create(:project, org:))
+
+      expect(build(:invitation, :guest, org:, project:, email: member.user.email)).to be_valid
+    end
+
+    it "refuse somebody who already participates in the project" do
+      member = create(:participant, project:).member
+
+      invitation = build(:invitation, :guest, org:, project:, email: member.user.email)
+
+      expect(invitation).not_to be_valid
+      expect(invitation.errors[:base]).to include("#{member.user.email} already participates in #{project.name}")
+    end
+  end
+
   describe "the acceptance token" do
     let(:token) { invitation.generate_token_for(:acceptance) }
 
@@ -115,6 +159,36 @@ RSpec.describe Invitation do
       expect(invitation.accept!(user)).to eq(member)
       expect(member.reload.role).to eq("owner")
       expect(invitation.reload).to be_accepted
+    end
+
+    describe "of a guest" do
+      let(:project) { create(:project, org:) }
+      let(:invitation) { create(:invitation, :guest, org:, project:, project_role: "observer", email: "ada@example.com") }
+
+      it "creates the guest together with their participation" do
+        member = invitation.accept!(user)
+
+        expect(member).to have_attributes(role: "guest", archived_at: nil)
+        expect(member.participations.sole).to have_attributes(project:, roles: %w[observer])
+      end
+
+      it "reactivates an archived member as guest of the project" do
+        create(:member, :owner, org:)
+        archived = create(:member, org:, user:).tap(&:archive!)
+
+        expect(invitation.accept!(user)).to eq(archived)
+        expect(archived.reload).to have_attributes(role: "guest", archived_at: nil, projects: [ project ])
+      end
+
+      # never a downgrade: an internal only gains the project
+      it "adds the project to an active member, who keeps their role" do
+        member = create(:member, org:, user:)
+        invitation
+
+        invitation.accept!(user)
+
+        expect(member.reload).to have_attributes(role: "member", projects: [ project ])
+      end
     end
 
     it "refuses an account with another email" do

@@ -13,6 +13,8 @@ class Participant < ApplicationRecord
   VALID_ROLES = %w[participant observer owner].freeze
   # strongest first, the UI gives each participant one of them
   RANKED_ROLES = %w[owner participant observer].freeze
+  # a guest never owns a project
+  GUEST_ROLES = %w[participant observer].freeze
 
   belongs_to :org
   belongs_to :project, inverse_of: :participants

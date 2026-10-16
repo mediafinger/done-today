@@ -22,6 +22,10 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     org.invitations.create!(email: "invited@example.com", role: "member", sent_at: Time.current)
   end
 
+  def guest_invitation
+    create(:invitation, :guest, org:, project:)
+  end
+
   # to another org, for the signed-in account
   def my_invitation
     create(:org).invitations.create!(email: me.user.email, role: "member", sent_at: Time.current)
@@ -41,6 +45,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     in [ "token", "users/invitations" ] then my_invitation.generate_token_for(:acceptance)
     in [ "id", "orgs/members" ] then colleague.id
     in [ "id", "orgs/invitations" ] then invitation.id
+    in [ "id", "orgs/guest_invitations" ] then guest_invitation.id
     in [ "id", "orgs/entries" ] then entry.id
     in [ "id", "users/user_sessions" ] then me.user.sessions.last.id
     in [ "id", "orgs/participants" ] then colleague.participations.find_by!(project:).id
@@ -61,6 +66,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/entries#update" then { entry: { log: "Changed" } }
     when "orgs/members#update" then { member: { role: "owner" } }
     when "orgs/invitations#create" then { invitation: { email: "new@example.com", role: "member" } }
+    when "orgs/guest_invitations#create" then { invitation: { email: "guest@example.com", project_role: "participant" } }
     when "orgs/projects#create", "orgs/projects#update" then { project: { name: "Renamed" } }
     when "orgs/projects#export_csv" then { month: "2026-03" }
     when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }

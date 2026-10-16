@@ -17,7 +17,7 @@ module Orgs
       return unless @manager
 
       @archived_members = members.archived
-      @invitations = current_org.invitations.pending.includes(:invited_by).order(:email)
+      @invitations = current_org.invitations.pending.includes(:invited_by, :project).order(:email)
     end
 
     def update

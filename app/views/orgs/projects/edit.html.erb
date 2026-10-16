@@ -67,3 +67,47 @@
     <% end %>
   <% end %>
 </section>
+
+<% if allowed_to?(:invite_guest?, @project) %>
+  <section>
+    <h3>Invite a guest</h3>
+
+    <p>Guests are externals: they only see the projects they participate in, and never own one.</p>
+
+    <%= form_with model: Invitation.new, url: guest_invitations_path(current_org, @project), id: "new-guest-invitation" do |form| %>
+      <fieldset role="group">
+        <%= form.email_field :email, required: true, placeholder: "Email address", aria: { label: "Email address" } %>
+        <%= form.text_field :name, placeholder: "Name (optional)", aria: { label: "Name" } %>
+        <%= form.select :project_role, Participant::GUEST_ROLES.reverse, { selected: "participant" }, aria: { label: "Role" } %>
+        <%= form.submit "Invite", class: "slim" %>
+      </fieldset>
+    <% end %>
+
+    <% if @guest_invitations.any? %>
+      <table id="guest-invitations">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Sent on</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @guest_invitations.each do |invitation| %>
+            <tr id="<%= dom_id(invitation) %>">
+              <td><%= invitation.email %></td>
+              <td><%= invitation.project_role %></td>
+              <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
+              <td>
+                <%= button_to "Resend", resend_guest_invitation_path(current_org, @project, invitation), method: :patch, class: "slim" %>
+                <%= button_to "Revoke", guest_invitation_path(current_org, @project, invitation), method: :delete, class: "slim secondary",
+                      form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </section>
+<% end %>

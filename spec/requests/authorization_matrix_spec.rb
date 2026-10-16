@@ -77,6 +77,10 @@ RSpec.describe "Authorization role matrix" do
     org.invitations.find_or_create_by!(email: "pending@example.com") { it.sent_at = 2.days.ago }
   end
 
+  def pending_guest_invitation
+    create(:invitation, :guest, org:, project:, email: "guest@example.com", sent_at: 2.days.ago)
+  end
+
   def link_to_project?
     Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(org, project) }
   end
@@ -448,6 +452,38 @@ RSpec.describe "Authorization role matrix" do
     project.archive!
 
     patch unarchive_project_path(org, project)
+  end
+
+  # org and project owners invite guests to the project
+  row "POST /:org/:project/guest_invitations", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { project.invitations.exists?(email: "guest@example.com") } do
+    post guest_invitations_path(org, project), params: { invitation: { email: "guest@example.com", project_role: "participant" } }
+  end
+
+  row "PATCH /:org/:project/guest_invitations/:id/resend", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { project.invitations.find_by!(email: "guest@example.com").sent_at > 1.hour.ago } do
+    patch resend_guest_invitation_path(org, project, pending_guest_invitation)
+  end
+
+  row "DELETE /:org/:project/guest_invitations/:id", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { !project.invitations.exists?(email: "guest@example.com") } do
+    delete guest_invitation_path(org, project, pending_guest_invitation)
+  end
+
+  # nobody invites guests to an archived project
+  row "POST /:org/:project/guest_invitations with P archived", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :forbidden
+  }, written: -> { project.invitations.exists? } do
+    project.archive!
+
+    post guest_invitations_path(org, project), params: { invitation: { email: "guest@example.com", project_role: "participant" } }
   end
 
   row "POST /:org/:project/participants", {

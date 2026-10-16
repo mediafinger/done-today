@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_070000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -61,9 +61,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_070000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.enum "role", default: "member", null: false, enum_type: "org_role"
+    t.uuid "project_id"
+    t.string "project_role"
     t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
     t.index ["org_id", "email"], name: "index_invitations_on_org_id_and_email_pending", unique: true, where: "(accepted_at IS NULL)"
     t.index ["org_id"], name: "index_invitations_on_org_id"
+    t.index ["project_id"], name: "index_invitations_on_project_id"
   end
 
   create_table "members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -159,6 +162,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_070000) do
   add_foreign_key "entries", "orgs"
   add_foreign_key "invitations", "members", column: "invited_by_id"
   add_foreign_key "invitations", "orgs"
+  add_foreign_key "invitations", "projects"
   add_foreign_key "members", "orgs"
   add_foreign_key "members", "users"
   add_foreign_key "participants", "members"

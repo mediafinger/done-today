@@ -73,8 +73,11 @@ module Users
       land_in_org
     end
 
+    # a guest lands in their project
     def land_in_org
-      redirect_to org_path(@invitation.org), notice: t("controllers.invitations.welcome", org: @invitation.org.name)
+      path = @invitation.project ? project_path(@invitation.org, @invitation.project) : org_path(@invitation.org)
+
+      redirect_to path, notice: t("controllers.invitations.welcome", org: @invitation.org.name)
     end
 
     # a second accept of the same link raises, and takes the new user back with it

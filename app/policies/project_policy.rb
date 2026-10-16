@@ -5,8 +5,8 @@ class ProjectPolicy < ApplicationPolicy
   READ_ROLES = %w[observer participant owner].freeze
   WRITE_ROLES = %w[participant owner].freeze
 
-  # org owners have to join a project to log time in it
-  pre_check :allow_org_owner, except: :create_entry?
+  # org owners have to join a project to log time in it, and nobody invites guests to an archived one
+  pre_check :allow_org_owner, except: %i[ create_entry? invite_guest? ]
 
   alias_rule :validate_times?, to: :show?
   alias_rule :export_csv?, :export_days_csv?, to: :export?
@@ -57,6 +57,11 @@ class ProjectPolicy < ApplicationPolicy
 
   def manage?
     roles.include?("owner")
+  end
+
+  # send, resend and revoke the guest invitations of the project
+  def invite_guest?
+    !record.archived? && (org_owner? || roles.include?("owner"))
   end
 
   # who changed which entry when (RecordHistory)
