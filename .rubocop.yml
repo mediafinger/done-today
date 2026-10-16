@@ -52,11 +52,16 @@ Style/StringLiterals:
 # The RSpec defaults (1 expectation, 5 lines per example) force one example per
 # assertion. That reads worse than grouping the assertions that describe a single
 # behaviour, so both are relaxed rather than disabled.
+# A journey walks one user story through many requests, its steps belong together.
 RSpec/ExampleLength:
   Max: 15
+  Exclude:
+    - "spec/requests/journeys/**/*"
 
 RSpec/MultipleExpectations:
   Max: 5
+  Exclude:
+    - "spec/requests/journeys/**/*"
 
 # A rake task is described by its name -- there is no class to point the cop at.
 RSpec/DescribeClass:
