@@ -139,6 +139,53 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "the lock on past days" do
+    let!(:old_entry) { create(:entry, day: create(:day, project:, date: yesterday), member:) }
+
+    def yesterday = Time.zone.yesterday
+
+    it "refuses to update an entry of a locked past day" do
+      patch entry_path(old_entry), params: { entry: { log: "Changed in passing" } }
+
+      expect(old_entry.reload.log).to eq("Wrote some code")
+      expect(response).to redirect_to(entries_path(date: yesterday, mode: "edit"))
+      expect(flash[:alert]).to eq("#{yesterday.iso8601} is locked, unlock the day to change it")
+    end
+
+    it "reports the lock in place for a Turbo Stream update" do
+      patch entry_path(old_entry), params: { entry: { status: "done" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("is locked, unlock the day to change it")
+      expect(old_entry.reload.status).to eq("doing")
+    end
+
+    it "updates the entry once the day is unlocked" do
+      patch entry_path(old_entry), params: { entry: { log: "Fixed it after all" }, unlocked: "1" }
+
+      expect(old_entry.reload.log).to eq("Fixed it after all")
+      expect(response).to redirect_to(entries_path(date: yesterday, mode: "edit", unlocked: true))
+    end
+
+    it "refuses a new entry on a locked past day, without creating the day" do
+      expect { post entries_path, params: { entry: { date: (yesterday - 1).iso8601, log: "Logged late" } } }
+        .not_to change { [ Entry.count, Day.count ] }
+
+      expect(flash[:alert]).to include("is locked")
+    end
+
+    it "creates the entry once the day is unlocked" do
+      expect { post entries_path, params: { entry: { date: yesterday.iso8601, log: "Logged late" }, unlocked: "1" } }
+        .to change(Entry, :count).by(1)
+    end
+
+    it "keeps today and future days open without unlocking" do
+      post entries_path, params: { entry: { date: Time.zone.tomorrow.iso8601, log: "Planned ahead" } }
+
+      expect(Entry.exists?(log: "Planned ahead")).to be(true)
+    end
+  end
+
   describe "validating a day in edit mode" do
     let(:day) { create(:day, project:, date: Time.zone.yesterday) }
 
@@ -480,9 +527,37 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "as an observer of the project" do
+    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    before { sign_in_and_open(create(:participant, :observer, project:)) }
+
+    it "does not offer to add or edit" do
+      get entries_path(mode: "read")
+
+      expect(response.body).not_to include("add or edit")
+    end
+
+    it "shows the day read-only in edit mode, with everybody's entries and no way to unlock" do
+      get entries_path(mode: "edit")
+
+      expect(response.body).to include(entry.log)
+      expect(response.body).not_to include(%(id="new-entry"))
+      expect(response.body).not_to include(%(data-controller="entry-form"))
+      expect(response.body).not_to include("unlock to edit")
+    end
+
+    it "refuses to create an entry" do
+      expect { post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Only watching" } } }
+        .not_to change(Entry, :count)
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   describe "POST /entries" do
     it "creates an entry on the given day" do
-      expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" } } }
+      expect { post entries_path, params: { entry: { date: "2026-03-02", log: "Wrote a spec" }, unlocked: "1" } }
         .to change(Entry, :count).by(1)
 
       expect(Entry.last.log).to eq("Wrote a spec")
@@ -490,7 +565,7 @@ RSpec.describe "Orgs::Entries" do
     end
 
     it "reports a validation failure instead of raising" do
-      expect { post entries_path, params: { entry: { date: "2026-03-02", log: "x" } } }
+      expect { post entries_path, params: { entry: { date: "2026-03-02", log: "x" }, unlocked: "1" } }
         .not_to change(Entry, :count)
 
       expect(response).to have_http_status(:redirect)
@@ -533,6 +608,24 @@ RSpec.describe "Orgs::Entries" do
 
       expect(entry.reload.log).to eq("Wrote some code")
       expect(flash[:alert]).to be_present
+    end
+
+    it "refuses to update a colleague's entry and leaves it alone" do
+      colleagues_entry = create(:entry, day: entry.day, member: create(:participant, project:).member)
+
+      patch entry_path(colleagues_entry), params: { entry: { log: "Not mine to change" } }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(colleagues_entry.reload.log).to eq("Wrote some code")
+    end
+
+    it "refuses a Turbo Stream update of a colleague's entry with a bare 403" do
+      colleagues_entry = create(:entry, day: entry.day, member: create(:participant, project:).member)
+
+      patch entry_path(colleagues_entry), params: { entry: { status: "done" } }, as: :turbo_stream
+
+      expect(response).to have_http_status(:forbidden)
+      expect(colleagues_entry.reload.status).to eq("doing")
     end
 
     it "stays on the unlocked past day instead of locking it again" do

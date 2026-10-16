@@ -87,18 +87,4 @@ Day.where(project:).find_each do |day|
 end
 
 
-puts "Creating Integrations"
-
-reminder = Integration.create!(org:, integration_type: "reminder", service: "email", credentials: { access_token: "TODO" },
-  template: "Please log what you have done today in {{project_name}}!")
-notification = Integration.create!(org:, integration_type: "notification", service: "slack", credentials: { access_token: "TODO" },
-  template: "Done on {{entry_day}} by {{member}}: {{entry_log}} [{{entry_status}}]!") # TODO: multiple entries per day
-
-
-puts "Creating Project Integrations"
-
-ProjectIntegration.create!(org:, project:, integration: reminder)
-ProjectIntegration.create!(org:, project:, integration: notification)
-
-
 puts "all done"

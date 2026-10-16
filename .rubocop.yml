@@ -62,3 +62,10 @@ RSpec/MultipleExpectations:
 RSpec/DescribeClass:
   Exclude:
     - spec/tasks/**/*
+
+# `row` in spec/requests/authorization_matrix_spec.rb defines one example per role
+RSpec:
+  Language:
+    Includes:
+      Examples:
+        - row

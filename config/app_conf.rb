@@ -134,9 +134,17 @@ class AppConf
   # rack-timeout in seconds
   register :rack_timeout, default: is?(:debug, true) ? 300 : 6 # seconds
 
-  # Mailer / Email
+  # Mailer / Email, production is validated by config/mail_settings.rb
   register :mail_delivery_method, required: production_env?, default: "letter_opener"
   register :default_email_sender, required: production_env?, default: "from@example.com"
+
+  # SMTP, port 587 enforces STARTTLS, port 465 uses implicit TLS
+  register :smtp_address, required: production_env?
+  register :smtp_port, default: 587
+  register :smtp_domain, default: done_host # HELO domain
+  register :smtp_username, required: production_env?
+  register :smtp_password, required: production_env?
+  register :smtp_authentication, default: "plain"
 
   # external service configuration
 
@@ -146,14 +154,6 @@ class AppConf
   # register :hetzner_s3_endpoint, default: "https://fsn1.your-objectstorage.com"
   # register :hetzner_s3_region, default: "eu-central"
   # register :hetzner_s3_secret_access_key, required: production_env?
-
-  # SMTP Email credentials
-
-  # register :smtp_domain, required: false, default: "zazu.africa"
-  # register :smtp_password, required: false, default: "super secret smtp password"
-  # register :smtp_server_address, required: false, default: "smtp.gmail.com"
-  # register :smtp_username, required: false, default: "support@zazu.africa"
-  # register :smtp_port, default: 587 # could be 465
 
   # ----------------------------------------------------------------------------
 
