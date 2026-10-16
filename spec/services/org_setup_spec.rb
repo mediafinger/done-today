@@ -64,7 +64,7 @@ RSpec.describe OrgSetup do
 
   it "refuses a name that is a top-level path, and creates nothing" do
     expect { described_class.call(name: "Help", owner_email: "olivia@example.com") }
-      .to raise_error(ActiveRecord::RecordInvalid, /Name can't be used, \/help is a page of the app/)
+      .to raise_error(ActiveRecord::RecordInvalid, /Name can't be used, help is reserved for the app/)
 
     expect([ Org.count, Invitation.count ]).to all(be_zero)
   end

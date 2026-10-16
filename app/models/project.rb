@@ -5,11 +5,6 @@
 class Project < ApplicationRecord
   include Sluggable
 
-  # The slug is the second segment of every project URL (/acme/website/days/2026-10-15),
-  #   next to the org-level pages /acme/members and /acme/settings.
-  #   spec/routing/reserved_slugs_spec.rb fails when an org-level route is missing here.
-  RESERVED_SLUGS = %w[invitations members projects settings].freeze
-
   belongs_to :org
 
   # days and their entries are history: archive the project instead (the DB FK refuses as well)
@@ -43,9 +38,5 @@ class Project < ApplicationRecord
 
   def slug_scope
     Project.where(org_id:)
-  end
-
-  def reserved_path
-    "/#{org&.slug}/#{slug}"
   end
 end

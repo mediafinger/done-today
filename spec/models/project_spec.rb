@@ -54,7 +54,12 @@ RSpec.describe Project do
       project = build(:project, org:, name: "Members")
 
       expect(project).not_to be_valid
-      expect(project.errors[:name]).to include("can't be used, /#{org.slug}/members is a page of the app")
+      expect(project.errors[:name]).to include("can't be used, members is reserved for the app")
+    end
+
+    # one list for orgs and projects, so a slug never means a page at one level and a project at another
+    it "refuses the words reserved for orgs too" do
+      expect(%w[Help Admin Support].map { build(:project, org:, name: it) }).to all(be_invalid)
     end
 
     it "refuses a name without a letter or digit" do

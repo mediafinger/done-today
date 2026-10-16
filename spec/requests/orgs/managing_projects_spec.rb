@@ -74,7 +74,7 @@ RSpec.describe "Managing projects" do
       expect { post projects_path(org), params: { project: { name: "Members" } } }.not_to change(Project, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("Name can&#39;t be used, /#{org.slug}/members is a page of the app")
+      expect(response.body).to include("Name can&#39;t be used, members is reserved for the app")
     end
 
     it "refuses a name without a letter or digit" do

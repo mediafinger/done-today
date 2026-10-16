@@ -26,7 +26,15 @@ RSpec.describe Org do
       org = build(:org, name: "Settings")
 
       expect(org).not_to be_valid
-      expect(org.errors[:name]).to include("can't be used, /settings is a page of the app")
+      expect(org.errors[:name]).to include("can't be used, settings is reserved for the app")
+    end
+
+    it "refuses the words reserved for projects too" do
+      expect(build(:org, name: "Invitations")).not_to be_valid
+    end
+
+    it "refuses the words reserved for future pages" do
+      expect(%w[Support FAQ Contact Blog Site].map { build(:org, name: it) }).to all(be_invalid)
     end
 
     it "refuses a name without a letter or digit" do

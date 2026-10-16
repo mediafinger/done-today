@@ -9,21 +9,21 @@ RSpec.describe "Reserved slugs" do
     segment.present? && !segment.start_with?(":", "*", "(")
   end
 
-  it "reserves every top-level path for orgs" do
+  it "reserves every top-level path" do
     segments = paths.filter_map { |path| path.split("/")[1] }.select { literal?(it) }.uniq
 
-    expect(segments - Org::RESERVED_SLUGS).to be_empty
+    expect(segments - Sluggable::RESERVED_SLUGS).to be_empty
   end
 
-  it "reserves every file in public/ for orgs" do
+  it "reserves every file in public/" do
     names = Rails.public_path.children.map { it.basename.to_s.sub(/\..*\z/, "") }
 
-    expect(names - Org::RESERVED_SLUGS).to be_empty
+    expect(names - Sluggable::RESERVED_SLUGS).to be_empty
   end
 
-  it "reserves every org-level path for projects" do
+  it "reserves every org-level path" do
     segments = paths.filter_map { |path| path.split("/")[2] if path.start_with?("/:org_slug/") }.select { literal?(it) }.uniq
 
-    expect(segments - Project::RESERVED_SLUGS).to be_empty
+    expect(segments - Sluggable::RESERVED_SLUGS).to be_empty
   end
 end

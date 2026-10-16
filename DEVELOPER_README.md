@@ -48,7 +48,7 @@ The app supports multi-tenant organization boundaries and project selection:
 - Org and project are part of the path, nothing is selected in the session: `/:org_slug` (the org's projects),
   `/:org_slug/settings`, `/:org_slug/members`, `/:org_slug/:project_slug` (the project page) and below it
   `days/2026-10-15(/edit)`, `weeks/2026-W42`, `tags/:tag`, `members/:id/entries`, `entries`.
-  `Org::RESERVED_SLUGS` keeps org slugs clear of top-level paths, `Project::RESERVED_SLUGS` of the org-level ones.
+  `Sluggable::RESERVED_SLUGS` keeps org and project slugs clear of the app's paths, one list for both levels.
 - Scoping concerns load the context from the path on each request:
   - [RequestContext](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/request_context.rb) (IP, request ID, user agent).
   - [OrgScope](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/org_scope.rb) (`set_current_org`: `Current.org` and `Current.member`, through the user's active memberships, else 404).
