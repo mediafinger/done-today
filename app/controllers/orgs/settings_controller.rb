@@ -5,7 +5,7 @@ module Orgs
     before_action :set_current_org, if: -> { params[:org_slug] }
 
     def show
-      @projects = ProjectPolicy.readable(current_member).order(:name)
+      @projects = ProjectPolicy.readable(current_member).active.order(:name)
       @orgs = current_user.orgs.merge(Member.active).order(:name)
     end
   end

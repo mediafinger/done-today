@@ -2,7 +2,8 @@ class Day < ApplicationRecord
   belongs_to :org
   belongs_to :project, inverse_of: :days
 
-  has_many :entries, inverse_of: :day, dependent: :destroy
+  # entries are history (the DB FK refuses as well)
+  has_many :entries, inverse_of: :day, dependent: :restrict_with_exception
 
   before_validation :set_org
 

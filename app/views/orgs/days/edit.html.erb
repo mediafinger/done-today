@@ -1,6 +1,10 @@
 <%= render "orgs/days/nav", date: @date, project: @project, editing: true,
       unlockable: @unlockable, unlocked: @unlocked, validatable: @validatable %>
 
+<% if current_project.archived? %>
+  <p><%= current_project.name %> was archived on <%= current_project.archived_at.to_date %>, its entries are read-only.</p>
+<% end %>
+
 <%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes, asked: @asked_to_validate if @issues %>
 
 <ul class="bottom-spacer" id="editable-entries">

@@ -9,7 +9,7 @@
     <h2><%= link_to member.org.name, org_path(member.org), method: :get %></h2>
 
     <ul>
-      <% member.participations.sort_by { it.project.name }.each do |participation| %>
+      <% member.participations.reject { it.project.archived? }.sort_by { it.project.name }.each do |participation| %>
         <li><%= link_to participation.project.name, project_path(member.org, participation.project), method: :get %></li>
       <% end %>
     </ul>

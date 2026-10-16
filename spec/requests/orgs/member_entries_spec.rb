@@ -91,5 +91,16 @@ RSpec.describe "Orgs::MemberEntries" do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    # regression: the lookup went through the participants, so the entry's name linked to a 404
+    it "still lists the entries of someone removed from the project" do
+      entry_on("2026-09-01", "Anna's work", by: colleague)
+      project.participants.find_by!(member: colleague).destroy!
+
+      page = read_member(colleague)
+
+      expect(response).to have_http_status(:ok)
+      expect(page.at_css("#entries").text).to include("Anna's work")
+    end
   end
 end

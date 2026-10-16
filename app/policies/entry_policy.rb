@@ -1,4 +1,5 @@
-# A participant edits their own entries, a project owner everybody's.
+# A participant edits their own entries, a project owner everybody's. Nobody edits
+#   the entries of an archived project.
 #
 class EntryPolicy < ApplicationPolicy
   def self.readable(member)
@@ -11,12 +12,17 @@ class EntryPolicy < ApplicationPolicy
     owned = member.participations.includes_all_roles(%w[owner]).select(:project_id)
     joined = member.participations.includes_all_roles(%w[participant]).select(:project_id)
 
-    Entry.where(day: Day.where(org_id: member.org_id, project_id: owned))
-      .or(Entry.where(member:, day: Day.where(org_id: member.org_id, project_id: joined)))
+    days = Day.where(org_id: member.org_id).where.not(project_id: Project.archived.select(:id))
+
+    Entry.where(day: days.where(project_id: owned))
+      .or(Entry.where(member:, day: days.where(project_id: joined)))
   end
 
   def update?
-    roles = project_roles(record.day.project)
+    project = record.day.project
+    return false if project.archived?
+
+    roles = project_roles(project)
 
     roles.include?("owner") || (roles.include?("participant") && record.member_id == member.id)
   end

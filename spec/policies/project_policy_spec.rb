@@ -42,6 +42,51 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  # archived projects stay readable and exportable, nobody writes into them any more
+  context "with an archived project" do
+    before { project.archive! }
+
+    # org roles, project roles => show?, create_entry?, export?, manage?
+    {
+      [ %w[member], %w[observer] ] => [ true, false, false, false ],
+      [ %w[member], %w[participant] ] => [ true, false, false, false ],
+      [ %w[member], %w[owner] ] => [ true, false, true, true ],
+      [ %w[member owner], nil ] => [ true, false, true, true ],
+      [ %w[member owner], %w[participant] ] => [ true, false, true, true ]
+    }.each do |(org_roles, project_roles), expected|
+      it "allows #{expected} with org roles #{org_roles} and project roles #{project_roles.inspect}" do
+        policy = described_class.new(member_with(org_roles:, project_roles:), project)
+
+        expect([ policy.show?, policy.create_entry?, policy.export?, policy.manage? ]).to eq(expected)
+      end
+    end
+  end
+
+  describe "#create? and .manageable" do
+    # org roles, project roles => create?, manageable includes the project
+    {
+      [ %w[member], nil ] => [ false, false ],
+      [ %w[member], %w[participant] ] => [ false, false ],
+      [ %w[member], %w[owner] ] => [ false, true ],
+      [ %w[member owner], nil ] => [ true, true ]
+    }.each do |(org_roles, project_roles), (create, manageable)|
+      it "allows #{[ create, manageable ]} with org roles #{org_roles} and project roles #{project_roles.inspect}" do
+        member = member_with(org_roles:, project_roles:)
+
+        expect(described_class.new(member, Project).create?).to be(create)
+        expect(described_class.manageable(member).include?(project)).to be(manageable)
+      end
+    end
+
+    it "lets an archived org owner create nothing" do
+      create(:member, :owner, org:)
+      owner = member_with(org_roles: %w[member owner], project_roles: nil).tap(&:archive!)
+
+      expect(described_class.new(owner, Project).create?).to be(false)
+      expect(described_class.manageable(owner)).to be_empty
+    end
+  end
+
   context "with an owner of another org" do
     let(:member) { member_with(org_roles: %w[member owner], project_roles: nil, of: create(:org)) }
     let(:policy) { described_class.new(member, project) }

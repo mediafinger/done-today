@@ -1,0 +1,69 @@
+<h2>Manage <%= link_to @project.name_in_database, project_path(current_org, @project) %></h2>
+
+<section>
+  <h3>Name</h3>
+
+  <p>The link to the project keeps its address <code><%= project_path(current_org, @project) %></code>.</p>
+
+  <%= render "orgs/projects/form", project: @project %>
+</section>
+
+<section>
+  <h3>Archive</h3>
+
+  <% if @project.archived? %>
+    <p>Archived on <%= @project.archived_at.to_date %>. Its entries can be read and exported, but not changed.</p>
+
+    <%= button_to "Unarchive", unarchive_project_path(current_org, @project), method: :patch, class: "slim" %>
+  <% else %>
+    <p>An archived project keeps its entries for reading and exporting, but takes no new ones. It can be unarchived.</p>
+
+    <%= button_to "Archive", archive_project_path(current_org, @project), method: :patch, class: "slim secondary",
+          form: { data: { turbo_confirm: "Archive #{@project.name_in_database}? Its entries stay readable." } } %>
+  <% end %>
+</section>
+
+<section>
+  <h3>Participants</h3>
+
+  <p>Observers read the project, participants also log their time, owners also edit everybody's entries and manage the project. Removing someone keeps their entries.</p>
+
+  <table id="participants">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @participants.each do |participant| %>
+        <tr id="<%= dom_id(participant) %>">
+          <td><%= participant.member.name %><%= " (deactivated)" if participant.member.archived? %><%= " (you)" if participant.member_id == current_member.id %></td>
+          <td>
+            <%= form_with model: participant, url: participant_path(current_org, @project, participant), method: :patch, namespace: dom_id(participant) do |form| %>
+              <fieldset role="group">
+                <%= form.select :role, Participant::RANKED_ROLES.reverse, { selected: participant.role }, aria: { label: "Role" } %>
+                <%= form.submit "Save role", class: "slim" %>
+              </fieldset>
+            <% end %>
+          </td>
+          <td>
+            <%= button_to "Remove", participant_path(current_org, @project, participant), method: :delete, class: "slim secondary",
+                  form: { data: { turbo_confirm: "Remove #{participant.member.name} from #{@project.name_in_database}? Their entries stay." } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <% if @candidates.any? %>
+    <%= form_with model: Participant.new, url: participants_path(current_org, @project), id: "new-participant" do |form| %>
+      <fieldset role="group">
+        <%= form.select :member_id, @candidates.map { [ it.name, it.id ] }, {}, aria: { label: "Member" } %>
+        <%= form.select :role, Participant::RANKED_ROLES.reverse, { selected: "participant" }, aria: { label: "Role" } %>
+        <%= form.submit "Add", class: "slim" %>
+      </fieldset>
+    <% end %>
+  <% end %>
+</section>

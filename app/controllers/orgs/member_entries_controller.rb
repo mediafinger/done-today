@@ -5,13 +5,21 @@ module Orgs
     include ProjectEntries
 
     def index
-      @member = project.members.find(params[:member_id])
-      @members = project.members.order(:name).pluck(:id)
+      @member = members.find(params[:member_id])
+      @members = members.order(:name).pluck(:id)
 
       @entries =
         readable_entries
           .where(member: @member)
           .order(Day.arel_table[:date].desc, status: :desc, created_at: :asc)
+    end
+
+    private
+
+    # the participants, and those removed from the project whose entries are still in it
+    def members
+      current_org.members.where(id: project.participants.select(:member_id))
+        .or(current_org.members.where(id: project.entries.select(:member_id)))
     end
   end
 end

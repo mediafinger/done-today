@@ -1,5 +1,9 @@
 <h2><%= @project.name %></h2>
 
+<% if @project.archived? %>
+  <p>Archived on <%= @project.archived_at.to_date %>, read-only.</p>
+<% end %>
+
 <div class="project-views">
   <% Orgs::ProjectsController::VIEWS.each do |view| %>
     <%= link_to view, project_path(current_org, @project, view: (view unless view == "days")), method: :get, role: "button",
@@ -7,6 +11,10 @@
   <% end %>
 
   <%= link_to "validate times", validate_times_project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+
+  <% if @manageable %>
+    <%= link_to "manage", edit_project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+  <% end %>
 </div>
 
 <ul class="bottom-spacer">

@@ -14,7 +14,7 @@
         </b>
       </li>
 
-      <% member.participations.includes(:project).order("project.name asc").each do |participation| %>
+      <% member.participations.includes(:project).where(project: { archived_at: nil }).order("project.name asc").each do |participation| %>
         <li class="without-bullet">
           <%= link_to "#{member.org.name} | #{participation.project.name}", project_path(member.org, participation.project), method: :get, class: "links slim camouflage" %>
         </li>
