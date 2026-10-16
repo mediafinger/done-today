@@ -39,6 +39,7 @@ The project utilizes custom cookie-based signed session handling modeled after s
 - The [Session](file:///Users/andy/Dropbox/www/2025/done_today/app/models/session.rb) model is backed by the database and only links the cookie to its `User`. Org and project are part of the path, see below.
 - Authentication logic is encapsulated in the [Authentication](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/authentication.rb) controller concern.
 - The [User](file:///Users/andy/Dropbox/www/2025/done_today/app/models/user.rb) model uses `has_secure_password` for password digestion.
+- Changing the email stores `users.unconfirmed_email`; the email only changes through the link mailed to the new address. The old address gets a link to cancel the change, or to undo it within 7 days, which also ends every session ([Users::EmailChangesMailer](file:///Users/andy/Dropbox/www/2025/done_today/app/mailers/users/email_changes_mailer.rb)).
 - Password safety is verified against compromised credentials database using HIBP (Have I Been Pwned) via the `not_pwned` validator.
 
 ### 4. Multi-Tenancy & Context Scoping

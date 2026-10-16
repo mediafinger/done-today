@@ -72,6 +72,10 @@ RSpec.describe "Authorization role matrix" do
     colleagues_entry.member
   end
 
+  def colleague_changing_email
+    colleague.user.tap { it.update!(unconfirmed_email: "changing@example.com") }
+  end
+
   def colleagues_session
     @colleagues_session ||= colleague.user.sessions.create!(user_agent: "Matrix", ip_address: "127.0.0.1")
   end
@@ -228,7 +232,32 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "PATCH /user/email", { anonymous: :to_sign_in, no_org: :found, member: :found } do
-    patch user_email_path, params: { user: { email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
+    patch user_email_path, params: { user: { unconfirmed_email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
+  end
+
+  row "DELETE /user/email", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    delete user_email_path
+  end
+
+  # the token decides, not the session: a colleague's link changes the colleague's email
+  row "GET /user/email/confirmations/:token", { anonymous: :ok, member: :ok } do
+    get user_email_confirmation_path(colleague_changing_email.generate_token_for(:email_confirmation))
+  end
+
+  row "PATCH /user/email/confirmations/:token", {
+    anonymous: :written, member: :written
+  }, written: -> { colleague.user.reload.email == "changing@example.com" } do
+    patch user_email_confirmation_path(colleague_changing_email.generate_token_for(:email_confirmation))
+  end
+
+  row "GET /user/email/reverts/:token", { anonymous: :ok, member: :ok } do
+    get user_email_revert_path(colleague_changing_email.email_revert_token)
+  end
+
+  row "PATCH /user/email/reverts/:token", {
+    anonymous: :written, member: :written
+  }, written: -> { colleague.user.reload.unconfirmed_email.nil? } do
+    patch user_email_revert_path(colleague_changing_email.email_revert_token)
   end
 
   row "GET /user/password/edit", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do

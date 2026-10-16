@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_121000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -169,6 +169,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_121000) do
     t.enum "display_mode", default: "system", null: false, enum_type: "display_mode"
     t.uuid "last_org_id"
     t.uuid "last_project_id"
+    t.string "unconfirmed_email"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["last_org_id"], name: "index_users_on_last_org_id"
     t.index ["last_project_id"], name: "index_users_on_last_project_id"

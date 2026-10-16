@@ -128,4 +128,111 @@ RSpec.describe User do
       expect(Session.all).to contain_exactly(kept, others)
     end
   end
+
+  describe "changing the email" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:user) { create(:user, email: "anna@example.com") }
+
+    it "keeps the email until the new address is confirmed" do
+      user.update!(unconfirmed_email: " Bell@Example.com ")
+
+      expect(user.reload).to have_attributes(email: "anna@example.com", unconfirmed_email: "bell@example.com")
+    end
+
+    it "refuses the current email, a taken one and an invalid one" do
+      create(:user, email: "taken@example.com")
+
+      expect(user.update(unconfirmed_email: "anna@example.com")).to be(false)
+      expect(user.update(unconfirmed_email: "taken@example.com")).to be(false)
+      expect(user.update(unconfirmed_email: "no-at-sign")).to be(false)
+    end
+
+    describe "#confirm_email_change" do
+      it "moves the unconfirmed email to the email" do
+        user.update!(unconfirmed_email: "bell@example.com")
+
+        expect(user.confirm_email_change).to be(true)
+        expect(user.reload).to have_attributes(email: "bell@example.com", unconfirmed_email: nil)
+      end
+
+      it "refuses an address somebody else took meanwhile" do
+        user.update!(unconfirmed_email: "bell@example.com")
+        create(:user, email: "bell@example.com")
+
+        expect(user.confirm_email_change).to be(false)
+        expect(user.reload.email).to eq("anna@example.com")
+      end
+    end
+
+    describe "the confirmation token" do
+      before { user.update!(unconfirmed_email: "bell@example.com") }
+
+      it "finds the user" do
+        expect(described_class.find_by_token_for(:email_confirmation, user.generate_token_for(:email_confirmation))).to eq(user)
+      end
+
+      it "dies with another unconfirmed email, after confirming and after a day" do
+        tokens = Array.new(3) { user.generate_token_for(:email_confirmation) }
+
+        user.update!(unconfirmed_email: "cleo@example.com")
+        expect(described_class.find_by_token_for(:email_confirmation, tokens[0])).to be_nil
+
+        user.update!(unconfirmed_email: "bell@example.com")
+        user.confirm_email_change
+        expect(described_class.find_by_token_for(:email_confirmation, tokens[1])).to be_nil
+
+        user.update!(unconfirmed_email: "dana@example.com")
+        token = user.generate_token_for(:email_confirmation)
+        travel(User::EMAIL_CONFIRMATION_EXPIRES_IN + 1.minute) do
+          expect(described_class.find_by_token_for(:email_confirmation, token)).to be_nil
+        end
+      end
+    end
+
+    describe "#revert_email_change" do
+      before { user.update!(unconfirmed_email: "bell@example.com") }
+
+      def revert
+        token = user.email_revert_token
+        described_class.find_by_email_revert_token(token)&.then { |found, from, to| found.revert_email_change(from:, to:) }
+      end
+
+      it "cancels a pending change" do
+        expect(revert).to eq(:cancelled)
+        expect(user.reload).to have_attributes(email: "anna@example.com", unconfirmed_email: nil)
+      end
+
+      it "restores the old email after the change and ends every session" do
+        token = user.email_revert_token
+        user.sessions.create!
+        user.confirm_email_change
+
+        found, from, to = described_class.find_by_email_revert_token(token)
+
+        expect(found.revert_email_change(from:, to:)).to eq(:reverted)
+        expect(user.reload).to have_attributes(email: "anna@example.com", unconfirmed_email: nil)
+        expect(user.sessions).to be_empty
+      end
+
+      it "does nothing once the change is cancelled or replaced by another one" do
+        token = user.email_revert_token
+        user.update!(unconfirmed_email: "cleo@example.com")
+
+        found, from, to = described_class.find_by_email_revert_token(token)
+
+        expect(found.revert_email_change(from:, to:)).to be_nil
+        expect(user.reload.unconfirmed_email).to eq("cleo@example.com")
+      end
+
+      it "refuses a token older than a week or a forged one" do
+        token = user.email_revert_token
+
+        travel(User::EMAIL_REVERT_EXPIRES_IN + 1.minute) do
+          expect(described_class.find_by_email_revert_token(token)).to be_nil
+        end
+        expect(described_class.find_by_email_revert_token("forged")).to be_nil
+      end
+    end
+  end
 end

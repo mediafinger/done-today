@@ -34,8 +34,13 @@ en:
     attributes:
       user:
         password_challenge: "Current password"
+        unconfirmed_email: "New email"
     errors:
       models:
+        user:
+          attributes:
+            unconfirmed_email:
+              same_as_email: "is your current email"
         access_request:
           already_requested: "You already asked to join %{project}"
         invitation:

@@ -1,0 +1,9 @@
+<h1>Confirm your new email</h1>
+
+<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+
+<p>Sign in with <strong><%= @new_email %></strong> from now on, instead of <%= @user.email_in_database %>.</p>
+
+<%= form_with url: user_email_confirmation_path(params[:token]), method: :patch do |form| %>
+  <%= form.submit "Confirm #{@new_email}" %>
+<% end %>
