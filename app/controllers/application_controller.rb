@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   include Authentication # sets current_user, Rails' generated session handling
   include OrgScope # sets current_org & current_member, provides switch_current_org / go_solo
   include ProjectScope # sets current_project, provides switch_current_project
-  include Authorization # provides policy / authorize!, renders a 403 when a policy refuses
+  include Authorization # ActionPolicy on behalf of current_member, renders a 403 when a policy refuses
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern

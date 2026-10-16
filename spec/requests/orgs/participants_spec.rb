@@ -68,7 +68,7 @@ RSpec.describe "Orgs::Participants" do
     it "lets an org owner add themselves, to log time in the project" do
       post participants_path(org, project), params: { participant: { member_id: owner.id, role: "owner" } }
 
-      expect(ProjectPolicy.new(owner, project).create_entry?).to be(true)
+      expect(ProjectPolicy.new(project, member: owner).apply(:create_entry?)).to be(true)
     end
 
     it "refuses an unknown role" do

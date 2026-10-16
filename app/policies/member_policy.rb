@@ -2,17 +2,16 @@
 #   Ask with the Member class for the list, with a Member for changes.
 #
 class MemberPolicy < ApplicationPolicy
-  def index?
-    self.class.org_owner?(member)
-  end
-
   # send, resend and revoke invitations to the org
-  def invite?
-    index?
+  alias_rule :invite?, to: :index?
+  # roles, deactivate, reactivate
+  alias_rule :update?, :deactivate?, :reactivate?, to: :manage?
+
+  def index?
+    org_owner?
   end
 
-  # roles, deactivate, reactivate
   def manage?
-    index? && record.org_id == member.org_id
+    org_owner?
   end
 end

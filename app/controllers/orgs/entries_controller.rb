@@ -13,7 +13,7 @@ module Orgs
     #   Therefore we need to find or create a day for the given date.
     #
     def create
-      authorize!(current_project, :create_entry?)
+      authorize! current_project, to: :create_entry?
 
       day = current_project.days.find_or_initialize_by(org: current_org, date: create_params[:date])
 
@@ -36,7 +36,7 @@ module Orgs
     end
 
     def update
-      @entry = authorize!(current_project.entries.find(params[:id]), :update?)
+      @entry = authorize! current_project.entries.find(params[:id])
 
       # `key?`, not `present?`: a submitted-but-blank log has to reach the validations
       #   rather than being silently dropped

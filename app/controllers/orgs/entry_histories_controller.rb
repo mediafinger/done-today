@@ -5,7 +5,7 @@ module Orgs
     include ProjectEntries
 
     def show
-      @entry = authorize!(readable_entries.find(params[:entry_id]), :history?)
+      @entry = authorize! readable_entries.find(params[:entry_id]), to: :history?
       @histories = RecordHistory.for_org_record(org: current_org, record: @entry).order(:created_at)
 
       # archived members included, they made the changes all the same

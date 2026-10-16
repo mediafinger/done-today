@@ -14,7 +14,7 @@ module ProjectEntries
   end
 
   def readable_entries
-    EntryPolicy.readable(current_member)
+    authorized_scope(Entry.all)
       .joins(:day)
       .where(days: { project_id: project.id })
       .includes(:member, day: :project)

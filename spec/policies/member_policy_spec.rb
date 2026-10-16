@@ -3,55 +3,75 @@ require "rails_helper"
 RSpec.describe MemberPolicy do
   let(:org) { create(:org) }
   let(:colleague) { create(:member, org:) }
+  let(:member) { create(:member, :owner, org:) }
+  let(:context) { { member: } }
 
-  # org roles => index?, manage? (a colleague)
-  {
-    %w[member] => [ false, false ],
-    %w[member owner] => [ true, true ],
-    %w[owner] => [ true, true ]
-  }.each do |org_roles, (index, manage)|
-    context "with org roles #{org_roles}" do
-      let(:member) { create(:member, org:, roles: org_roles) }
+  # the org keeps an owner while another one is archived
+  def archived_owner
+    create(:member, :owner, org:)
+    create(:member, :owner, org:).tap(&:archive!)
+  end
 
-      it { expect(described_class.new(member, Member).index?).to be(index) }
-      it { expect(described_class.new(member, colleague).manage?).to be(manage) }
-      it { expect(described_class.new(member, Member).invite?).to be(index) }
+  describe_rule :index? do
+    let(:record) { Member }
+
+    succeed "for an owner"
+
+    succeed "for a member with only the owner role" do
+      let(:member) { create(:member, org:, roles: %w[owner]) }
+    end
+
+    failed "for a member" do
+      let(:member) { create(:member, org:) }
+    end
+
+    failed "for an archived owner" do
+      let(:member) { archived_owner }
+    end
+
+    failed "without a member" do
+      let(:member) { nil }
     end
   end
 
-  it "lets an owner manage themselves" do
-    owner = create(:member, :owner, org:)
+  describe_rule :manage? do
+    let(:record) { colleague }
 
-    expect(described_class.new(owner, owner).manage?).to be(true)
+    succeed "for an owner"
+
+    succeed "for a member with only the owner role" do
+      let(:member) { create(:member, org:, roles: %w[owner]) }
+    end
+
+    succeed "for an owner, about themselves" do
+      let(:record) { member }
+    end
+
+    succeed "for an owner, about a deactivated member, to reactivate them" do
+      let(:record) { colleague.tap(&:archive!) }
+    end
+
+    failed "for a member" do
+      let(:member) { create(:member, org:) }
+    end
+
+    failed "for an owner of another org" do
+      let(:member) { create(:member, :owner) }
+    end
+
+    failed "for an archived owner" do
+      let(:member) { archived_owner }
+    end
+
+    failed "without a member" do
+      let(:member) { nil }
+    end
   end
 
-  it "does not let an owner manage the members of another org" do
-    owner = create(:member, :owner)
+  # send, resend and revoke invitations
+  it { expect(policy.resolve_rule(:invite?)).to eq(:index?) }
 
-    expect(described_class.new(owner, colleague).manage?).to be(false)
-  end
-
-  it "does not let an archived owner do anything" do
-    create(:member, :owner, org:)
-    owner = create(:member, :owner, org:).tap(&:archive!)
-
-    expect([
-      described_class.new(owner, Member).index?, described_class.new(owner, colleague).manage?,
-      described_class.new(owner, Member).invite?
-    ]).to all(be(false))
-  end
-
-  it "allows nothing without a member" do
-    expect([ described_class.new(nil, Member).index?, described_class.new(nil, colleague).manage? ]).to all(be(false))
-  end
-
-  it "lets an owner manage a deactivated member, to reactivate them" do
-    owner = create(:member, :owner, org:)
-
-    expect(described_class.new(owner, colleague.tap(&:archive!)).manage?).to be(true)
-  end
-
-  it "lets nobody invite without a member" do
-    expect(described_class.new(nil, Member).invite?).to be(false)
+  %i[update? deactivate? reactivate?].each do |rule|
+    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
   end
 end

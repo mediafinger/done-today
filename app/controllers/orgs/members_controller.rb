@@ -4,7 +4,7 @@ module Orgs
   #
   class MembersController < AppOrgBaseController
     def index
-      authorize!(Member, :index?)
+      authorize!
 
       members = current_org.members.includes(:user).order(:name)
 
@@ -29,7 +29,7 @@ module Orgs
 
     # another org's member is a 404, a colleague of a non-owner a 403
     def member
-      @member ||= authorize!(current_org.members.find(params[:id]), :manage?)
+      @member ||= authorize! current_org.members.find(params[:id])
     end
 
     # the lock keeps two owners from demoting each other at the same time

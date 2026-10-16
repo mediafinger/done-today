@@ -8,7 +8,7 @@
       <% end %>
     </ul>
 
-    <% if policy(Project).create? %>
+    <% if allowed_to?(:create?, Project) %>
       <%= link_to "New project", new_project_path(current_org), method: :get, role: "button", class: "slim secondary" %>
     <% end %>
 

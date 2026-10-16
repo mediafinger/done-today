@@ -1,6 +1,6 @@
 <%# locals: (date:, project:, editing: false, unlockable: false, unlocked: false, validatable: false) %>
 
-<% writable = policy(project).create_entry? %>
+<% writable = allowed_to?(:create_entry?, project) %>
 
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 

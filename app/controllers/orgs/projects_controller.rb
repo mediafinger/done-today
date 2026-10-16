@@ -15,8 +15,8 @@ module Orgs
       @entries_count = @project.entries.size
       @view = view
 
-      @exportable = policy(@project).export?
-      @manageable = policy(@project).manage?
+      @exportable = allowed_to?(:export?, @project)
+      @manageable = allowed_to?(:manage?, @project)
 
       if @view == "days"
         @with_date = true
@@ -49,18 +49,18 @@ module Orgs
 
     # archived projects are only listed for those who could unarchive them
     def index
-      @projects = ProjectPolicy.readable(current_member).active.order(:name)
-      @archived_projects = ProjectPolicy.manageable(current_member).archived.order(:name)
+      @projects = authorized_scope(current_org.projects).active.order(:name)
+      @archived_projects = authorized_scope(current_org.projects, as: :manageable).archived.order(:name)
     end
 
     def new
-      authorize!(Project, :create?)
+      authorize!
 
       @project = current_org.projects.new
     end
 
     def create
-      authorize!(Project, :create?)
+      authorize!
 
       @project = current_org.projects.new(project_params)
 
@@ -157,8 +157,9 @@ module Orgs
 
     private
 
+    # edit?, update?, archive?, unarchive?: manage?
     def authorize_manage
-      authorize!(current_project, :manage?)
+      authorize! current_project
     end
 
     # for the participants on the edit page, candidates are the active members who do not take part yet
@@ -173,7 +174,7 @@ module Orgs
 
     # a project the member may read but not export is a 404 as well
     def exportable_project
-      ProjectPolicy.exportable(current_member).find(current_project.id)
+      authorized_scope(current_org.projects, as: :exportable).find(current_project.id)
     end
 
     # an unknown view falls back to the days, rather than raising

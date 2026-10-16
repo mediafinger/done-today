@@ -278,6 +278,12 @@ RSpec.describe "Orgs::Projects" do
         expect(response.body.split("\n").last).to eq("#{org.name},#{project.name},Zoe,2026-03,8.0,#handover")
       end
 
+      # a refused export is a 404, so it is looked up through the scope, not refused by a rule
+      it "looks the project up among the exportable ones" do
+        expect { export(month: "2026-03") }
+          .to have_authorized_scope(:active_record_relation).with(ProjectPolicy).as(:exportable)
+      end
+
       it "says so when the month cannot be read, rather than exporting another one" do
         export(month: "not-a-month")
 

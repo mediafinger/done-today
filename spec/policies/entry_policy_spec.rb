@@ -4,11 +4,20 @@ RSpec.describe EntryPolicy do
   let(:project) { create(:project) }
   let(:day) { create(:day, project:) }
   let!(:colleagues_entry) { create(:entry, day:, member: create(:participant, project:).member) }
+  let(:member) { nil }
 
   def member_with(org_roles:, project_roles:)
     create(:member, org: project.org, roles: org_roles).tap do |member|
       create(:participant, project:, member:, roles: project_roles) if project_roles
     end
+  end
+
+  def may_update?(entry)
+    described_class.new(entry, member:).apply(:update?)
+  end
+
+  def scope(name = :default)
+    described_class.new(member:).apply_scope(Entry.all, type: :active_record_relation, name:)
   end
 
   # org roles, project roles => may update own entry, may update a colleague's entry
@@ -27,70 +36,79 @@ RSpec.describe EntryPolicy do
       # an observer or ex-participant may still have entries from earlier
       let!(:own_entry) { create(:entry, day:, member:) }
 
-      it { expect(described_class.new(member, own_entry).update?).to be(own) }
-      it { expect(described_class.new(member, colleagues_entry).update?).to be(colleagues) }
+      it { expect(may_update?(own_entry)).to be(own) }
+      it { expect(may_update?(colleagues_entry)).to be(colleagues) }
 
       it "shows the edit trail exactly when the project may be managed" do
-        manage = ProjectPolicy.new(member, project).manage?
+        manage = ProjectPolicy.new(project, member:).apply(:manage?)
+        history = [ own_entry, colleagues_entry ].map { described_class.new(it, member:).apply(:history?) }
 
-        expect([ described_class.new(member, own_entry).history?, described_class.new(member, colleagues_entry).history? ])
-          .to eq([ manage, manage ])
+        expect(history).to eq([ manage, manage ])
       end
 
-      it "lists exactly the entries it may update as editable" do
+      it "scopes exactly the entries it may update as editable" do
         expected = [ (own_entry if own), (colleagues_entry if colleagues) ].compact
 
-        expect(described_class.editable(member)).to match_array(expected)
+        expect(scope(:editable)).to match_array(expected)
       end
 
-      it "lists the entries as readable exactly when the project may be shown" do
-        readable = ProjectPolicy.new(member, project).show?
+      it "scopes the entries as readable exactly when the project may be shown" do
+        readable = ProjectPolicy.new(project, member:).apply(:show?)
 
-        expect(described_class.readable(member).include?(colleagues_entry)).to be(readable)
+        expect(scope.include?(colleagues_entry)).to be(readable)
       end
     end
   end
 
-  it "does not let a project owner edit entries of another project" do
-    owner = member_with(org_roles: %w[member], project_roles: %w[owner])
-    elsewhere = create(:entry, day: create(:day, project: create(:project, org: project.org)))
+  context "with a project owner" do
+    let(:member) { member_with(org_roles: %w[member], project_roles: %w[owner]) }
 
-    expect(described_class.new(owner, elsewhere).update?).to be(false)
-    expect(described_class.editable(owner)).not_to include(elsewhere)
+    it "does not let them edit entries of another project" do
+      elsewhere = create(:entry, day: create(:day, project: create(:project, org: project.org)))
+
+      expect(may_update?(elsewhere)).to be(false)
+      expect(scope(:editable)).not_to include(elsewhere)
+    end
+
+    it "lets them neither read nor edit once archived, not even their own entries" do
+      own_entry = create(:entry, day:, member:)
+      member.archive!
+
+      expect(may_update?(own_entry)).to be(false)
+      expect(scope(:editable)).to be_empty
+      expect(scope).to be_empty
+    end
   end
 
-  it "lets an archived project owner neither read nor edit, not even their own entries" do
-    owner = member_with(org_roles: %w[member], project_roles: %w[owner])
-    own_entry = create(:entry, day:, member: owner)
-    owner.archive!
+  context "with an archived project" do
+    let(:member) { member_with(org_roles: %w[member owner], project_roles: %w[owner]) }
 
-    expect(described_class.new(owner, own_entry).update?).to be(false)
-    expect(described_class.editable(owner)).to be_empty
-    expect(described_class.readable(owner)).to be_empty
+    it "lets nobody edit its entries" do
+      own_entry = create(:entry, day:, member:)
+      project.archive!
+
+      expect(may_update?(own_entry)).to be(false)
+      expect(may_update?(colleagues_entry)).to be(false)
+      expect(scope(:editable)).to be_empty
+      expect(scope).to include(own_entry, colleagues_entry)
+    end
   end
 
-  it "lets nobody edit the entries of an archived project" do
-    owner = member_with(org_roles: %w[member owner], project_roles: %w[owner])
-    own_entry = create(:entry, day:, member: owner)
-    project.archive!
+  context "with an owner of another org" do
+    let(:member) { create(:member, :owner) }
 
-    expect(described_class.new(owner, own_entry).update?).to be(false)
-    expect(described_class.new(owner, colleagues_entry).update?).to be(false)
-    expect(described_class.editable(owner)).to be_empty
-    expect(described_class.readable(owner)).to include(own_entry, colleagues_entry)
+    it "lets them neither read nor edit" do
+      expect(may_update?(colleagues_entry)).to be(false)
+      expect(scope(:editable)).to be_empty
+      expect(scope).to be_empty
+    end
   end
 
-  it "lets an owner of another org neither read nor edit" do
-    owner = create(:member, :owner)
-
-    expect(described_class.new(owner, colleagues_entry).update?).to be(false)
-    expect(described_class.editable(owner)).to be_empty
-    expect(described_class.readable(owner)).to be_empty
-  end
-
-  it "allows nothing without a member" do
-    expect(described_class.new(nil, colleagues_entry).update?).to be(false)
-    expect(described_class.editable(nil)).to be_empty
-    expect(described_class.readable(nil)).to be_empty
+  context "without a member" do
+    it "allows nothing" do
+      expect(may_update?(colleagues_entry)).to be(false)
+      expect(scope(:editable)).to be_empty
+      expect(scope).to be_empty
+    end
   end
 end

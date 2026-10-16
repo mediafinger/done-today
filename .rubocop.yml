@@ -63,9 +63,15 @@ RSpec/DescribeClass:
   Exclude:
     - spec/tasks/**/*
 
-# `row` in spec/requests/authorization_matrix_spec.rb defines one example per role
+# `row` in spec/requests/authorization_matrix_spec.rb defines one example per role,
+#   the rest is ActionPolicy's DSL (action_policy/config/rubocop-rspec.yml)
 RSpec:
   Language:
+    ExampleGroups:
+      Regular:
+        - describe_rule
     Includes:
       Examples:
         - row
+        - succeed
+        - failed

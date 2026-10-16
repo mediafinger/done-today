@@ -1,29 +1,18 @@
-# Asks the record's policy (app/policies) on behalf of `current_member`.
+# Asks ActionPolicy (app/policies) on behalf of `current_member`.
 #
-#   Records the member cannot read are looked up through a policy scope and end
+#   Records the member cannot read are looked up through `authorized_scope` and end
 #   in a 404. Records they can read but not change end here, in a 403.
 #
 module Authorization
   extend ActiveSupport::Concern
 
   included do
-    rescue_from ApplicationPolicy::NotAuthorizedError, with: :render_forbidden
+    authorize :member, through: :current_member
 
-    helper_method :policy if respond_to? :helper_method
+    rescue_from ActionPolicy::Unauthorized, with: :render_forbidden
   end
 
   private
-
-  # a class asks about the records in general, e.g. `policy(Member).index?`
-  def policy(record)
-    klass = record.is_a?(Class) ? record : record.class
-
-    "#{klass.name}Policy".constantize.new(current_member, record)
-  end
-
-  def authorize!(record, query)
-    policy(record).authorize!(query)
-  end
 
   def render_forbidden
     respond_to do |format|

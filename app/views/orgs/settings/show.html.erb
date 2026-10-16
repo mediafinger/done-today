@@ -9,7 +9,7 @@
   <% if current_org %>
     <li>
       Org: <b><%= current_org.name %></b>
-      <% if policy(Member).index? %>
+      <% if allowed_to?(:index?, Member) %>
         (<%= link_to "manage members", members_path(current_org) %>)
       <% end %>
     </li>

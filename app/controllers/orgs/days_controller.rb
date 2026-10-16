@@ -9,7 +9,7 @@ module Orgs
 
     def show
       @entries = readable_entries.where(days: { date: @date }).order(status: :desc, created_at: :asc)
-      @edited_ids = policy(project).entry_history? ? edited_ids(@entries) : Set.new
+      @edited_ids = allowed_to?(:entry_history?, project) ? edited_ids(@entries) : Set.new
     end
 
     # When no day for the date exists yet, a new one is initialized, so the user can
@@ -24,7 +24,7 @@ module Orgs
       @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
 
       # observers and org owners who do not participate read the day instead
-      writable = policy(project).create_entry?
+      writable = allowed_to?(:create_entry?, project)
 
       # a past day is read-only until it is unlocked on purpose
       @unlockable = writable && @date.past?
@@ -32,7 +32,7 @@ module Orgs
 
       @entries =
         if @day.persisted?
-          entries = writable ? EntryPolicy.editable(current_member).where(day: @day) : @day.entries
+          entries = writable ? authorized_scope(Entry.all, as: :editable).where(day: @day) : @day.entries
           entries.includes(:member, day: :project).order(status: :desc, created_at: :asc)
         else
           @day.entries
