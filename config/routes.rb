@@ -97,7 +97,7 @@ Rails.application.routes.draw do
     mount MissionControl::Jobs::Engine, at: "/mission_control_jobs"
   end
 
-  # development and test only, letter_opener_web is in the development group of the Gemfile
+  # development only, letter_opener_web is in the development group of the Gemfile
   namespace :dev, module: "devs", constraints: ->(request) { DevConstraint.matches?(request) } do
     get "", to: "pages#show", as: "home"
     mount LetterOpenerWeb::Engine, at: "/letter_opener" if defined?(LetterOpenerWeb)
