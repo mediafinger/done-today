@@ -69,7 +69,7 @@ The app supports multi-tenant organization boundaries and project selection:
 ### 5. Domain Model & PostgreSQL-specific Features
 - **Where classes live**:
   - `app/models`: Active Record models (`ApplicationRecord` subclasses), plus `Current` (`ActiveSupport::CurrentAttributes`).
-  - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`).
+  - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`, `OrgSetup`).
   - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TimeValidation`, `DaysExport`, `MonthExport`). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Arrays**: Membership and participation roles are stored as array columns (`text[]`). Role querying utilizes specialized Postgres operators (e.g., `&&` for intersection, `@>` for containment).
