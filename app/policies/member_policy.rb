@@ -1,4 +1,5 @@
-# Internals list the members of their org, org owners manage them, themselves included.
+# Internals list the members of their org, org managers and owners manage them, themselves included.
+#   Only owners give or take the owner role, so managers leave owners alone.
 #   Ask with the Member class for the list, with a Member for changes.
 #
 class MemberPolicy < ApplicationPolicy
@@ -10,7 +11,7 @@ class MemberPolicy < ApplicationPolicy
   # who a project manager may add to a project: the internals, and the guests of the projects they manage
   relation_scope(:addable) do |relation|
     next relation.none unless internal?
-    next relation if org_owner?
+    next relation if org_manager?
 
     guests = Participant.where(project: authorized_scope(Project.all, as: :manageable)).select(:member_id)
 
@@ -22,6 +23,11 @@ class MemberPolicy < ApplicationPolicy
   end
 
   def manage?
+    org_owner? || (org_manager? && !(record.is_a?(Member) && record.owner?))
+  end
+
+  # make someone an owner, also by invitation, or take the role
+  def grant_owner?
     org_owner?
   end
 end

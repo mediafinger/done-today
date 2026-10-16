@@ -28,6 +28,8 @@ RSpec.describe ProjectPolicy do
     [ "member", %w[observer] ] => [ true, false, false, false ],
     [ "member", %w[participant] ] => [ true, true, false, false ],
     [ "member", %w[owner] ] => [ true, true, true, true ],
+    [ "manager", nil ] => [ true, false, true, true ],
+    [ "manager", %w[participant] ] => [ true, true, true, true ],
     [ "owner", nil ] => [ true, false, true, true ],
     [ "owner", %w[observer] ] => [ true, false, true, true ],
     [ "owner", %w[participant] ] => [ true, true, true, true ],
@@ -61,7 +63,7 @@ RSpec.describe ProjectPolicy do
     end
 
     {
-      "member" => true, "owner" => true, "guest" => false
+      "member" => true, "manager" => true, "owner" => true, "guest" => false
     }.each do |org_role, lists_all|
       context "with org role #{org_role}, participating in the project" do
         let(:member) { member_with(org_role:, project_roles: %w[participant]) }
@@ -120,6 +122,7 @@ RSpec.describe ProjectPolicy do
       [ "member", nil ] => [ false, false ],
       [ "member", %w[participant] ] => [ false, false ],
       [ "member", %w[owner] ] => [ false, true ],
+      [ "manager", nil ] => [ true, true ],
       [ "owner", nil ] => [ true, true ]
     }.each do |(org_role, project_roles), (create, manageable)|
       context "with org role #{org_role} and project roles #{project_roles.inspect}" do

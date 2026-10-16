@@ -5,7 +5,12 @@ module MembersHelper
   def join_project_hint(project)
     owners = project.participants.select { it.roles.include?("owner") && !it.member.archived? }.map { it.member.name }.sort
 
-    owners.any? ? "ask #{owners.to_sentence(last_word_connector: " or ", two_words_connector: " or ")} to join" : "ask an org owner to join"
+    owners.any? ? "ask #{owners.to_sentence(last_word_connector: " or ", two_words_connector: " or ")} to join" : "ask an org manager or owner to join"
+  end
+
+  # only owners give the owner role
+  def assignable_org_roles(roles)
+    allowed_to?(:grant_owner?, Member) ? roles : roles - %w[owner]
   end
 
   # guests never own a project

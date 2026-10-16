@@ -12,10 +12,12 @@ require "rails_helper"
 #   participant    participates in P as participant
 #   project_owner  participates in P as owner
 #   org_owner      owner of the org, no participation in P
+#   org_manager    manager of the org, no participation in P
 #   guest          external, participates in P as participant
 #   outside_guest  external, participates in another project of the org
 #
-# A row that names no outcome for guest takes participant's, for outside_guest member's.
+# A row that names no outcome for guest takes participant's, for outside_guest member's,
+#   for org_manager org_owner's.
 #
 # Outcomes: an HTTP status, or
 #   :listed / :hidden    a link to P on the page, or none and not its name either
@@ -39,6 +41,7 @@ RSpec.describe "Authorization role matrix" do
       participant: create(:participant, project:).member,
       project_owner: create(:participant, :owner, project:).member,
       org_owner: create(:member, :owner, org:),
+      org_manager: create(:member, :manager, org:),
       guest: create(:participant, project:, member: create(:member, :guest, org:)).member,
       outside_guest: create(:participant, project: create(:project, org:), member: create(:member, :guest, org:)).member,
       # after org_owner, so the org keeps an owner
@@ -73,8 +76,13 @@ RSpec.describe "Authorization role matrix" do
     @colleagues_session ||= colleague.user.sessions.create!(user_agent: "Matrix", ip_address: "127.0.0.1")
   end
 
-  def pending_invitation
-    org.invitations.find_or_create_by!(email: "pending@example.com") { it.sent_at = 2.days.ago }
+  def pending_invitation(role: "member")
+    org.invitations.find_or_create_by!(email: "pending@example.com") { it.assign_attributes(role:, sent_at: 2.days.ago) }
+  end
+
+  # an owner besides the org_owner persona, so either of them may step down
+  def other_owner
+    @other_owner ||= create(:member, :owner, org:)
   end
 
   def pending_guest_invitation
@@ -116,7 +124,8 @@ RSpec.describe "Authorization role matrix" do
 
   # one example per persona: sign in, send the request, check the outcome
   def self.row(name, outcomes, written: nil, &request)
-    outcomes = { guest: outcomes[:participant], outside_guest: outcomes[:member] }.compact.merge(outcomes)
+    defaults = { guest: outcomes[:participant], outside_guest: outcomes[:member], org_manager: outcomes[:org_owner] }
+    outcomes = defaults.compact.merge(outcomes)
 
     describe name do
       outcomes.each do |persona, outcome|
@@ -366,11 +375,42 @@ RSpec.describe "Authorization role matrix" do
     get members_path(org)
   end
 
-  row "PATCH /:org/members/:id", {
+  # managers do everything owners do, except giving or taking the owner role
+  row "PATCH /:org/members/:id (to owner)", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
-    org_owner: :written
+    org_owner: :written, org_manager: :forbidden
   }, written: -> { colleague.reload.owner? } do
     patch member_path(org, colleague), params: { member: { role: "owner" } }
+  end
+
+  row "PATCH /:org/members/:id (to manager)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { colleague.reload.manager? } do
+    patch member_path(org, colleague), params: { member: { role: "manager" } }
+  end
+
+  row "PATCH /:org/members/:id of an owner (to member)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { other_owner.reload.member? } do
+    patch member_path(org, other_owner), params: { member: { role: "member" } }
+  end
+
+  row "PATCH /:org/members/:id/deactivate of an owner", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { other_owner.reload.archived? } do
+    patch deactivate_member_path(org, other_owner)
+  end
+
+  row "PATCH /:org/members/:id/reactivate of an owner", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { !other_owner.reload.archived? } do
+    other_owner.archive!
+
+    patch reactivate_member_path(org, other_owner)
   end
 
   row "PATCH /:org/members/:id/deactivate", {
@@ -396,6 +436,23 @@ RSpec.describe "Authorization role matrix" do
     post invitations_path(org), params: { invitation: { email: "invited@example.com", role: "member" } }
   end
 
+  row "POST /:org/invitations (as owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { org.invitations.exists?(email: "invited@example.com") } do
+    post invitations_path(org), params: { invitation: { email: "invited@example.com", role: "owner" } }
+  end
+
+  # turning a pending owner invitation into a member one takes the owner role as well
+  row "POST /:org/invitations (to member, pending as owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { org.invitations.find_by!(email: "pending@example.com").member? } do
+    pending_invitation(role: "owner")
+
+    post invitations_path(org), params: { invitation: { email: "pending@example.com", role: "member" } }
+  end
+
   row "PATCH /:org/invitations/:id/resend", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
@@ -403,11 +460,25 @@ RSpec.describe "Authorization role matrix" do
     patch resend_invitation_path(org, pending_invitation)
   end
 
+  row "PATCH /:org/invitations/:id/resend (as owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { org.invitations.find_by!(email: "pending@example.com").sent_at > 1.hour.ago } do
+    patch resend_invitation_path(org, pending_invitation(role: "owner"))
+  end
+
   row "DELETE /:org/invitations/:id", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { !org.invitations.exists?(email: "pending@example.com") } do
     delete invitation_path(org, pending_invitation)
+  end
+
+  row "DELETE /:org/invitations/:id (as owner)", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written, org_manager: :forbidden
+  }, written: -> { !org.invitations.exists?(email: "pending@example.com") } do
+    delete invitation_path(org, pending_invitation(role: "owner"))
   end
 
   row "GET /:org/projects/new", {

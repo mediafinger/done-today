@@ -1,6 +1,6 @@
 <h2>Members of <%= current_org.name %></h2>
 
-<% if @manager %>
+<% if @can_manage %>
   <%= render "invitations" %>
 <% end %>
 
@@ -12,7 +12,7 @@
       <th>Name</th>
       <th>Email</th>
       <th>Role</th>
-      <% if @manager %><th></th><% end %>
+      <% if @can_manage %><th></th><% end %>
     </tr>
   </thead>
   <tbody>
@@ -31,7 +31,7 @@
         <th>Email</th>
         <th>Role</th>
         <th>Projects</th>
-        <% if @manager %><th></th><% end %>
+        <% if @can_manage %><th></th><% end %>
       </tr>
     </thead>
     <tbody>
@@ -40,7 +40,7 @@
   </table>
 <% end %>
 
-<% if @manager && @archived_members.any? %>
+<% if @can_manage && @archived_members.any? %>
   <h3>Deactivated</h3>
 
   <table id="archived-members">
@@ -58,7 +58,11 @@
           <td><%= member.name %></td>
           <td><%= member.user.email %></td>
           <td><%= member.archived_at.to_date %></td>
-          <td><%= button_to "Reactivate", reactivate_member_path(current_org, member), method: :patch, class: "slim" %></td>
+          <td>
+            <% if allowed_to?(:manage?, member) %>
+              <%= button_to "Reactivate", reactivate_member_path(current_org, member), method: :patch, class: "slim" %>
+            <% end %>
+          </td>
         </tr>
       <% end %>
     </tbody>

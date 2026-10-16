@@ -1,8 +1,9 @@
 # Every member has one org role:
 #   guest - an external: participates in projects, sees only those, never owns one
 #   member - an internal: can participate in projects (after invitation), sees all projects and members
-#   owner - can manage members, can manage organization,
-#           can manage projects, can manage participants, can read all existing entries
+#   manager - can manage members, projects and participants, can read all existing entries,
+#             but neither gives nor takes the owner role
+#   owner - all of the above, and can manage the organization and its owners
 #
 # What the roles allow is decided in app/policies.
 #
@@ -11,8 +12,9 @@
 #   `unarchive!` gives the access back.
 #
 class Member < ApplicationRecord
-  VALID_ROLES = %w[guest member owner].freeze
-  INTERNAL_ROLES = %w[member owner].freeze
+  VALID_ROLES = %w[guest member manager owner].freeze
+  INTERNAL_ROLES = %w[member manager owner].freeze
+  MANAGING_ROLES = %w[manager owner].freeze
 
   belongs_to :org, inverse_of: :members
   belongs_to :user, inverse_of: :memberships
@@ -55,6 +57,10 @@ class Member < ApplicationRecord
 
   def internal?
     INTERNAL_ROLES.include?(role)
+  end
+
+  def managing?
+    MANAGING_ROLES.include?(role)
   end
 
   def active_owner?

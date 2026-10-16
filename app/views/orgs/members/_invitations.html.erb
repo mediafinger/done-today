@@ -3,7 +3,7 @@
     <legend>Invite by email, the link is valid for <%= distance_of_time_in_words(Invitation::EXPIRES_IN) %></legend>
     <%= form.email_field :email, required: true, placeholder: "Email address", aria: { label: "Email address" } %>
     <%= form.text_field :name, placeholder: "Name (optional, they can change it)", aria: { label: "Name" } %>
-    <%= form.select :role, Member::VALID_ROLES, { selected: "member" }, aria: { label: "Role" } %>
+    <%= form.select :role, assignable_org_roles(Member::VALID_ROLES), { selected: "member" }, aria: { label: "Role" } %>
     <%= form.collection_select :project_id, current_org.projects.active.order(:name), :id, :name,
           { include_blank: "Project (guests only)" }, aria: { label: "Project" } %>
     <%= form.select :project_role, Participant::GUEST_ROLES.reverse, { selected: "participant" }, aria: { label: "Project role" } %>
@@ -30,9 +30,11 @@
           <td><%= invitation_role(invitation) %></td>
           <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
           <td>
-            <%= button_to "Resend", resend_invitation_path(current_org, invitation), method: :patch, class: "slim" %>
-            <%= button_to "Revoke", invitation_path(current_org, invitation), method: :delete, class: "slim secondary",
-                  form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+            <% if !invitation.owner? || allowed_to?(:grant_owner?, Member) %>
+              <%= button_to "Resend", resend_invitation_path(current_org, invitation), method: :patch, class: "slim" %>
+              <%= button_to "Revoke", invitation_path(current_org, invitation), method: :delete, class: "slim secondary",
+                    form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+            <% end %>
           </td>
         </tr>
       <% end %>
