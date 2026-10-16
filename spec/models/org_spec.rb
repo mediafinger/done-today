@@ -17,6 +17,23 @@ RSpec.describe Org do
       expect(create(:org, name: "acme!").slug).to eq("acme-8")
     end
 
+    # numbers compare as numbers, not as text: 22 < 110 < 005000
+    it "takes the next number after the highest one, whatever its length" do
+      create(:org, name: "Acme")
+      create(:org, name: "Acme 22")
+      create(:org, name: "Acme 110")
+      create(:org, name: "Acme 005000")
+
+      expect(create(:org, name: "acme!").slug).to eq("acme-5001")
+    end
+
+    it "ignores slugs that only start like the name" do
+      create(:org, name: "Acme")
+      create(:org, name: "Acme 9 Labs")
+
+      expect(create(:org, name: "acme!").slug).to eq("acme-2")
+    end
+
     it "is the URL param" do
       expect(create(:org, name: "Acme Inc").to_param).to eq("acme-inc")
     end
