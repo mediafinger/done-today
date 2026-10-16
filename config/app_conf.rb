@@ -105,7 +105,7 @@ class AppConf
   register :done_db_username, default: "postgres", required: production_env?
 
   # determines the size of the DB connection pool and the puma threads
-  register :rails_max_threads, default: 3
+  register :rails_max_threads, default: 8
   register :rails_min_threads, default: 3
   # determines the size of the DB connection pool and the puma threads
   register :web_concurrency, default: 1
