@@ -2,7 +2,7 @@
 
 <p>
   <%= @invitation.invited_by ? "#{@invitation.invited_by.name} invited" : "An invitation for" %> you,
-  <strong><%= current_user.email %></strong>, as <%= @invitation.roles.to_sentence %>.
+  <strong><%= current_user.email %></strong>, as <%= @invitation.role %>.
 </p>
 
 <%= form_with url: accept_invitation_path(params[:token]), method: :patch do |form| %>

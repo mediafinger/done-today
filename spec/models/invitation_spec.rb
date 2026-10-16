@@ -11,8 +11,8 @@ RSpec.describe Invitation do
       expect(create(:invitation, email: " Ada@Example.COM ").email).to eq("ada@example.com")
     end
 
-    it "refuses roles that are no org roles" do
-      expect(build(:invitation, roles: %w[participant])).not_to be_valid
+    it "refuses a role that is no org role" do
+      expect(build(:invitation, role: "participant")).not_to be_valid
     end
 
     it "refuses an email that is already an active member of the org" do
@@ -90,30 +90,30 @@ RSpec.describe Invitation do
   describe "#accept!" do
     let(:user) { create(:user, email: "ada@example.com", name: "Ada Lovelace") }
 
-    it "creates the member with the invited roles" do
-      invitation.update!(roles: %w[member owner])
+    it "creates the member with the invited role" do
+      invitation.update!(role: "owner")
 
       member = invitation.accept!(user)
 
-      expect(member).to have_attributes(org:, user:, roles: %w[member owner], name: "Ada Lovelace")
+      expect(member).to have_attributes(org:, user:, role: "owner", name: "Ada Lovelace")
       expect(invitation.reload).to be_accepted
     end
 
     it "reactivates an archived member of the same user instead of adding a second one" do
-      archived = create(:member, org:, user:, roles: %w[member owner])
+      archived = create(:member, org:, user:, role: "owner")
       create(:member, :owner, org:)
       archived.archive!
 
       expect(invitation.accept!(user)).to eq(archived)
-      expect(archived.reload).to have_attributes(archived_at: nil, roles: %w[member])
+      expect(archived.reload).to have_attributes(archived_at: nil, role: "member")
     end
 
-    it "leaves the roles of a member who joined after the invitation was sent" do
+    it "leaves the role of a member who joined after the invitation was sent" do
       invitation
       member = create(:member, :owner, org:, user:)
 
       expect(invitation.accept!(user)).to eq(member)
-      expect(member.reload.roles).to eq(%w[member owner])
+      expect(member.reload.role).to eq("owner")
       expect(invitation.reload).to be_accepted
     end
 

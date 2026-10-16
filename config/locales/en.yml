@@ -53,7 +53,7 @@ en:
     members:
       deactivated: "Deactivated %{name}, their entries stay"
       reactivated: "Reactivated %{name}"
-      updated: "Updated the roles of %{name}"
+      updated: "Updated the role of %{name}"
     projects:
       archived: "Archived %{name}, its entries stay readable"
       created: "Created %{name}"

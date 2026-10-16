@@ -2,10 +2,10 @@ FactoryBot.define do
   factory :invitation do
     org
     sequence(:email) { |n| "invitee#{n}@example.com" }
-    roles { %w[member] }
+    role { "member" }
 
     trait :owner do
-      roles { %w[member owner] }
+      role { "owner" }
     end
   end
 end

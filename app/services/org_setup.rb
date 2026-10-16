@@ -13,12 +13,12 @@ class OrgSetup
 
       if (user = User.find_by(email: owner_email))
         member = org.members.find_or_initialize_by(user:)
-        member.update!(roles: member.roles | %w[member owner], archived_at: nil)
+        member.update!(role: "owner", archived_at: nil)
 
         Result.new(org:, created:, member:, invitation: nil)
       else
         invitation = org.invitations.pending.find_or_initialize_by(email: owner_email)
-        invitation.update!(roles: %w[member owner], name: owner_name || invitation.name, sent_at: Time.current)
+        invitation.update!(role: "owner", name: owner_name || invitation.name, sent_at: Time.current)
 
         Result.new(org:, created:, member: nil, invitation:)
       end

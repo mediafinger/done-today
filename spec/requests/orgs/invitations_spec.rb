@@ -9,8 +9,8 @@ RSpec.describe "Orgs::Invitations" do
   let(:org) { create(:org, name: "Acme") }
   let(:owner) { create(:member, :owner, org:, name: "Olivia") }
 
-  def invite(email, roles: %w[member], name: nil)
-    post invitations_path(org), params: { invitation: { email:, name:, roles: [ "", *roles ] } }
+  def invite(email, role: "member", name: nil)
+    post invitations_path(org), params: { invitation: { email:, name:, role: } }
   end
 
   before { sign_in(owner.user) }
@@ -19,15 +19,15 @@ RSpec.describe "Orgs::Invitations" do
     it "stores the invitation and mails the link" do
       expect { invite("Ada@Example.com", name: "Ada") }.to have_enqueued_mail(InvitationsMailer, :invite)
 
-      expect(org.invitations.sole).to have_attributes(email: "ada@example.com", name: "Ada", roles: %w[member], invited_by: owner)
+      expect(org.invitations.sole).to have_attributes(email: "ada@example.com", name: "Ada", role: "member", invited_by: owner)
       expect(response).to redirect_to(members_path(org))
       expect(flash[:notice]).to eq("Invited ada@example.com")
     end
 
     it "invites as owner" do
-      invite("ada@example.com", roles: %w[member owner])
+      invite("ada@example.com", role: "owner")
 
-      expect(org.invitations.sole.roles).to eq(%w[member owner])
+      expect(org.invitations.sole.role).to eq("owner")
     end
 
     it "refuses an email that is already a member" do
@@ -58,13 +58,13 @@ RSpec.describe "Orgs::Invitations" do
       expect(flash[:alert]).to include("not a valid email")
     end
 
-    it "sends a pending invitation again with the new roles, the old link stops working" do
+    it "sends a pending invitation again with the new role, the old link stops working" do
       invitation = create(:invitation, org:, email: "ada@example.com", sent_at: 1.day.ago)
       old_token = invitation.generate_token_for(:acceptance)
 
-      expect { invite("ada@example.com", roles: %w[member owner]) }.to have_enqueued_mail(InvitationsMailer, :invite)
+      expect { invite("ada@example.com", role: "owner") }.to have_enqueued_mail(InvitationsMailer, :invite)
 
-      expect(invitation.reload.roles).to eq(%w[member owner])
+      expect(invitation.reload.role).to eq("owner")
       expect(Invitation.find_by_token_for(:acceptance, old_token)).to be_nil
       expect(org.invitations.count).to eq(1)
     end
@@ -118,7 +118,7 @@ RSpec.describe "Orgs::Invitations" do
 
       form = Nokogiri::HTML(response.body).at_css("form#new-invitation")
       expect(form["action"]).to eq(invitations_path(org))
-      expect(form.css("input[type=checkbox][checked]").pluck("value")).to eq(%w[member])
+      expect(form.css("select option[selected]").pluck("value")).to eq(%w[member])
     end
 
     it "lists the pending invitations, expired ones marked" do

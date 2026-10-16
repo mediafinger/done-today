@@ -346,8 +346,8 @@ RSpec.describe "Authorization role matrix" do
   row "PATCH /:org/members/:id", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
-  }, written: -> { colleague.reload.roles.include?("owner") } do
-    patch member_path(org, colleague), params: { member: { roles: %w[member owner] } }
+  }, written: -> { colleague.reload.owner? } do
+    patch member_path(org, colleague), params: { member: { role: "owner" } }
   end
 
   row "PATCH /:org/members/:id/deactivate", {
@@ -370,7 +370,7 @@ RSpec.describe "Authorization role matrix" do
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :written
   }, written: -> { org.invitations.exists?(email: "invited@example.com") } do
-    post invitations_path(org), params: { invitation: { email: "invited@example.com", roles: %w[member] } }
+    post invitations_path(org), params: { invitation: { email: "invited@example.com", role: "member" } }
   end
 
   row "PATCH /:org/invitations/:id/resend", {

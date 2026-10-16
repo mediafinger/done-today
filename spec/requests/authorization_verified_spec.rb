@@ -19,12 +19,12 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
   end
 
   def invitation
-    org.invitations.create!(email: "invited@example.com", roles: %w[member], sent_at: Time.current)
+    org.invitations.create!(email: "invited@example.com", role: "member", sent_at: Time.current)
   end
 
   # to another org, for the signed-in account
   def my_invitation
-    create(:org).invitations.create!(email: me.user.email, roles: %w[member], sent_at: Time.current)
+    create(:org).invitations.create!(email: me.user.email, role: "member", sent_at: Time.current)
   end
 
   def path_value(name, controller)
@@ -59,8 +59,8 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "users/display_modes#update" then { user: { display_mode: "dark" } }
     when "orgs/entries#create" then { entry: { date: Time.zone.today.iso8601, log: "Logged" } }
     when "orgs/entries#update" then { entry: { log: "Changed" } }
-    when "orgs/members#update" then { member: { roles: %w[member owner] } }
-    when "orgs/invitations#create" then { invitation: { email: "new@example.com", roles: %w[member] } }
+    when "orgs/members#update" then { member: { role: "owner" } }
+    when "orgs/invitations#create" then { invitation: { email: "new@example.com", role: "member" } }
     when "orgs/projects#create", "orgs/projects#update" then { project: { name: "Renamed" } }
     when "orgs/projects#export_csv" then { month: "2026-03" }
     when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }

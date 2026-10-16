@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_060000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_065000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_060000) do
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "display_mode", ["system", "light", "dark"]
   create_enum "entry_status", ["todo", "doing", "done"]
+  create_enum "org_role", ["member", "owner"]
 
   create_table "days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -55,11 +56,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_060000) do
     t.uuid "invited_by_id"
     t.string "email", null: false
     t.string "name"
-    t.text "roles", default: ["member"], null: false, array: true
     t.datetime "sent_at", null: false
     t.datetime "accepted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.enum "role", default: "member", null: false, enum_type: "org_role"
     t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
     t.index ["org_id", "email"], name: "index_invitations_on_org_id_and_email_pending", unique: true, where: "(accepted_at IS NULL)"
     t.index ["org_id"], name: "index_invitations_on_org_id"
@@ -69,11 +70,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_060000) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.uuid "org_id", null: false
-    t.text "roles", default: ["member"], null: false, array: true
     t.datetime "send_reminder_at"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
     t.datetime "archived_at"
+    t.enum "role", default: "member", null: false, enum_type: "org_role"
     t.index ["org_id", "user_id"], name: "index_members_on_org_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_members_on_user_id"
   end

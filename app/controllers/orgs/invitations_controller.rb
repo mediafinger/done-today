@@ -10,11 +10,11 @@ module Orgs
     rate_limit to: 20, within: 1.hour, only: %i[ create resend ], by: -> { current_member.id },
       with: -> { redirect_to members_path(current_org), alert: t("controllers.invitations.rate_limited") }
 
-    # inviting a pending email again sends it with the new roles, and kills the old link
+    # inviting a pending email again sends it with the new role, and kills the old link
     def create
-      attributes = params.expect(invitation: [ :email, :name, roles: [] ])
+      attributes = params.expect(invitation: [ :email, :name, :role ])
       invitation = current_org.invitations.pending.find_or_initialize_by(email: attributes[:email])
-      invitation.assign_attributes(name: attributes[:name], roles: Array(attributes[:roles]).compact_blank)
+      invitation.assign_attributes(name: attributes[:name], role: attributes[:role])
 
       send_invitation(invitation, :sent)
     end

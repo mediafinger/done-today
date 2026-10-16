@@ -71,7 +71,7 @@ RSpec.describe LandingService do
 
   it "lands org owners in a project they read without taking part in it" do
     owned = create(:project, org:)
-    member.add_role!("owner")
+    member.update!(role: "owner")
     user.remember_last_visit!(org:, project: owned)
 
     expect(landing).to have_attributes(org:, project: owned)

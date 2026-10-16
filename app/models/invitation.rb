@@ -16,6 +16,9 @@ class Invitation < ApplicationRecord
     [ sent_at, accepted_at ]
   end
 
+  enum :role, Member::VALID_ROLES.index_with(&:itself), validate: { message: "%{value} is not an org role" },
+    scopes: false
+
   scope :pending, -> { where(accepted_at: nil) }
 
   normalizes :email, with: ->(e) { e.strip.downcase }
@@ -25,10 +28,7 @@ class Invitation < ApplicationRecord
 
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP, message: "%{value} is not a valid email format" }
   validates :email, uniqueness: { scope: :org_id, conditions: -> { pending } }, unless: :accepted? # mirrors the partial index
-  validates :sent_at, presence: true
-  validates :roles, presence: true, array_inclusion: {
-    in: Member::VALID_ROLES, message: "%{rejected_values} not allowed, roles must be in #{Member::VALID_ROLES}"
-  }
+  validates :sent_at, :role, presence: true
   validate :not_a_member_yet, unless: :accepted?
 
   def accepted?
@@ -40,7 +40,7 @@ class Invitation < ApplicationRecord
   end
 
   # Returns the member: a new one, the user's archived one reactivated with the invited
-  #   roles (one row per org and user), or their active one left as it is.
+  #   role (one row per org and user), or their active one left as it is.
   #   The lock refuses a second accept of the same link.
   def accept!(user)
     raise ArgumentError, "the invitation is for #{email}" unless user.email == email
@@ -49,7 +49,7 @@ class Invitation < ApplicationRecord
       raise AlreadyAccepted if accepted?
 
       member = org.members.find_or_initialize_by(user:)
-      member.update!(roles:, archived_at: nil) unless member.persisted? && !member.archived?
+      member.update!(role:, archived_at: nil) unless member.persisted? && !member.archived?
       update!(accepted_at: Time.current)
 
       member

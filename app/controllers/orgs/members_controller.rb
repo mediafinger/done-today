@@ -1,5 +1,5 @@
 module Orgs
-  # Org owners list the members of their org, change their roles, and deactivate
+  # Org owners list the members of their org, change their role, and deactivate
   #   or reactivate them. Deactivating archives the member, their entries stay.
   #
   class MembersController < AppOrgBaseController
@@ -17,7 +17,7 @@ module Orgs
     end
 
     def update
-      change(:updated, roles: params.expect(member: [ roles: [] ]).fetch(:roles).compact_blank)
+      change(:updated, role: params.expect(member: [ :role ]).fetch(:role))
     end
 
     def deactivate

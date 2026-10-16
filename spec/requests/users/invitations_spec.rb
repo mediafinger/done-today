@@ -53,7 +53,7 @@ RSpec.describe "Users::Invitations" do
       user = User.find_by!(email: "ada@example.com")
       expect(user).to have_attributes(name: "Ada Lovelace")
       expect(user.authenticate(password)).to be_truthy
-      expect(org.members.find_by!(user:)).to have_attributes(roles: %w[member], name: "Ada Lovelace")
+      expect(org.members.find_by!(user:)).to have_attributes(role: "member", name: "Ada Lovelace")
       expect(response).to redirect_to(org_path(org))
 
       follow_redirect!
@@ -173,7 +173,7 @@ RSpec.describe "Users::Invitations" do
 
       patch accept_invitation_path(token)
 
-      expect(org.members.find_by!(user: ada)).to have_attributes(roles: %w[member], name: "Ada L.")
+      expect(org.members.find_by!(user: ada)).to have_attributes(role: "member", name: "Ada L.")
       expect(invitation.reload).to be_accepted
       expect(other.reload).not_to be_archived
       expect(response).to redirect_to(org_path(org))
@@ -198,16 +198,16 @@ RSpec.describe "Users::Invitations" do
       expect(org.members.exists?(user: ada)).to be(true)
     end
 
-    it "reactivates their archived member, with the invited roles" do
-      member = create(:member, org:, user: ada, roles: %w[member])
+    it "reactivates their archived member, with the invited role" do
+      member = create(:member, org:, user: ada, role: "member")
       create(:entry, member:, day: create(:day, project: create(:project, org:)))
       member.archive!
-      invitation.update!(roles: %w[member owner])
+      invitation.update!(role: "owner")
       sign_in(ada)
 
       expect { patch accept_invitation_path(token) }.not_to change(Member, :count)
 
-      expect(member.reload).to have_attributes(archived_at: nil, roles: %w[member owner])
+      expect(member.reload).to have_attributes(archived_at: nil, role: "owner")
       expect(member.entries.count).to eq(1)
       expect(response).to redirect_to(org_path(org))
     end
@@ -219,7 +219,7 @@ RSpec.describe "Users::Invitations" do
 
       expect { patch accept_invitation_path(token) }.not_to change(Member, :count)
 
-      expect(member.reload.roles).to eq(%w[member owner])
+      expect(member.reload.role).to eq("owner")
       expect(invitation.reload).to be_accepted
       expect(response).to redirect_to(org_path(org))
     end
