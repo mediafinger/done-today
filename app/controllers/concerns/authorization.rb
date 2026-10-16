@@ -9,6 +9,10 @@ module Authorization
   included do
     authorize :member, through: :current_member
 
+    # every action authorizes and scopes, or says why it does not need to
+    verify_authorized
+    verify_authorized_scoped
+
     rescue_from ActionPolicy::Unauthorized, with: :render_forbidden
   end
 

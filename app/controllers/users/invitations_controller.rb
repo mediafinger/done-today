@@ -4,6 +4,10 @@ module Users
   #   joins: the link never sets the password of an existing account.
   #
   class InvitationsController < ApplicationController
+    # the emailed token decides
+    skip_verify_authorized
+    skip_verify_authorized_scoped
+
     allow_unauthenticated_access
 
     rate_limit to: 10, within: 3.minutes, only: :update,

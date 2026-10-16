@@ -1,5 +1,9 @@
 module Users
   class UserPasswordsController < ApplicationController
+    # the signed-in user's own account
+    skip_verify_authorized
+    skip_verify_authorized_scoped
+
     before_action :set_user
 
     def edit

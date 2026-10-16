@@ -7,8 +7,13 @@ module Orgs
 
     # every action but the org's list of projects and creating one is below /:org_slug/:project_slug
     before_action :set_current_project, except: %i[ index new create ]
-    before_action :authorize_manage, only: %i[ edit update archive unarchive ]
+    # the exports authorize after their scoped lookup, a refused export is a 404
+    before_action :authorize_project, except: %i[ index new create export_csv export_days_csv ]
     before_action :set_participants, only: %i[ edit update ]
+
+    # the lists are scoped, creating is not
+    skip_verify_authorized only: :index
+    skip_verify_authorized_scoped only: %i[ new create ]
 
     def show
       @project = current_project
@@ -157,8 +162,8 @@ module Orgs
 
     private
 
-    # edit?, update?, archive?, unarchive?: manage?
-    def authorize_manage
+    # show? or manage?, see the aliases in ProjectPolicy
+    def authorize_project
       authorize! current_project
     end
 
@@ -174,7 +179,7 @@ module Orgs
 
     # a project the member may read but not export is a 404 as well
     def exportable_project
-      authorized_scope(current_org.projects, as: :exportable).find(current_project.id)
+      authorize! authorized_scope(current_org.projects, as: :exportable).find(current_project.id)
     end
 
     # an unknown view falls back to the days, rather than raising

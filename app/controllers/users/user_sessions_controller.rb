@@ -1,5 +1,9 @@
 module Users
   class UserSessionsController < ApplicationController
+    # the signed-in user's own account
+    skip_verify_authorized
+    skip_verify_authorized_scoped
+
     def index
       @sessions = current_user.sessions.order(created_at: :desc)
     end

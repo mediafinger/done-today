@@ -5,6 +5,8 @@ module Orgs
   class WeeksController < AppOrgBaseController
     include ProjectEntries
 
+    before_action { authorize! project, to: :show? }
+
     def show
       @week = monday
 

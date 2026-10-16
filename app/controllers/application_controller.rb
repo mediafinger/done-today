@@ -8,6 +8,10 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
+  # the user's own memberships, and the 404 page
+  skip_verify_authorized only: %i[ home error_404 ]
+  skip_verify_authorized_scoped only: %i[ home error_404 ]
+
   def error_404
     render :error_404, status: :not_found
   end

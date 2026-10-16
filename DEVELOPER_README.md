@@ -59,7 +59,10 @@ The app supports multi-tenant organization boundaries and project selection:
   - A record the member may not read is a 404: look it up through a scope, `authorized_scope(current_org.projects).find_by!(...)`.
   - A record they may read but not change is a 403: `authorize! record` (rule from the action name, see the `alias_rule`s),
     `ActionPolicy::Unauthorized` renders `application/error_403`. In views: `allowed_to?(:manage?, project)`.
-  - `spec/requests/authorization_matrix_spec.rb` checks every endpoint against every persona, `spec/policies` the rules and scopes.
+  - `verify_authorized` and `verify_authorized_scoped` are on for every controller: an action calls `authorize!` and
+    `authorized_scope` (the project lookup counts), or declares `skip_verify_authorized(_scoped)` with a comment why.
+  - `spec/requests/authorization_matrix_spec.rb` checks every endpoint against every persona, `spec/policies` the rules and scopes,
+    `spec/requests/authorization_verified_spec.rb` sends a request to every route so a forgotten `authorize!` fails.
 
 ### 5. Domain Model & PostgreSQL-specific Features
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).

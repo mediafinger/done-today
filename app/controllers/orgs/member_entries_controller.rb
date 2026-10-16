@@ -4,6 +4,8 @@ module Orgs
   class MemberEntriesController < AppOrgBaseController
     include ProjectEntries
 
+    before_action { authorize! project, to: :show? }
+
     def index
       @member = members.find(params[:member_id])
       @members = members.order(:name).pluck(:id)

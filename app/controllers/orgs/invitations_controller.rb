@@ -4,6 +4,8 @@ module Orgs
   #
   class InvitationsController < AppOrgBaseController
     before_action { authorize! Member, to: :invite? }
+    # invitations are looked up in current_org, only owners get here
+    skip_verify_authorized_scoped
 
     rate_limit to: 20, within: 1.hour, only: %i[ create resend ], by: -> { current_member.id },
       with: -> { redirect_to members_path(current_org), alert: t("controllers.invitations.rate_limited") }

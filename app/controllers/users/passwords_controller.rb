@@ -1,5 +1,9 @@
 module Users
   class PasswordsController < ApplicationController
+    # the emailed token decides
+    skip_verify_authorized
+    skip_verify_authorized_scoped
+
     skip_before_action :require_authentication
 
     before_action :set_user_by_token, only: %i[ edit update ]

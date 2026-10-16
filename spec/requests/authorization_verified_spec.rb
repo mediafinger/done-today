@@ -1,0 +1,94 @@
+require "rails_helper"
+
+# ApplicationController verifies that every action called `authorize!` and
+#   `authorized_scope`, or skipped the check explicitly, and raises otherwise.
+#   This sends one request per route of the app as an owner of org and project,
+#   so every action runs to its end and its verification with it.
+#
+#   A new route needs its params below, or this fails. The engines' routes have no
+#   ApplicationController action and are left out.
+#
+RSpec.describe "Every action is authorized or skips it explicitly" do
+  let(:org) { create(:org) }
+  let(:project) { create(:project, org:) }
+  let(:me) { create(:participant, :owner, project:, member: create(:member, :owner, org:)).member }
+  let(:colleague) { create(:participant, project:).member }
+
+  def entry
+    create(:entry, day: create(:day, project:, date: Time.zone.today), member: me)
+  end
+
+  def invitation
+    org.invitations.create!(email: "invited@example.com", roles: %w[member], sent_at: Time.current)
+  end
+
+  # to another org, for the signed-in account
+  def my_invitation
+    create(:org).invitations.create!(email: me.user.email, roles: %w[member], sent_at: Time.current)
+  end
+
+  def path_value(name, controller)
+    case [ name, controller ]
+    in [ "org_slug", _ ] then org.slug
+    in [ "project_slug" | "slug", _ ] then project.slug
+    in [ "date", _ ] then Time.zone.today.iso8601
+    in [ "week", _ ] then "2026-W38"
+    in [ "tag", _ ] then "handover"
+    in [ "member_id", _ ] then colleague.id
+    in [ "entry_id", _ ] then entry.id
+    in [ "path", _ ] then "no/such/page"
+    in [ "token", "users/passwords" ] then me.user.password_reset_token
+    in [ "token", "users/invitations" ] then my_invitation.generate_token_for(:acceptance)
+    in [ "id", "orgs/members" ] then colleague.id
+    in [ "id", "orgs/invitations" ] then invitation.id
+    in [ "id", "orgs/entries" ] then entry.id
+    in [ "id", "users/user_sessions" ] then me.user.sessions.last.id
+    in [ "id", "orgs/participants" ] then colleague.participations.find_by!(project:).id
+    end
+  end
+
+  def request_params(controller, action)
+    case "#{controller}##{action}"
+    when "users/sessions#create" then { email: me.user.email, password: "correct horse battery staple" }
+    when "users/passwords#create" then { email: me.user.email }
+    when "users/passwords#update" then { password: "a brand new password", password_confirmation: "a brand new password" }
+    when "users/users#update" then { user: { name: "Renamed" } }
+    when "users/user_emails#update" then { user: { email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
+    when "users/user_passwords#update"
+      { user: { password: "a brand new password", password_confirmation: "a brand new password", password_challenge: "correct horse battery staple" } }
+    when "users/display_modes#update" then { user: { display_mode: "dark" } }
+    when "orgs/entries#create" then { entry: { date: Time.zone.today.iso8601, log: "Logged" } }
+    when "orgs/entries#update" then { entry: { log: "Changed" } }
+    when "orgs/members#update" then { member: { roles: %w[member owner] } }
+    when "orgs/invitations#create" then { invitation: { email: "new@example.com", roles: %w[member] } }
+    when "orgs/projects#create", "orgs/projects#update" then { project: { name: "Renamed" } }
+    when "orgs/projects#export_csv" then { month: "2026-03" }
+    when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }
+    when "orgs/participants#create" then { participant: { member_id: create(:member, org:).id, role: "observer" } }
+    when "orgs/participants#update" then { participant: { role: "owner" } }
+    else {}
+    end
+  end
+
+  def self.app_routes
+    Rails.application.routes.routes.filter_map do |route|
+      controller, action = route.defaults.values_at(:controller, :action)
+      klass = "#{controller}_controller".camelize.safe_constantize if controller
+      next unless klass.is_a?(Class) && klass <= ApplicationController
+
+      [ route.verb.presence || "GET", route.path.spec.to_s.gsub(/\([^()]*\)/, ""), controller, action ]
+    end.uniq { |verb, _path, controller, action| [ verb == "PUT" ? "PATCH" : verb, controller, action ] }
+  end
+
+  app_routes.each do |verb, spec, controller, action|
+    it "#{verb} #{spec} (#{controller}##{action})" do
+      sign_in(me.user)
+      path = spec.gsub(/[:*](\w+)/) { path_value(Regexp.last_match(1), controller).to_s }
+
+      public_send(verb.downcase, path, params: request_params(controller, action), headers: { "HTTP_REFERER" => root_url })
+
+      expect(response).not_to have_http_status(:not_found) unless action == "error_404"
+      expect(response).not_to have_http_status(:forbidden)
+    end
+  end
+end

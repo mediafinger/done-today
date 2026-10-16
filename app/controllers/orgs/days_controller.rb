@@ -5,6 +5,8 @@ module Orgs
   class DaysController < AppOrgBaseController
     include ProjectEntries
 
+    before_action { authorize! project, to: :show? }
+
     before_action :set_date
 
     def show

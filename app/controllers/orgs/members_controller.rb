@@ -3,6 +3,9 @@ module Orgs
   #   or reactivate them. Deactivating archives the member, their entries stay.
   #
   class MembersController < AppOrgBaseController
+    # members are looked up in current_org, only owners get here
+    skip_verify_authorized_scoped
+
     def index
       authorize!
 
