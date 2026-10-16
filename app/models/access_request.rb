@@ -14,6 +14,9 @@ class AccessRequest < ApplicationRecord
 
   enum :status, STATUSES.index_with(&:itself), validate: true
 
+  # deactivated members wait, their requests count again when they are reactivated
+  scope :awaiting, -> { pending.joins(:member).merge(Member.active) }
+
   normalizes :message, with: ->(m) { m.strip.presence }
 
   before_validation :set_org

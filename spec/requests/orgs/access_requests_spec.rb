@@ -84,4 +84,73 @@ RSpec.describe "Access requests" do
       expect(project_item.at_css("form")).to be_present
     end
   end
+
+  describe "deciding" do
+    let(:access_request) { create(:access_request, project:, member: carl, message: "Need the invoices") }
+
+    before { sign_in(lead.user) }
+
+    it "lists the pending requests of active members on the project's edit page" do
+      access_request
+      create(:access_request, project:, member: create(:member, org:, name: "Gone")).member.archive!
+
+      get edit_project_path(org, project)
+
+      rows = page.css("#access-requests tbody tr")
+      expect(rows.map { it.at_css("td").text }).to eq([ "Carl" ])
+      expect(rows.first.text).to include("Need the invoices")
+    end
+
+    it "shows no requests section without pending requests" do
+      get edit_project_path(org, project)
+
+      expect(page.at_css("#access-requests")).to be_nil
+    end
+
+    describe "PATCH /:org/:project/access_requests/:id/grant" do
+      it "adds the member with the chosen role" do
+        patch grant_access_request_path(org, project, access_request), params: { access_request: { role: "observer" } }
+
+        expect(project.participants.find_by!(member: carl).role).to eq("observer")
+        expect(access_request.reload).to have_attributes(status: "granted", decided_by: lead)
+        expect(response).to redirect_to(edit_project_path(org, project))
+        expect(flash[:notice]).to eq("Added Carl as observer")
+      end
+
+      it "refuses a role that does not exist" do
+        patch grant_access_request_path(org, project, access_request), params: { access_request: { role: "admin" } }
+
+        expect(flash[:alert]).to be_present
+        expect(access_request.reload).to be_pending
+      end
+
+      it "is a 404 for a decided request" do
+        access_request.decline!(by: lead)
+
+        patch grant_access_request_path(org, project, access_request), params: { access_request: { role: "participant" } }
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "is a 404 for a deactivated member's request" do
+        access_request
+        carl.archive!
+
+        patch grant_access_request_path(org, project, access_request), params: { access_request: { role: "participant" } }
+
+        expect(response).to have_http_status(:not_found)
+        expect(project.participants.where(member: carl)).to be_empty
+      end
+    end
+
+    describe "PATCH /:org/:project/access_requests/:id/decline" do
+      it "declines the request" do
+        patch decline_access_request_path(org, project, access_request)
+
+        expect(access_request.reload).to have_attributes(status: "declined", decided_by: lead)
+        expect(project.participants.where(member: carl)).to be_empty
+        expect(flash[:notice]).to eq("Declined the request of Carl")
+      end
+    end
+  end
 end

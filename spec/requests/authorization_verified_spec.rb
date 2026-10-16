@@ -50,6 +50,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     in [ "id", "orgs/guest_invitations" ] then guest_invitation.id
     in [ "id", "orgs/entries" ] then entry.id
     in [ "id", "users/user_sessions" ] then me.user.sessions.last.id
+    in [ "id", "orgs/access_requests" ] then create(:access_request, project:, member: requester).id
     in [ "id", "orgs/participants" ] then colleague.participations.find_by!(project:).id
     end
   end
@@ -75,6 +76,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/participants#create" then { participant: { member_id: create(:member, org:).id, role: "observer" } }
     when "orgs/participants#update" then { participant: { role: "owner" } }
     when "orgs/access_requests#create" then { access_request: { message: "Please" } }
+    when "orgs/access_requests#grant" then { access_request: { role: "observer" } }
     else {}
     end
   end
