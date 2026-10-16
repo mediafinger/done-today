@@ -43,6 +43,17 @@ RSpec.describe "Pages reached before an org is selected" do
     end
   end
 
+  describe "GET /settings" do
+    it "renders without listing any project" do
+      create(:project)
+
+      get settings_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("Projects of current organization")
+    end
+  end
+
   context "when an org is selected but no project is" do
     let(:member) { create(:member, user:) }
 

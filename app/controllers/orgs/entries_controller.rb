@@ -42,20 +42,22 @@ module Orgs
         @day = days.find_by(date:) || days.build(org: current_org, date:)
         @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
 
+        # observers, and org owners who do not participate, read the day instead
+        writable = policy(project).create_entry?
+
         # a past day is read-only until it is unlocked on purpose -- see #unlocked?
-        @unlockable = date.past?
-        @locked = @unlockable && !@unlocked
+        @unlockable = writable && date.past?
+        @locked = !writable || (@unlockable && !@unlocked)
 
         @entries =
           if @day.persisted?
-                      editable_entries(member: current_member, entries: @day.entries)
-                        .includes(:member, day: :project)
-                        .order(status: :desc, created_at: :asc)
+            entries = writable ? EntryPolicy.editable(current_member).where(day: @day) : @day.entries
+            entries.includes(:member, day: :project).order(status: :desc, created_at: :asc)
           else
-                      @day.entries
+            @day.entries
           end
 
-        @validatable = @entries.any?
+        @validatable = writable && @entries.any?
         validate_day if @validatable
 
       elsif mode == "read"
@@ -66,7 +68,7 @@ module Orgs
         # start@ / end@ only add up within a single day
         @with_time_summary = @group_by == "date" && params[:date].present?
 
-        @entries = current_org.entries.where(day: date_days).includes(:member, day: :project)
+        @entries = EntryPolicy.readable(current_member).where(day: date_days).includes(:member, day: :project)
         @entries =
           if tag
             # a tag's history spans many days and reads newest first
@@ -93,15 +95,19 @@ module Orgs
     #   Therefore we need to find or create a day for the given date.
     #
     def create
+      authorize!(current_project, :create_entry?)
+
+      day = current_project.days.find_or_initialize_by(org: current_org, date: create_params[:date])
+
       @entry = Entry.new(
         org: current_org,
         member: current_member,
-        day: current_project.days.find_or_create_by!(org: current_org, date: create_params[:date]),
+        day:,
         log: create_params[:log],
         status: create_params[:status] || "todo", # TODO
       )
 
-      saved = @entry.save
+      saved = open_day?(@entry) && day.save! && @entry.save
 
       # on success the form starts over with a blank entry, on failure it keeps
       #   what was typed so the error can be corrected instead of retyped
@@ -111,17 +117,27 @@ module Orgs
     end
 
     def update
-      @entry = current_project.entries.find(params[:id])
+      @entry = authorize!(current_project.entries.find(params[:id]), :update?)
 
       # `key?`, not `present?`: a submitted-but-blank log has to reach the validations
       #   rather than being silently dropped
       @entry.status = update_params[:status] if update_params.key?(:status)
       @entry.log    = update_params[:log]    if update_params.key?(:log)
 
-      respond_to_save(@entry.save, entry: @entry)
+      respond_to_save(open_day?(@entry) && @entry.save, entry: @entry)
     end
 
     private
+
+    # The lock on past days guards against changing them in passing. Whoever may
+    #   write can lift it, by sending `unlocked` along like the unlocked page does.
+    #
+    def open_day?(entry)
+      return true unless entry.day.date&.past? && !@unlocked
+
+      entry.errors.add(:base, t("controllers.day_locked", date: entry.day.date.iso8601))
+      false
+    end
 
     # Checks what this member logged here today -- the entries of other participants
     #   are theirs to correct. Issues are always worth showing; the all-clear only
@@ -213,7 +229,7 @@ module Orgs
     def project
       @project ||=
         if params[:project_id].present?
-          current_org&.projects&.find(params[:project_id])
+          ProjectPolicy.readable(current_member).find(params[:project_id])
         else
           current_project
         end
@@ -228,21 +244,6 @@ module Orgs
       return "project" if params[:project_id] # TODO: use slug
 
       "date" # a bare /entries shows today
-    end
-
-    def readable_entries(member:, entries:)
-      participant(member:).readable_entries(relation: entries)
-    end
-
-    def editable_entries(member:, entries:)
-      # TODO: ensure participant.owner can see who's entries they edit
-      # @with_member = participant(member:).roles.include?("owner")
-
-      participant(member:).editable_entries(relation: entries)
-    end
-
-    def participant(member:)
-       @participant ||= member.participations.find_by(project:)
     end
 
     def create_params

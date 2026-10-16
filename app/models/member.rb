@@ -2,6 +2,8 @@
 # owner - can manage members, can manage organization,
 #         can manage projects, can manage participants, can read all existing entries
 #
+# What the roles allow is decided in app/policies.
+#
 class Member < ApplicationRecord
   VALID_ROLES = %w[member owner].freeze
 
@@ -22,86 +24,6 @@ class Member < ApplicationRecord
   validates :roles, presence: true, array_inclusion: {
     in: VALID_ROLES, message: "%{rejected_values} not allowed, roles must be in #{VALID_ROLES}"
   }
-
-  # not the projects are editable by the member, but they can create new entries and edit their own entries
-  #
-  def editable_projects(relation: nil)
-    projects = org.projects
-    projects = projects.where(id: relation) if relation.present?
-
-    if roles.include?("owner") || roles.include?("member")
-      editorship = participations.includes_a_role_of(%w[owner participant])
-      projects.where(id: editorship.select(:project_id))
-    else
-      projects.none
-    end
-  end
-
-  # A full export covers everybody's entries, so it takes ownership: of the org,
-  #   which covers all of its projects, or of the single project.
-  #
-  def exportable_projects(relation: nil)
-    projects = org.projects
-    projects = projects.where(id: relation) if relation.present?
-
-    if roles.include?("owner")
-      projects
-    elsif roles.include?("member")
-      ownership = participations.includes_all_roles(%w[owner])
-      projects.where(id: ownership.select(:project_id))
-    else
-      projects.none
-    end
-  end
-
-  def readable_projects(relation: nil)
-    projects = org.projects
-    projects = projects.where(id: relation) if relation.present?
-
-    if roles.include?("owner")
-      projects
-    elsif roles.include?("member")
-      projects.where(id: participations.select(:project_id))
-    else
-      projects.none
-    end
-  end
-
-  # TODO: probably unnecessary method, use the one on participant, as we should always have a project available
-  #
-  # def editable_entries(relation: nil)
-  #   entries = org.entries
-  #   entries = entries.where(id: relation) if relation.present?
-
-  #   # .where(member: self) # TODO: unless project.owner or member.owner
-
-  #   # two query version - easy to read, simple queries
-  #   #
-  #   # days = org.days.where(project: projects)
-  #   # entries.where(day: days)
-
-  #   # # alternative joins version - hard to read, complex query - with unclear performance
-  #   #
-  #   #   entries = entries
-  #   #               .joins(day: :project)
-  #   #               .joins("INNER JOIN participants ON participants.project_id = projects.id")
-  #   #               .where(participants: { member_id: id })
-  #   #               .distinct
-  # end
-
-  def readable_entries(relation: nil)
-    entries = org.entries
-    entries = entries.where(id: relation) if relation.present?
-
-    if roles.include?("owner")
-      entries
-    elsif roles.include?("member")
-      days = org.days.where(project: projects) # all participants can read all entries of their projects
-      entries.where(day: days)
-    else
-      entries.none
-    end
-  end
 
   def add_role!(role)
     add_role(role).save!

@@ -9,9 +9,9 @@
   <div class="center">
     <% if mode == "read" %>
 
-      <% if @project && @project.participants.find_by(member: current_member) && @project != current_project %>
+      <% if @project && @project != current_project && policy(@project).create_entry? %>
         <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
-      <% elsif current_project %>
+      <% elsif current_project && policy(current_project).create_entry? %>
         <%= link_to "add or edit", entries_path(date: date, mode: "edit"), method: :get, role: "button", class: "slim" %>
       <% end %>
 
