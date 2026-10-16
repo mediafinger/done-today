@@ -24,3 +24,7 @@
     <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_date: true %>
   <% end %>
 </ul>
+
+<% if @entries.none? %>
+  <p><%= @member.name %> has not logged anything yet.</p>
+<% end %>

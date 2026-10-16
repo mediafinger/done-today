@@ -3,6 +3,8 @@
 
 <% if current_project.archived? %>
   <p><%= current_project.name %> was archived on <%= current_project.archived_at.to_date %>, its entries are read-only.</p>
+<% elsif !@writable %>
+  <p>You can read the entries of <%= current_project.name %>, but not add any.</p>
 <% end %>
 
 <%= render "orgs/entries/validation", issues: @issues, total_minutes: @validated_minutes, asked: @asked_to_validate if @issues %>
@@ -12,11 +14,29 @@
     <% @entries.each_with_index do |entry, index| %>
       <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index %>
     <% end %>
+
+    <% if @entries.none? %>
+      <li class="nude"><%= @writable ? "You did not log anything on this day." : "Nobody has logged anything on this day yet." %></li>
+    <% end %>
   <% else %>
+    <%# create.turbo_stream removes it along with the first entry %>
+    <% if @entries.none? %>
+      <li class="nude" id="no-entries-yet">You have not logged anything on this day yet. Type what you did and press Enter.</li>
+    <% end %>
+
     <% @entries.each do |entry| %>
       <%= render "orgs/entries/editable_entry", entry: entry, unlocked: @unlocked %>
     <% end %>
 
     <%= render "orgs/entries/new_entry", entry: @new_entry, unlocked: @unlocked %>
+
+    <%# outside #new-entry, so the Turbo Stream that resets the field leaves it open %>
+    <li class="nude">
+      <details id="syntax-help">
+        <summary>Markup: #tag start@ end@ from@ to@ for~ #break</summary>
+        <%= render "help/syntax_table" %>
+        <p><%= link_to "More on the help page", help_path %></p>
+      </details>
+    </li>
   <% end %>
 </ul>

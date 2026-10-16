@@ -8,3 +8,7 @@
           edited: @edited_ids.include?(entry.id) %>
   <% end %>
 </ul>
+
+<% if @entries.none? %>
+  <p>Nobody has logged anything on this day yet.</p>
+<% end %>

@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   get "impressum", to: "legal#imprint", as: :imprint
   get "datenschutz", to: "legal#privacy", as: :privacy
+  get "help", to: "help#show"
 
   # As neiter the 'users' nor the 'orgs' module are namespaced,
   #   pathes and 'as: :names' in them have to be uniquely named.
