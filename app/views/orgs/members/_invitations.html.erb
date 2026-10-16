@@ -30,7 +30,7 @@
           <td><%= invitation_role(invitation) %></td>
           <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
           <td>
-            <% if !invitation.owner? || allowed_to?(:grant_owner?, Member) %>
+            <% if allowed_to?(:manage?, invitation) %>
               <%= button_to "Resend", resend_invitation_path(current_org, invitation), method: :patch, class: "slim" %>
               <%= button_to "Revoke", invitation_path(current_org, invitation), method: :delete, class: "slim secondary",
                     form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
