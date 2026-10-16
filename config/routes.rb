@@ -89,9 +89,10 @@ Rails.application.routes.draw do
     end
   end
 
-  # namespace :admin do
-  #   mount MissionControl::Jobs::Engine, at: "/jobs"
-  # end
+  # only admins are routed here, everyone else ends in the catch-all below (AdminConstraint)
+  namespace :admin, module: "admins", constraints: ->(request) { AdminConstraint.matches?(request) } do
+    get "", to: "pages#show", as: "home"
+  end
 
   # keep this at the bottom of the routes file
   # catch all unknown routes to NOT throw a FATAL ActionController::RoutingError

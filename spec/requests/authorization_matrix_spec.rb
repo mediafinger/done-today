@@ -15,6 +15,7 @@ require "rails_helper"
 #   org_manager    manager of the org, no participation in P
 #   guest          external, participates in P as participant
 #   outside_guest  external, participates in another project of the org
+#   admin          signed in as an admin (users.admin), member of no org
 #
 # A row that names no outcome for guest takes participant's, for outside_guest member's,
 #   for org_manager org_owner's.
@@ -63,6 +64,7 @@ RSpec.describe "Authorization role matrix" do
     case persona
     when :anonymous then nil
     when :no_org then sign_in(create(:user))
+    when :admin then sign_in(create(:user, :admin))
     else sign_in(personas.fetch(persona).user)
     end
   end
@@ -175,6 +177,13 @@ RSpec.describe "Authorization role matrix" do
 
   row "GET /help", { anonymous: :ok, no_org: :ok, member: :ok } do
     get help_path
+  end
+
+  # only admins are routed to /admin, everyone else gets what an unknown path answers
+  row "GET /admin", {
+    anonymous: :to_sign_in, no_org: :not_found, archived: :not_found, member: :not_found, org_owner: :not_found, admin: :ok
+  } do
+    get admin_home_path
   end
 
   row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
