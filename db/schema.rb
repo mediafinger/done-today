@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_140000) do
     t.datetime "send_reminder_at"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
+    t.datetime "archived_at"
     t.index ["org_id", "user_id"], name: "index_members_on_org_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_members_on_user_id"
   end

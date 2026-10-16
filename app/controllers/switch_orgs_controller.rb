@@ -1,11 +1,11 @@
 class SwitchOrgsController < ApplicationController
   # GET /open/:slug_org/:slug_project
   #
-  # Looks the org up through the user's memberships, so an unknown org and someone
-  #   else's org get the same answer.
+  # Looks the org up through the user's active memberships, so an unknown org,
+  #   someone else's org and an org they were deactivated in get the same answer.
   #
   def switch_to
-    member = current_user.memberships.joins(:org).find_by(org: { slug: params[:slug_org] })
+    member = current_user.memberships.active.joins(:org).find_by(org: { slug: params[:slug_org] })
 
     return redirect_to root_path, alert: "You are not a member of this org" if member.nil?
 

@@ -28,6 +28,10 @@ Rails.application.routes.draw do
 
   scope module: :orgs, path: "/" do
     resources :entries, only: %i[ index create update ]
+    resources :members, only: %i[ index update ] do
+      patch :deactivate, on: :member
+      patch :reactivate, on: :member
+    end
     resources :projects, param: :slug, only: %i[ index show ] do
       get :validate_times, on: :member
       get :export_csv, on: :member

@@ -12,7 +12,7 @@
     </div>
 
     <div class="left">
-      <% if current_user && current_user.memberships.any? %>
+      <% if current_user && current_user.memberships.active.any? %>
         <%= render partial: "shared_partials/org_switcher" %>
       <% end %>
     </div>

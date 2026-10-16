@@ -14,8 +14,11 @@ module Authorization
 
   private
 
+  # a class asks about the records in general, e.g. `policy(Member).index?`
   def policy(record)
-    "#{record.class.name}Policy".constantize.new(current_member, record)
+    klass = record.is_a?(Class) ? record : record.class
+
+    "#{klass.name}Policy".constantize.new(current_member, record)
   end
 
   def authorize!(record, query)
