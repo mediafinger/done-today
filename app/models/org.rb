@@ -1,12 +1,18 @@
 class Org < ApplicationRecord
   # The slug is the first segment of every org URL (/acme/website/days/2026-10-15),
-  #   so it must not be a top-level path, present or planned. config/routes.rb skips
-  #   these words when matching an org.
-  RESERVED_SLUGS = %w[
-    404 422 500 admin api assets cable dark_mode datenschutz days display_mode entries favicon help icon impressum
-    invitations jobs light_mode manifest members open orgs passwords preferences projects rails
-    recede_historical_location refresh_historical_location resume_historical_location robots service-worker session
-    sessions settings system_mode tags up user users weeks
+  #   config/routes.rb skips these words when matching an org. spec/routing/reserved_slugs_spec.rb
+  #   fails when a route or a file in public/ is missing here.
+  RESERVED_SLUGS = [
+    # pages
+    *%w[datenschutz help impressum invitations passwords session settings up user],
+    # framework paths and files in public/
+    *%w[400 404 406-unsupported-browser 422 500 503 assets cable favicon icon manifest rails robots service-worker],
+    *%w[recede_historical_location refresh_historical_location resume_historical_location],
+    # planned areas
+    *%w[admin api dev jobs],
+    # former paths, so old bookmarks never open an org
+    *%w[dark_mode days display_mode entries light_mode members open orgs preferences projects sessions system_mode tags
+        users weeks]
   ].freeze
 
   has_many :entries, dependent: :destroy
