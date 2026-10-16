@@ -1,0 +1,5 @@
+<p>
+  <%= link_to "Confirm #{@user.unconfirmed_email}", @url %> as the new email of your Done today account
+  within <%= distance_of_time_in_words(User::EMAIL_CONFIRMATION_EXPIRES_IN) %>.
+</p>
+<p>Until then you sign in with <%= @user.email %>. Ignore this mail if you did not ask for the change.</p>

@@ -1,9 +1,19 @@
 <h2>Change email</h2>
 
 <article>
+  <p>You sign in with <strong><%= @user.email %></strong>.</p>
+
+  <% if @user.unconfirmed_email_in_database %>
+    <p>
+      Waiting for the confirmation of <strong><%= @user.unconfirmed_email_in_database %></strong>,
+      open the link we mailed to it.
+    </p>
+    <%= button_to "Cancel the change", user_email_path, method: :delete, class: "slim secondary" %>
+  <% end %>
+
   <%= form_with model: @user, url: user_email_path, method: :patch, scope: :user do |form| %>
-    <%= form.label :email, "New email" %>
-    <%= form.email_field :email, required: true, autocomplete: "email" %>
+    <%= form.label :unconfirmed_email, "New email" %>
+    <%= form.email_field :unconfirmed_email, required: true, autocomplete: "email" %>
 
     <%= form.label :password_challenge, "Current password" %>
     <%= form.password_field :password_challenge, required: true, autocomplete: "current-password" %>

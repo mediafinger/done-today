@@ -16,45 +16,62 @@ RSpec.describe "Users::UserEmails" do
     before { sign_in(user) }
 
     def change_email(to: "bell@example.com", challenge: password)
-      patch user_email_path, params: { user: { email: to, password_challenge: challenge } }
+      patch user_email_path, params: { user: { unconfirmed_email: to, password_challenge: challenge } }
     end
 
-    it "shows the current email in the form" do
+    it "shows the current email" do
       get edit_user_email_path
 
       expect(response).to have_http_status(:ok)
-      expect(Nokogiri::HTML(response.body).at_css("input[name='user[email]']")["value"]).to eq("anna@example.com")
+      expect(response.body).to include("anna@example.com")
     end
 
-    it "changes the email with the current password" do
-      change_email
+    it "keeps the email until the new one is confirmed and mails both addresses" do
+      expect { change_email }
+        .to have_enqueued_mail(Users::EmailChangesMailer, :confirm).with(user)
+        .and have_enqueued_mail(Users::EmailChangesMailer, :requested).with(user, "anna@example.com", "bell@example.com")
 
       expect(response).to redirect_to(edit_user_path)
-      expect(user.reload.email).to eq("bell@example.com")
+      expect(user.reload).to have_attributes(email: "anna@example.com", unconfirmed_email: "bell@example.com")
     end
 
-    it "refuses a missing current password" do
-      change_email(challenge: nil)
+    it "shows the pending change" do
+      user.update!(unconfirmed_email: "bell@example.com")
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("Current password is invalid")
-      expect(user.reload.email).to eq("anna@example.com")
+      get edit_user_email_path
+
+      expect(response.body).to include("bell@example.com")
     end
 
-    it "refuses a wrong current password" do
+    it "cancels a pending change" do
+      user.update!(unconfirmed_email: "bell@example.com")
+
+      delete user_email_path
+
+      expect(response).to redirect_to(edit_user_email_path)
+      expect(user.reload.unconfirmed_email).to be_nil
+    end
+
+    {
+      "a missing current password" => { challenge: nil },
+      "a wrong current password" => { challenge: "wrong" },
+      "the current email" => { to: "anna@example.com" },
+      "an email that is already taken" => { to: "taken@example.com" }
+    }.each do |refused, attributes|
+      it "refuses #{refused} and mails nobody" do
+        create(:user, email: "taken@example.com")
+
+        expect { change_email(**attributes) }.not_to have_enqueued_mail
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(user.reload).to have_attributes(email: "anna@example.com", unconfirmed_email: nil)
+      end
+    end
+
+    it "names the wrong password" do
       change_email(challenge: "wrong")
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(user.reload.email).to eq("anna@example.com")
-    end
-
-    it "refuses an email that is already taken" do
-      create(:user, email: "taken@example.com")
-
-      change_email(to: "taken@example.com")
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(user.reload.email).to eq("anna@example.com")
+      expect(response.body).to include("Current password is invalid")
     end
   end
 end

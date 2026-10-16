@@ -20,7 +20,11 @@ Rails.application.routes.draw do
     resources :invitations, param: :token, only: %i[ show update ], as: :accept_invitations
 
     resource :user, only: %i[ edit update ] do
-      resource :email, only: %i[ edit update ], controller: "user_emails"
+      resource :email, only: %i[ edit update destroy ], controller: "user_emails" do
+        # the links mailed to the new and to the old address, they work without a session
+        resources :confirmations, param: :token, only: %i[ show update ], controller: "user_email_confirmations"
+        resources :reverts, param: :token, only: %i[ show update ], controller: "user_email_reverts"
+      end
       resource :password, only: %i[ edit update ], controller: "user_passwords"
       resources :sessions, only: %i[ index destroy ], controller: "user_sessions" do
         delete :destroy_others, on: :collection

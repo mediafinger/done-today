@@ -33,6 +33,11 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     create(:org).invitations.create!(email: me.user.email, role: "member", sent_at: Time.current)
   end
 
+  # a pending email change of the signed-in account
+  def changing_email
+    me.user.tap { it.update!(unconfirmed_email: "changing@example.com") }
+  end
+
   def path_value(name, controller)
     case [ name, controller ]
     in [ "org_slug", _ ] then org.slug
@@ -45,6 +50,8 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     in [ "path", _ ] then "no/such/page"
     in [ "token", "users/passwords" ] then me.user.password_reset_token
     in [ "token", "users/invitations" ] then my_invitation.generate_token_for(:acceptance)
+    in [ "token", "users/user_email_confirmations" ] then changing_email.generate_token_for(:email_confirmation)
+    in [ "token", "users/user_email_reverts" ] then changing_email.email_revert_token
     in [ "id", "orgs/members" ] then colleague.id
     in [ "id", "orgs/invitations" ] then invitation.id
     in [ "id", "orgs/guest_invitations" ] then guest_invitation.id
@@ -61,7 +68,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "users/passwords#create" then { email: me.user.email }
     when "users/passwords#update" then { password: "a brand new password", password_confirmation: "a brand new password" }
     when "users/users#update" then { user: { name: "Renamed" } }
-    when "users/user_emails#update" then { user: { email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
+    when "users/user_emails#update" then { user: { unconfirmed_email: "renamed@example.com", password_challenge: "correct horse battery staple" } }
     when "users/user_passwords#update"
       { user: { password: "a brand new password", password_confirmation: "a brand new password", password_challenge: "correct horse battery staple" } }
     when "users/display_modes#update" then { user: { display_mode: "dark" } }

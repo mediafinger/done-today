@@ -1,0 +1,7 @@
+<p>
+  Somebody asked to change the email of your Done today account to <strong><%= @to %></strong>.
+  It changes once the link mailed to that address is opened.
+</p>
+<p>
+  Not you? <%= link_to "Cancel the change", @url %>, or undo it within <%= distance_of_time_in_words(User::EMAIL_REVERT_EXPIRES_IN) %>.
+</p>

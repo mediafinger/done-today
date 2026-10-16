@@ -1,0 +1,20 @@
+<% if @pending %>
+  <h1>Cancel the email change</h1>
+
+  <p>Your email stays <strong><%= @from %></strong>, the link mailed to <%= @to %> stops working.</p>
+
+  <%= form_with url: user_email_revert_path(params[:token]), method: :patch do |form| %>
+    <%= form.submit "Cancel the change to #{@to}" %>
+  <% end %>
+<% else %>
+  <h1>Undo the email change</h1>
+
+  <p>
+    Your email changed to <%= @to %>. Restoring <strong><%= @from %></strong> signs your account out everywhere,
+    then choose a new password.
+  </p>
+
+  <%= form_with url: user_email_revert_path(params[:token]), method: :patch do |form| %>
+    <%= form.submit "Restore #{@from}" %>
+  <% end %>
+<% end %>
