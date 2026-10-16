@@ -174,6 +174,7 @@ module Orgs
       @participants = current_project.participants.includes(:member).order("member.name")
       @candidates = authorized_scope(current_org.members.active, as: :addable)
         .where.not(id: @participants.select(:member_id)).order(:name)
+      @guest_invitations = current_project.invitations.pending.order(:email)
     end
 
     def project_params

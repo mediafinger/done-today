@@ -10,9 +10,13 @@ module MembersHelper
 
   # guests never own a project
   def participant_roles_for(member)
-    roles = Participant::RANKED_ROLES.reverse
+    member.guest? ? Participant::GUEST_ROLES.reverse : Participant::RANKED_ROLES.reverse
+  end
 
-    member.guest? ? roles - %w[owner] : roles
+  def invitation_role(invitation, with_project_role: true)
+    return invitation.role unless invitation.guest?
+
+    "guest in #{invitation.project.name}#{" (#{invitation.project_role})" if with_project_role}"
   end
 
   # options for grouped_options_for_select, empty groups left out

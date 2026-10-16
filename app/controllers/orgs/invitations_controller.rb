@@ -3,6 +3,8 @@ module Orgs
   #   The invitee accepts in Users::InvitationsController.
   #
   class InvitationsController < AppOrgBaseController
+    include InvitationSending
+
     before_action { authorize! Member, to: :invite? }
     # invitations are looked up in current_org, only owners get here
     skip_verify_authorized_scoped
@@ -12,15 +14,15 @@ module Orgs
 
     # inviting a pending email again sends it with the new role, and kills the old link
     def create
-      attributes = params.expect(invitation: [ :email, :name, :role ])
+      attributes = params.expect(invitation: %i[ email name role project_id project_role ])
       invitation = current_org.invitations.pending.find_or_initialize_by(email: attributes[:email])
-      invitation.assign_attributes(name: attributes[:name], role: attributes[:role])
+      invitation.assign_attributes(name: attributes[:name], role: attributes[:role], **guest_attributes(attributes))
 
-      send_invitation(invitation, :sent)
+      send_invitation(invitation, :sent, back: members_path(current_org))
     end
 
     def resend
-      send_invitation(invitation, :resent)
+      send_invitation(invitation, :resent, back: members_path(current_org))
     end
 
     def destroy
@@ -35,15 +37,11 @@ module Orgs
       @invitation ||= current_org.invitations.pending.find(params[:id])
     end
 
-    # a new sent_at invalidates the links sent before
-    def send_invitation(invitation, done)
-      if invitation.update(invited_by: current_member, sent_at: Time.current)
-        InvitationsMailer.invite(invitation).deliver_later
+    # only guests are invited to a project
+    def guest_attributes(attributes)
+      return { project: nil, project_role: nil } unless attributes[:role] == "guest"
 
-        redirect_to members_path(current_org), notice: t("controllers.invitations.#{done}", email: invitation.email)
-      else
-        redirect_to members_path(current_org), alert: invitation.errors.full_messages.to_sentence
-      end
+      { project: current_org.projects.find_by(id: attributes[:project_id]), project_role: attributes[:project_role] }
     end
   end
 end

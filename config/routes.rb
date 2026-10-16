@@ -67,6 +67,9 @@ Rails.application.routes.draw do
         resource :history, only: %i[ show ], controller: "entry_histories"
       end
       resources :participants, only: %i[ create update destroy ]
+      resources :guest_invitations, only: %i[ create destroy ] do
+        patch :resend, on: :member
+      end
       resources :tags, param: :tag, only: %i[ show ]
       resources :weeks, param: :week, only: %i[ show ]
 

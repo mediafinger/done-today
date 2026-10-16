@@ -38,6 +38,7 @@ en:
       models:
         invitation:
           already_a_member: "%{email} is already a member"
+          already_participates: "%{email} already participates in %{project}"
         member:
           last_owner: "%{org} needs at least one active owner"
           guest_owner: "guest cannot own %{projects}, change the project role first"
@@ -47,6 +48,7 @@ en:
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
     invitations:
+      already_invited: "%{email} is already invited"
       invalid: "That invitation link is invalid or has expired, ask for a new one"
       rate_limited: "Too many invitations, try again later"
       resent: "Sent the invitation to %{email} again"
