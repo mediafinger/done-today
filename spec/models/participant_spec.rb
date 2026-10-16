@@ -81,4 +81,20 @@ RSpec.describe Participant do
     expect(Entry.exists?(entry.id)).to be(true)
     expect(project.entries).to include(entry)
   end
+
+
+  it "takes the org from its project" do
+    project = create(:project)
+
+    expect(create(:participant, project:).org).to eq(project.org)
+  end
+
+  it "does not deactivate a guest when the whole project goes" do
+    project = create(:project)
+    guest = create(:participant, project:, member: create(:member, :guest, org: project.org)).member
+
+    project.destroy!
+
+    expect(guest.reload).not_to be_archived
+  end
 end
