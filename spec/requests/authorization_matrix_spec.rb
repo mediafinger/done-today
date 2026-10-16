@@ -634,6 +634,16 @@ RSpec.describe "Authorization role matrix" do
       params: { invitation: { email: personas[:archived].user.email, project_role: "participant" } }
   end
 
+  # bringing back a deactivated internal is up to the org's managers and owners
+  row "POST /:org/:project/guest_invitations (a deactivated member)", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :written
+  }, written: -> { project.invitations.exists?(email: "deactivated@example.com") } do
+    create(:member, org:, user: create(:user, email: "deactivated@example.com")).archive!
+
+    post guest_invitations_path(org, project), params: { invitation: { email: "deactivated@example.com", project_role: "participant" } }
+  end
+
   # nobody invites guests to an archived project
   row "POST /:org/:project/guest_invitations with P archived", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,

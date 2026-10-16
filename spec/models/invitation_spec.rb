@@ -112,6 +112,30 @@ RSpec.describe Invitation do
     end
   end
 
+  describe "#to_deactivated_internal?" do
+    before { create(:member, :owner, org:) } # the org keeps an owner
+
+    def to(email) = build(:invitation, org:, email:)
+
+    def member_with(email, **attributes)
+      create(:member, **attributes, user: create(:user, email:))
+    end
+
+    it "is true for a deactivated member, manager or owner of the org" do
+      %w[member manager owner].each { member_with("#{it}@example.com", org:, role: it).archive! }
+
+      expect(%w[member manager owner].map { to("#{it}@example.com").to_deactivated_internal? }).to all(be(true))
+    end
+
+    it "is false for an active member, a former guest and a deactivated member of another org" do
+      member_with("ada@example.com", org:)
+      member_with("bob@example.com", org:, role: "guest").archive!
+      member_with("carl@example.com").archive!
+
+      expect(%w[ada@example.com bob@example.com carl@example.com].map { to(it).to_deactivated_internal? }).to all(be(false))
+    end
+  end
+
   describe "the acceptance token" do
     let(:token) { invitation.generate_token_for(:acceptance) }
 

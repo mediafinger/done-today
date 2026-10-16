@@ -13,6 +13,16 @@ RSpec.describe InvitationPolicy do
     create(:member, :owner, org:).tap(&:archive!)
   end
 
+  # an internal of the org, deactivated
+  def deactivated_member(role: "member")
+    create(:member, org:, role:).tap(&:archive!)
+  end
+
+  # a guest deactivated with their last project
+  def former_guest
+    create(:member, :guest, org:).tap(&:archive!)
+  end
+
   def project_lead(of: project)
     create(:participant, :lead, project: of).member
   end
@@ -35,6 +45,10 @@ RSpec.describe InvitationPolicy do
 
       succeed "as guest" do
         let(:record) { create(:invitation, :guest, org:, project:) }
+      end
+
+      succeed "as guest, to a deactivated member" do
+        let(:record) { create(:invitation, :guest, org:, project:, email: deactivated_member.user.email) }
       end
 
       # also on the members page, after the project was archived
@@ -80,6 +94,19 @@ RSpec.describe InvitationPolicy do
 
       failed "as guest to their project, to a deactivated owner" do
         let(:record) { create(:invitation, :guest, org:, project:, email: deactivated_owner.user.email) }
+      end
+
+      # reactivating an internal is up to the org's managers and owners
+      failed "as guest to their project, to a deactivated member" do
+        let(:record) { create(:invitation, :guest, org:, project:, email: deactivated_member.user.email) }
+      end
+
+      failed "as guest to their project, to a deactivated manager" do
+        let(:record) { create(:invitation, :guest, org:, project:, email: deactivated_member(role: "manager").user.email) }
+      end
+
+      succeed "as guest to their project, to a former guest" do
+        let(:record) { create(:invitation, :guest, org:, project:, email: former_guest.user.email) }
       end
     end
 
