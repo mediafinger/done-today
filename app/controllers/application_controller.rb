@@ -8,6 +8,9 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
+  # "today" is the user's date, see User#time_zone
+  around_action :use_time_zone
+
   # the user's own memberships, and the 404 page
   skip_verify_authorized only: %i[ home error_404 ]
   skip_verify_authorized_scoped only: %i[ home error_404 ]
@@ -24,5 +27,11 @@ class ApplicationController < ActionController::Base
     @memberships = current_user.memberships.active.includes(:org, participations: :project).sort_by { it.org.name }
 
     render :home, status: :ok
+  end
+
+  private
+
+  def use_time_zone(&)
+    Time.use_zone(current_user&.time_zone || Time.zone_default, &)
   end
 end

@@ -25,6 +25,17 @@
 </article>
 
 <article>
+  <header><h3>Time zone</h3></header>
+
+  <%= form_with model: @user, url: user_time_zone_path, method: :patch, scope: :user do |form| %>
+    <%= form.label :time_zone, "Your \"today\" and the lock on past days follow this zone" %>
+    <%= form.select :time_zone, time_zone_options %>
+
+    <%= form.submit "Save time zone" %>
+  <% end %>
+</article>
+
+<article>
   <header><h3>Display</h3></header>
 
   <%# full reload: Turbo Drive does not swap attributes on <html> %>

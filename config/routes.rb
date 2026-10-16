@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         delete :destroy_others, on: :collection
       end
       resource :display_mode, only: %i[ update ]
+      resource :time_zone, only: %i[ update ]
     end
   end
 

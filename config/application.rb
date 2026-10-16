@@ -39,6 +39,7 @@ module DoneToday
     #
     # Entry dates are plain local dates and clock times are minutes since midnight,
     #   so the zone only decides what "today" means -- never what is stored.
+    #   Requests of a signed-in user run in their User#time_zone, this is the fallback.
     config.time_zone = AppConf.timezone
     # config.eager_load_paths << Rails.root.join("extras")
 
