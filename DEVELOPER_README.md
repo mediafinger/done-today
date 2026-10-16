@@ -113,8 +113,11 @@ For auditing operations within organizations, we implement a lightweight event-l
    ```
 3. **Start Server**:
    ```bash
-   bin/rails server
+   bin/dev
    ```
+   `bin/dev` runs [Procfile.dev](file:///Users/andy/Dropbox/www/2025/done_today/Procfile.dev) with foreman: the web server, `bin/jobs`
+   (Solid Queue on the queue database, as in production) and the log. `bin/rails server` alone enqueues jobs that only run once
+   `bin/jobs` is up.
 
 ### Admin and Dev Areas
 - **`/admin`** (admins only): links to **`/admin/mission_control_jobs`** (Mission Control, the Solid Queue dashboard).
