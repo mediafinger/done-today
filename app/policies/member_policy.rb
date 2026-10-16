@@ -1,6 +1,6 @@
 # Internals list the members of their org, org managers and owners manage them, themselves included.
 #   Only owners give or take the owner role, so managers leave owners alone.
-#   Ask with the Member class for the list, with a Member for changes.
+#   Ask with the Member class for the list, with a Member for changes, the change assigned.
 #
 class MemberPolicy < ApplicationPolicy
   # send, resend and revoke invitations to the org
@@ -23,7 +23,7 @@ class MemberPolicy < ApplicationPolicy
   end
 
   def manage?
-    org_owner? || (org_manager? && !(record.is_a?(Member) && record.owner?))
+    org_manager? && (grant_owner? || !owner_role?)
   end
 
   # make someone an owner, also by invitation, or take the role

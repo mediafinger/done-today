@@ -22,10 +22,7 @@ module Orgs
     end
 
     def update
-      role = params.expect(member: [ :role ]).fetch(:role)
-      authorize! member, to: :grant_owner? if role == "owner"
-
-      change(:updated, role:)
+      change(:updated, role: params.expect(member: [ :role ]).fetch(:role))
     end
 
     def deactivate
@@ -38,14 +35,18 @@ module Orgs
 
     private
 
-    # another org's member is a 404, a colleague of a non-manager or an owner of a manager a 403
+    # another org's member is a 404
     def member
-      @member ||= authorize! current_org.members.find(params[:id])
+      @member ||= current_org.members.find(params[:id])
     end
 
-    # the lock keeps two owners from demoting each other at the same time
+    # Authorized with the change assigned: a colleague of a non-manager, an owner of a manager
+    #   and the owner role for a manager are a 403. The lock keeps two owners from demoting each other.
     def change(done, **attributes)
-      saved = current_org.with_lock { member.update(attributes) }
+      member.assign_attributes(attributes)
+      authorize! member
+
+      saved = current_org.with_lock { member.save }
 
       if saved
         redirect_to after_change_path, notice: t("controllers.members.#{done}", name: member.name)

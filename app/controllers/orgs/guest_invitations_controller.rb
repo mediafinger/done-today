@@ -24,6 +24,7 @@ module Orgs
       invitation.assign_attributes(
         name: attributes[:name], role: "guest", project: current_project, project_role: attributes[:project_role]
       )
+      authorize! invitation
 
       send_invitation(invitation, :sent, back: back_path)
     end
@@ -41,7 +42,7 @@ module Orgs
     private
 
     def invitation
-      @invitation ||= current_project.invitations.pending.find(params[:id])
+      @invitation ||= authorize! current_project.invitations.pending.find(params[:id])
     end
 
     def back_path

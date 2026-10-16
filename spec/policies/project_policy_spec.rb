@@ -13,9 +13,14 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  # aliases resolved, as authorize! and allowed_to? do
+  def may?(rule)
+    policy.apply(policy.resolve_rule(rule))
+  end
+
   # show?, create_entry?, export?, manage?
   def allowed
-    %i[show? create_entry? export? manage?].map { policy.apply(it) }
+    %i[show? create_entry? export? manage?].map { may?(it) }
   end
 
   def scope(name = :default)
@@ -38,12 +43,12 @@ RSpec.describe ProjectPolicy do
     context "with org role #{org_role} and project role #{project_role.inspect}" do
       let(:member) { member_with(org_role:, project_role:) }
 
-      it { expect(policy.apply(:show?)).to be(show) }
-      it { expect(policy.apply(:create_entry?)).to be(create_entry) }
-      it { expect(policy.apply(:export?)).to be(export) }
-      it { expect(policy.apply(:manage?)).to be(manage) }
+      it { expect(may?(:show?)).to be(show) }
+      it { expect(may?(:create_entry?)).to be(create_entry) }
+      it { expect(may?(:export?)).to be(export) }
+      it { expect(may?(:manage?)).to be(manage) }
       # the edit trail of the entries is for those who manage the project
-      it { expect(policy.apply(:entry_history?)).to be(manage) }
+      it { expect(may?(:entry_history?)).to be(manage) }
 
       it "scopes the project as readable exactly when it may be shown" do
         expect(scope.include?(project)).to be(show)
@@ -184,13 +189,55 @@ RSpec.describe ProjectPolicy do
     end
   end
 
-  it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
+  # send, resend and revoke the guest invitations of the project
+  describe_rule :invite_guest? do
+    succeed "for a project lead" do
+      let(:member) { member_with(org_role: "member", project_role: "lead") }
+    end
 
-  %i[export_csv? export_days_csv?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:export?) }
+    succeed "for an org owner" do
+      let(:member) { member_with(org_role: "owner", project_role: nil) }
+    end
+
+    succeed "for an org manager" do
+      let(:member) { member_with(org_role: "manager", project_role: nil) }
+    end
+
+    failed "for a participant" do
+      let(:member) { member_with(org_role: "member", project_role: "participant") }
+    end
+
+    failed "for a guest" do
+      let(:member) { member_with(org_role: "guest", project_role: "participant") }
+    end
+
+    failed "for a member" do
+      let(:member) { member_with(org_role: "member", project_role: nil) }
+    end
+
+    failed "for an owner of another org" do
+      let(:member) { member_with(org_role: "owner", project_role: nil, of: create(:org)) }
+    end
+
+    context "with an archived project" do
+      before { project.archive! }
+
+      failed "for a project lead" do
+        let(:member) { member_with(org_role: "member", project_role: "lead") }
+      end
+
+      failed "for an org owner" do
+        let(:member) { member_with(org_role: "owner", project_role: "lead") }
+      end
+    end
   end
 
-  %i[edit? update? archive? unarchive?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
+  %i[validate_times?].each do |rule|
+    it { expect(rule).to be_an_alias_of(policy, :show?) }
+  end
+
+  # a full export covers everybody's entries, the edit trail everybody's changes
+  %i[edit? update? archive? unarchive? export? export_csv? export_days_csv? entry_history?].each do |rule|
+    it { expect(rule).to be_an_alias_of(policy, :manage?) }
   end
 end

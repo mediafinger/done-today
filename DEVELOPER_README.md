@@ -60,13 +60,18 @@ The app supports multi-tenant organization boundaries and project selection:
   in pre-checks, `ProjectPolicy` lets org managers and owners through (except `create_entry?`).
   - Org roles: `member`, `manager` and `owner` are internals, they list every project of the org (`ProjectPolicy` scope `:listable`) and
     the members (`/:org/members`, read-only for members). A `manager` does what an owner does, except giving or taking the owner role
-    (`MemberPolicy#grant_owner?`, also for invitations) and changing, deactivating or reactivating an owner. A `guest` is an external: they only see the projects they participate in,
+    (`MemberPolicy#grant_owner?`, also for invitations, and inviting a deactivated owner back) and changing, deactivating or reactivating an owner. A `guest` is an external: they only see the projects they participate in,
     never lead a project, and are deactivated when their last participation is removed. Project leads only add the guests
     of the projects they manage (`MemberPolicy` scope `:addable`), and invite new guests to them (`ProjectPolicy#invite_guest?`,
     `Orgs::GuestInvitationsController`). A guest invitation carries the project and the project role.
   - A record the member may not read is a 404: look it up through a scope, `authorized_scope(current_org.projects).find_by!(...)`.
   - A record they may read but not change is a 403: `authorize! record` (rule from the action name, see the `alias_rule`s),
     `ActionPolicy::Unauthorized` renders `application/error_403`. In views: `allowed_to?(:manage?, project)`.
+  - A change decided by its new value (a member's or invitation's role) is authorized with the change assigned, before saving:
+    `member.assign_attributes(...)`, `authorize! member`. The policy reads `role` and `role_in_database`, the controller
+    checks no roles itself. `InvitationPolicy` decides who sends, resends and revokes an invitation.
+  - Outside of controllers include `ActionPolicy::Behaviour` with `authorize :member` and call `authorized_scope` / `allowed_to?`
+    (see `LandingService`). `ProjectPolicy.new(...)` only where the memoized policy answered before a change in the same request.
   - `verify_authorized` and `verify_authorized_scoped` are on for every controller: an action calls `authorize!` and
     `authorized_scope` (the project lookup counts), or declares `skip_verify_authorized(_scoped)` with a comment why.
   - `spec/requests/authorization_matrix_spec.rb` checks every endpoint against every persona, `spec/policies` the rules and scopes,
