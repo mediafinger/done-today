@@ -52,6 +52,7 @@ jobs:
       DONE_DB_PASSWORD: ci_db_user_password
       DONE_DB_PORT: 5432
       DONE_DB_USERNAME: postgres-ci
+      RUBYOPT: -W:deprecated # warns on mutated string literals, which a future Ruby freezes
 
     services:
       postgres:
