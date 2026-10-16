@@ -9,7 +9,6 @@ gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: 
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
 gem "faker", "~> 3.4"
-gem "freezolite", "~> 0.5" # Freeze your strings
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "json", "< 3.0"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
