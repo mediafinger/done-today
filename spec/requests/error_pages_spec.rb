@@ -15,6 +15,23 @@ RSpec.describe "Error pages" do
     end
   end
 
+  describe "refused action" do
+    let(:project) { create(:project) }
+
+    before { sign_in(create(:participant, :observer, project:).member.user) }
+
+    it "renders a 403 page that links back to the start page" do
+      post entries_path(project.org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Only watching" } }
+
+      page = Nokogiri::HTML(response.body)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(page.at_css("title").text).to include("Not allowed · Done Today")
+      expect(page.at_css("main h1").text).to include("Not allowed")
+      expect(page.at_css("main a[href='/']")).to be_present
+    end
+  end
+
   describe "static pages in public/" do
     %w[400 404 406-unsupported-browser 422 500 503].each do |name|
       describe "public/#{name}.html" do
