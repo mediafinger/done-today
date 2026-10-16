@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  DISPLAY_MODES = %w[system light dark].freeze
+
   has_secure_password
 
   has_many :memberships, class_name: "Member", inverse_of: :user, dependent: :destroy
@@ -17,6 +19,12 @@ class User < ApplicationRecord
   validates :password, presence: true, on: :change_password
   validates :password, not_pwned: { message: "might easily be guessed" }, if:  :production_env
   validates :password_digest, presence: true
+  validates :display_mode, inclusion: { in: DISPLAY_MODES }
+
+  # value for <html data-theme>, nil lets Pico follow the OS setting
+  def theme
+    display_mode unless display_mode == "system"
+  end
 
   def end_sessions_except(session)
     sessions.where.not(id: session.id).delete_all

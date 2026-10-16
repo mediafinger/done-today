@@ -23,3 +23,23 @@
     <dd><%= link_to "Manage sessions", user_sessions_path %></dd>
   </dl>
 </article>
+
+<article>
+  <header><h3>Display</h3></header>
+
+  <%# full reload: Turbo Drive does not swap attributes on <html> %>
+  <%= form_with model: @user, url: user_display_mode_path, method: :patch, scope: :user, data: { turbo: false } do |form| %>
+    <fieldset>
+      <legend>Color mode</legend>
+      <% labels = { "system" => "Follow system setting", "light" => "Always light", "dark" => "Always dark" } %>
+      <% User::DISPLAY_MODES.each do |mode| %>
+        <label>
+          <%= form.radio_button :display_mode, mode %>
+          <%= labels.fetch(mode) %>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <%= form.submit "Save display mode" %>
+  <% end %>
+</article>

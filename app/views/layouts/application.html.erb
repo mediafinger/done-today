@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<% if Current.display_mode %>
-  <html data-theme="<%= Current.display_mode %>">
+<% if (theme = current_user&.theme) %>
+  <html data-theme="<%= theme %>">
 <% else %>
   <html>
 <% end %>
