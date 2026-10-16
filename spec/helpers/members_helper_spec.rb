@@ -11,7 +11,13 @@ RSpec.describe MembersHelper do
       create(:participant, :lead, project:, member: create(:member, org:, name: "Gone")).member.archive!
       create(:participant, project:, member: create(:member, org:, name: "Paul"))
 
-      expect(helper.join_project_hint(project.reload)).to eq("ask Bob or Olivia to join")
+      expect(helper.join_project_hint(project.reload)).to eq("ask the project leads Bob or Olivia, an org manager or owner to join")
+    end
+
+    it "names a single lead in the singular" do
+      create(:participant, :lead, project:, member: create(:member, org:, name: "Olivia"))
+
+      expect(helper.join_project_hint(project.reload)).to eq("ask the project lead Olivia, an org manager or owner to join")
     end
 
     it "points to the org managers and owners without a project lead" do

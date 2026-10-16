@@ -39,7 +39,7 @@ RSpec.describe "Org guests" do
 
       expect(project_item(website).at_css("a")["href"]).to eq(project_path(org, website))
       expect(project_item(shop).at_css("a")).to be_nil
-      expect(project_item(shop).text).to include("Shop", "ask Olivia to join")
+      expect(project_item(shop).text).to include("Shop", "ask the project lead Olivia, an org manager or owner to join")
     end
 
     it "lists only their own projects to a guest" do
