@@ -11,6 +11,7 @@ module Users
     layout -> { "logged_out" }
 
     def new
+      redirect_to root_path if authenticated?
     end
 
     def create

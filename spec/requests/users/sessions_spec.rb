@@ -3,6 +3,22 @@ require "rails_helper"
 RSpec.describe "Users::Sessions" do
   let!(:user) { create(:user, email: "ada@example.com") }
 
+  describe "GET /session/new" do
+    it "shows the form to a visitor" do
+      get new_session_path
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "sends a signed-in user to /" do
+      sign_in(user)
+
+      get new_session_path
+
+      expect(response).to redirect_to(root_path)
+    end
+  end
+
   describe "POST /session" do
     it "signs in with email and password, and records where from" do
       post session_path, params: { email: "ada@example.com", password: "correct horse battery staple" },
