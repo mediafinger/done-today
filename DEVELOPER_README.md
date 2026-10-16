@@ -115,10 +115,17 @@ For auditing operations within organizations, we implement a lightweight event-l
    ```bash
    bin/dev
    ```
+
    `bin/dev` runs [Procfile.dev](file:///Users/andy/Dropbox/www/2025/done_today/Procfile.dev) with foreman: the web server, `bin/jobs`
    (Solid Queue on the queue database, as in production) and the log. `bin/rails server` alone enqueues jobs that only run once
    `bin/jobs` is up.
 
+4. **Tests**: `rake ci` runs everything except the system specs in `spec/system`. `rake ui` runs those in headless Chrome
+   through Cuprite (Chrome has to be installed, `HEADLESS=0` opens the window). CI runs both.
+   ```bash
+   bin/mcp_rake ci
+   bin/mcp_rake ui
+   ```
 ### Admin and Dev Areas
 - **`/admin`** (admins only): links to **`/admin/mission_control_jobs`** (Mission Control, the Solid Queue dashboard).
   [AdminConstraint](file:///Users/andy/Dropbox/www/2025/done_today/app/route_constraints/admin_constraint.rb) routes only an admin's
