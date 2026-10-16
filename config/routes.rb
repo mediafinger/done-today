@@ -53,7 +53,9 @@ Rails.application.routes.draw do
       get "export_days_csv", to: "projects#export_days_csv", as: :export_days_csv_project
 
       resources :days, param: :date, only: %i[ show edit ], constraints: { date: /\d{4}-\d{2}-\d{2}/ }
-      resources :entries, only: %i[ create update ]
+      resources :entries, only: %i[ create update ] do
+        resource :history, only: %i[ show ], controller: "entry_histories"
+      end
       resources :participants, only: %i[ create update destroy ]
       resources :tags, param: :tag, only: %i[ show ]
       resources :weeks, param: :week, only: %i[ show ]

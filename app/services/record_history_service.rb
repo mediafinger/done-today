@@ -1,6 +1,8 @@
 class RecordHistoryService
   # attributes that must never be written into the history diff
   FILTERED_KEYS = %w[password password_digest credentials].freeze
+  # the history row has its own created_at
+  TIMESTAMP_KEYS = %w[created_at updated_at].freeze
 
   class MissingContextError < StandardError; end
 
@@ -33,7 +35,7 @@ class RecordHistoryService
 
       changes = record.previous_changes.presence || record.changes
 
-      changes.except(*FILTERED_KEYS)
+      changes.except(*FILTERED_KEYS, *TIMESTAMP_KEYS)
     end
   end
 end

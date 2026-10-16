@@ -1,4 +1,4 @@
-<%# locals: (entry:, entries:, index:, with_date: false, with_weekday: false, with_project: false, with_member: false, totals: nil) %>
+<%# locals: (entry:, entries:, index:, with_date: false, with_weekday: false, with_project: false, with_member: false, totals: nil, edited: false) %>
 
 <%# `totals` maps [day id, member id] to the minutes the member worked that day
     (TimeSummary.day_totals), and adds a column showing them next to the member
@@ -75,6 +75,10 @@
 
   <div class="left">
     <%= render_log(entry) %>
+    <%# only passed to those who may read the history %>
+    <% if edited %>
+      <small><%= link_to "edited", entry_history_path(current_org, entry.day.project, entry), class: "secondary" %></small>
+    <% end %>
   </div>
 
   <!-- read-only status: the same three states as the editable entry, without the form -->

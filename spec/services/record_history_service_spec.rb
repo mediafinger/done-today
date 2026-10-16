@@ -25,6 +25,16 @@ RSpec.describe RecordHistoryService do
       expect(history.record_changes).to include("status" => %w[doing done])
     end
 
+    # the history row has its own created_at, the record's timestamps are noise
+    it "leaves the timestamps out of the diff" do
+      entry = create(:entry)
+      entry.update!(status: "done")
+
+      history = described_class.call(record: entry, event: :updated, org:, user:)
+
+      expect(history.record_changes.keys).not_to include("created_at", "updated_at")
+    end
+
     it "stores an empty diff for a deletion" do
       history = described_class.call(record: create(:entry), event: :deleted, org:, user:)
 

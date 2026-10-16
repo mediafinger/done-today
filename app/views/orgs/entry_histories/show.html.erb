@@ -1,0 +1,39 @@
+<% day = @entry.day %>
+
+<h2>History of an entry</h2>
+
+<p>
+  <%= link_to "#{day.project.name} Day #{day.date.iso8601}", day_path(current_org, day.project, day.date) %>
+  · <%= @entry.member.name %>
+</p>
+
+<p><%= render_log(@entry) %></p>
+
+<% if @histories.any? %>
+  <table>
+    <thead>
+      <tr><th>When</th><th>Who</th><th>Event</th><th>Changes</th></tr>
+    </thead>
+    <tbody>
+      <% @histories.each do |history| %>
+        <tr>
+          <td><%= history.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <td><%= @actors[history.user_id]&.name || "unknown" %></td>
+          <td><%= history.event %></td>
+          <td>
+            <%# the derived columns follow from the log %>
+            <% history.record_changes.slice("log", "status").each do |attribute, (from, to)| %>
+              <div>
+                <%= attribute %>:
+                <% if history.event == "updated" %><del><%= from %></del> → <% end %>
+                <ins><%= to %></ins>
+              </div>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>No changes recorded. Entries written before the edit trail was introduced have none.</p>
+<% end %>

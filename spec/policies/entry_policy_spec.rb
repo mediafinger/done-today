@@ -30,6 +30,13 @@ RSpec.describe EntryPolicy do
       it { expect(described_class.new(member, own_entry).update?).to be(own) }
       it { expect(described_class.new(member, colleagues_entry).update?).to be(colleagues) }
 
+      it "shows the edit trail exactly when the project may be managed" do
+        manage = ProjectPolicy.new(member, project).manage?
+
+        expect([ described_class.new(member, own_entry).history?, described_class.new(member, colleagues_entry).history? ])
+          .to eq([ manage, manage ])
+      end
+
       it "lists exactly the entries it may update as editable" do
         expected = [ (own_entry if own), (colleagues_entry if colleagues) ].compact
 

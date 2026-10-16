@@ -21,9 +21,14 @@ class ApplicationRecord < ActiveRecord::Base
 
   private
 
+  # A failing history rolls the save back. A save without changes is no edit.
   def save_with_history(event, **history_params)
     transaction do
-      save && RecordHistoryService.call(record: self, event:, **history_params)
+      next false unless save
+      next true if event == :updated && previous_changes.empty?
+
+      RecordHistoryService.call(record: self, event:, **history_params)
+      true
     end
   end
 end

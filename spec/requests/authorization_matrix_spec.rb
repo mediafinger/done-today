@@ -178,6 +178,13 @@ RSpec.describe "Authorization role matrix" do
     patch entry_path(org, project, own_entry), params: { entry: { log: "Changed by the matrix" } }
   end
 
+  row "GET /:org/:project/entries/:id/history", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
+    org_owner: :ok
+  } do
+    get entry_history_path(org, project, colleagues_entry)
+  end
+
   row "GET /:org/members", {
     outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
     org_owner: :ok
