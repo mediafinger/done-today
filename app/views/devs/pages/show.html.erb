@@ -1,0 +1,9 @@
+<% content_for :title, "Dev · Done Today" %>
+
+<h1>Dev</h1>
+
+<% if defined?(LetterOpenerWeb) %>
+  <ul>
+    <li><%= link_to "Sent mail (letter_opener_web)", "/dev/letter_opener" %></li>
+  </ul>
+<% end %>

@@ -48,6 +48,6 @@ end
 
 group :development do
   gem "fix-db-schema-conflicts" # to keep the schema.rb file sorted alphabetically without strong_migrations
-  gem "letter_opener", "~> 1.10" # Preview mail in the browser instead of sending
+  gem "letter_opener_web", "~> 3.0" # Preview sent mail at /dev/letter_opener instead of sending
   gem "web-console" # Use console on exceptions pages [https://github.com/rails/web-console]
 end

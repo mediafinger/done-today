@@ -163,6 +163,11 @@ GEM
       logger (~> 1.6)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
+    letter_opener_web (3.0.0)
+      actionmailer (>= 6.1)
+      letter_opener (~> 1.9)
+      railties (>= 6.1)
+      rexml
     lint_roller (1.1.0)
     logger (1.7.0)
     loofah (2.25.2)
@@ -302,6 +307,7 @@ GEM
     reline (0.7.0)
       io-console (~> 0.5)
     require-hooks (0.5.1)
+    rexml (3.4.4)
     rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
@@ -448,7 +454,7 @@ DEPENDENCIES
   importmap-rails
   json (< 3.0)
   kamal
-  letter_opener (~> 1.10)
+  letter_opener_web (~> 3.0)
   mission_control-jobs (~> 1.0)
   pg (~> 1.1)
   propshaft

@@ -31,7 +31,7 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # letter_opener by default, see AppConf.mail_delivery_method
+  # letter_opener_web by default (/dev/letter_opener), see AppConf.mail_delivery_method
   config.action_mailer.delivery_method = AppConf.mail_delivery_method.to_sym
 
   # Don't care if the mailer can't send.

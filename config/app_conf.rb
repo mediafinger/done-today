@@ -136,7 +136,7 @@ class AppConf
   register :rack_timeout, default: is?(:debug, true) ? 300 : 6 # seconds
 
   # Mailer / Email, production is validated by config/mail_settings.rb
-  register :mail_delivery_method, required: production_env?, default: "letter_opener"
+  register :mail_delivery_method, required: production_env?, default: "letter_opener_web"
   register :default_email_sender, required: production_env?, default: "from@example.com"
 
   # SMTP, port 587 enforces STARTTLS, port 465 uses implicit TLS

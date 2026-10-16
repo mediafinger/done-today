@@ -97,6 +97,12 @@ Rails.application.routes.draw do
     mount MissionControl::Jobs::Engine, at: "/mission_control_jobs"
   end
 
+  # development and test only, letter_opener_web is in the development group of the Gemfile
+  namespace :dev, module: "devs", constraints: ->(_request) { Rails.env.local? } do
+    get "", to: "pages#show", as: "home"
+    mount LetterOpenerWeb::Engine, at: "/letter_opener" if defined?(LetterOpenerWeb)
+  end
+
   # keep this at the bottom of the routes file
   # catch all unknown routes to NOT throw a FATAL ActionController::RoutingError
   match "*path", to: "application#error_404", via: :all,

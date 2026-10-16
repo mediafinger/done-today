@@ -186,6 +186,11 @@ RSpec.describe "Authorization role matrix" do
     get admin_home_path
   end
 
+  # development and test only, see spec/requests/devs/dev_area_spec.rb
+  row "GET /dev", { anonymous: :ok, no_org: :ok, member: :ok, admin: :ok } do
+    get dev_home_path
+  end
+
   # Mission Control inherits from AdminController
   row "GET /admin/mission_control_jobs", {
     anonymous: :to_sign_in, no_org: :not_found, archived: :not_found, member: :not_found, org_owner: :not_found, admin: :ok
