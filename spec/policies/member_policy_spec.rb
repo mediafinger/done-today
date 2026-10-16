@@ -81,6 +81,27 @@ RSpec.describe MemberPolicy do
       failed "about a deactivated owner" do
         let(:record) { archived_owner }
       end
+
+      # asked with the change applied: giving or taking the owner role is for owners
+      failed "about a member to be made owner" do
+        let(:record) { colleague.tap { it.role = "owner" } }
+      end
+
+      failed "about an owner to be made member" do
+        let(:record) { create(:member, :owner, org:).tap { it.role = "member" } }
+      end
+
+      succeed "about a member to be made manager" do
+        let(:record) { colleague.tap { it.role = "manager" } }
+      end
+    end
+
+    succeed "for an owner, about a member to be made owner" do
+      let(:record) { colleague.tap { it.role = "owner" } }
+    end
+
+    succeed "for an owner, about an owner to be made member" do
+      let(:record) { create(:member, :owner, org:).tap { it.role = "member" } }
     end
 
     failed "for a member" do
