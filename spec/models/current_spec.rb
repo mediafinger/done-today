@@ -17,6 +17,11 @@ RSpec.describe Current do
       .to eq([ member.user.id, org.id, project.id, member.id ])
   end
 
+  # admins act only in the console, where they pass `done_by_admin: true` to the history
+  it "has no admin flag" do
+    expect(described_class).not_to respond_to(:admin_flag)
+  end
+
   it "clears an id together with its record" do
     described_class.org = create(:org)
     described_class.org = nil

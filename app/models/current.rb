@@ -1,5 +1,4 @@
 class Current < ActiveSupport::CurrentAttributes
-  attribute :admin_flag
   attribute :ip_address
   attribute :member
   attribute :member_id

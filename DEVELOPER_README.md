@@ -130,6 +130,10 @@ For auditing operations within organizations, we implement a lightweight event-l
   ```bash
   bin/rails runner 'User.find_by!(email: "you@example.com").update!(admin: true)'
   ```
+- **Admins fix data** only in the console or a data migration. Mark the edit trail with `done_by_admin: true`:
+  ```ruby
+  entry.update_with_history(org: entry.org, user: admin, done_by_admin: true)
+  ```
 - **`/dev`** (development only): links to **`/dev/letter_opener`** (letter_opener_web), where development mail is delivered
   instead of being sent.
 

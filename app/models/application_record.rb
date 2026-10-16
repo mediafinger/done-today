@@ -2,7 +2,8 @@ class ApplicationRecord < ActiveRecord::Base
   primary_abstract_class
 
   # The history is written from Current.org / Current.user, so these are only usable
-  #   inside a request. Pass `org:` / `user:` explicitly from jobs and the console.
+  #   inside a request. Pass `org:` / `user:` explicitly from jobs and the console,
+  #   and `done_by_admin: true` when an admin fixes data there.
   #
   def create_with_history(**history_params)
     save_with_history(:created, **history_params)

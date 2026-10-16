@@ -59,6 +59,22 @@ RSpec.describe RecordHistoryService do
       expect(history.user_id).to eq(user.id)
     end
 
+    it "marks a change as not done by an admin by default" do
+      history = described_class.call(record: create(:entry), event: :created, org:, user:)
+
+      expect(history.done_by_admin).to be(false)
+    end
+
+    # admins fix data only in the console or a data migration, so they say so explicitly
+    it "marks a change done by an admin from the console" do
+      entry = create(:entry)
+
+      entry.log = "fixed by an admin"
+      entry.update_with_history(org: entry.org, user:, done_by_admin: true)
+
+      expect(RecordHistory.last).to have_attributes(event: "updated", done_by_admin: true, user_id: user.id)
+    end
+
     it "raises a clear error when there is no org in scope" do
       expect { described_class.call(record: create(:entry), event: :created, org: nil, user:) }
         .to raise_error(described_class::MissingContextError, /no org in scope/)
