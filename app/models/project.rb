@@ -13,6 +13,7 @@ class Project < ApplicationRecord
   has_many :days, dependent: :restrict_with_exception
   has_many :participants, inverse_of: :project, dependent: :destroy
   has_many :invitations, dependent: :destroy
+  has_many :access_requests, inverse_of: :project, dependent: :destroy
 
   has_many :entries, through: :days
   has_many :members, through: :participants

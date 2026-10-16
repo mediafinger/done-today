@@ -189,6 +189,34 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  # internals ask to join a project they do not take part in, managers add themselves
+  describe "request_access?" do
+    {
+      [ "member", nil ] => true,
+      [ "member", "observer" ] => false,
+      [ "member", "lead" ] => false,
+      [ "manager", nil ] => false,
+      [ "owner", nil ] => false,
+      [ "guest", nil ] => false
+    }.each do |(org_role, project_role), expected|
+      context "with org role #{org_role} and project role #{project_role.inspect}" do
+        let(:member) { member_with(org_role:, project_role:) }
+
+        it { expect(policy.apply(:request_access?)).to be(expected) }
+      end
+    end
+
+    it "refuses an archived project" do
+      project.archive!
+
+      expect(described_class.new(project, member: member_with(org_role: "member", project_role: nil)).apply(:request_access?)).to be(false)
+    end
+
+    it "refuses a member of another org" do
+      expect(described_class.new(project, member: create(:member)).apply(:request_access?)).to be(false)
+    end
+  end
+
   # send, resend and revoke the guest invitations of the project
   describe_rule :invite_guest? do
     succeed "for a project lead" do
@@ -231,6 +259,8 @@ RSpec.describe ProjectPolicy do
       end
     end
   end
+
+  it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
 
   %i[validate_times?].each do |rule|
     it { expect(rule).to be_an_alias_of(policy, :show?) }

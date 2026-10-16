@@ -36,6 +36,8 @@ en:
         password_challenge: "Current password"
     errors:
       models:
+        access_request:
+          already_requested: "You already asked to join %{project}"
         invitation:
           already_a_member: "%{email} is already a member"
           already_participates: "%{email} already participates in %{project}"
@@ -46,6 +48,10 @@ en:
         participant:
           guest_lead: "lead is not a project role for guests"
   controllers:
+    access_requests:
+      declined: "Declined the request of %{name}"
+      rate_limited: "Too many requests, try again later"
+      requested: "Asked to join %{project}"
     day_locked: "%{date} is locked, unlock the day to change it"
     invitations:
       already_invited: "%{email} is already invited"

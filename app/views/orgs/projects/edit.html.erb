@@ -23,6 +23,44 @@
   <% end %>
 </section>
 
+<% if @access_requests.any? %>
+  <section>
+    <h3>Asking to join</h3>
+
+    <p>Members of <%= current_org.name %> who asked to take part. Granting adds them with the role.</p>
+
+    <table id="access-requests">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Message</th>
+          <th>Asked on</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @access_requests.each do |access_request| %>
+          <tr id="<%= dom_id(access_request) %>">
+            <td><%= access_request.member.name %></td>
+            <td><%= access_request.message %></td>
+            <td><%= access_request.created_at.to_date %></td>
+            <td>
+              <%= form_with model: access_request, url: grant_access_request_path(current_org, @project, access_request), method: :patch, namespace: dom_id(access_request) do |form| %>
+                <fieldset role="group">
+                  <%= form.select :role, participant_roles_for(access_request.member), { selected: "participant" }, aria: { label: "Role" } %>
+                  <%= form.submit "Grant", class: "slim" %>
+                </fieldset>
+              <% end %>
+              <%= button_to "Decline", decline_access_request_path(current_org, @project, access_request), method: :patch, class: "slim secondary",
+                    form: { data: { turbo_confirm: "Decline the request of #{access_request.member.name}?" } } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+<% end %>
+
 <section>
   <h3>Participants</h3>
 
