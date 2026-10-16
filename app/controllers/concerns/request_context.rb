@@ -34,7 +34,7 @@ module RequestContext
   #       user_id: Current.user&.id
   #       org_id: Current.org&.id,
   #       member_id: Current.member&.id,
-  #       member_roles: Current.member&.roles,
+  #       member_role: Current.member&.role,
   #     )
   #   end
   # end

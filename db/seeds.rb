@@ -53,9 +53,9 @@ doro = User.create!(email: "doro@example.com", name: "doro", **shared_user_param
 
 puts "Creating Memberships"
 
-owner = Member.create!(user: andy, org:, roles: %w[owner member])
-owner = Member.create!(user: andy, org: lyvo, roles: %w[owner member])
-member = Member.create!(user: doro, org:, roles: %w[member])
+owner = Member.create!(user: andy, org:, role: "owner")
+owner = Member.create!(user: andy, org: lyvo, role: "owner")
+member = Member.create!(user: doro, org:, role: "member")
 
 
 puts "Creating Projects"

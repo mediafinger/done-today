@@ -19,23 +19,23 @@ RSpec.describe "Orgs::Members" do
   before { sign_in(owner.user) }
 
   describe "GET /:org/members" do
-    it "lists the active members with email and roles" do
+    it "lists the active members with email and role" do
       colleague
 
       get members_path(org)
 
       expect(row_of(colleague).text).to include("Carl", colleague.user.email)
-      expect(row_of(colleague).css("input[type=checkbox][checked]").pluck("value")).to eq(%w[member])
-      expect(row_of(owner).css("input[type=checkbox][checked]").pluck("value")).to eq(%w[member owner])
+      expect(row_of(colleague).css("option[selected]").pluck("value")).to eq(%w[member])
+      expect(row_of(owner).css("option[selected]").pluck("value")).to eq(%w[owner])
     end
 
-    it "gives each row's role checkboxes their own ids, so the labels toggle the right row" do
+    it "gives each row's role select its own id" do
       colleague
 
       get members_path(org)
 
-      ids = page.css("#active-members input[type=checkbox]").pluck("id")
-      expect(ids.size).to eq(4)
+      ids = page.css("#active-members select").pluck("id")
+      expect(ids.size).to eq(2)
       expect(ids.uniq.size).to eq(ids.size)
     end
 
@@ -74,46 +74,46 @@ RSpec.describe "Orgs::Members" do
 
   describe "PATCH /:org/members/:id" do
     it "makes a member an owner and back" do
-      patch member_path(org, colleague), params: { member: { roles: [ "", "member", "owner" ] } }
+      patch member_path(org, colleague), params: { member: { role: "owner" } }
 
       expect(response).to redirect_to(members_path(org))
-      expect(flash[:notice]).to eq("Updated the roles of Carl")
-      expect(colleague.reload.roles).to contain_exactly("member", "owner")
+      expect(flash[:notice]).to eq("Updated the role of Carl")
+      expect(colleague.reload.role).to eq("owner")
 
-      patch member_path(org, colleague), params: { member: { roles: [ "", "member" ] } }
+      patch member_path(org, colleague), params: { member: { role: "member" } }
 
-      expect(colleague.reload.roles).to eq(%w[member])
+      expect(colleague.reload.role).to eq("member")
     end
 
     it "refuses an unknown role" do
-      patch member_path(org, colleague), params: { member: { roles: %w[member wizard] } }
+      patch member_path(org, colleague), params: { member: { role: "wizard" } }
 
       expect(response).to redirect_to(members_path(org))
       expect(flash[:alert]).to include("wizard")
-      expect(colleague.reload.roles).to eq(%w[member])
+      expect(colleague.reload.role).to eq("member")
     end
 
-    it "refuses to take every role" do
-      patch member_path(org, colleague), params: { member: { roles: [ "" ] } }
+    it "refuses to take the role" do
+      patch member_path(org, colleague), params: { member: { role: "" } }
 
       expect(flash[:alert]).to be_present
-      expect(colleague.reload.roles).to eq(%w[member])
+      expect(colleague.reload.role).to eq("member")
     end
 
     it "refuses to demote the last owner" do
-      patch member_path(org, owner), params: { member: { roles: %w[member] } }
+      patch member_path(org, owner), params: { member: { role: "member" } }
 
       expect(response).to redirect_to(members_path(org))
       expect(flash[:alert]).to eq("#{org.name} needs at least one active owner")
-      expect(owner.reload.roles).to include("owner")
+      expect(owner.reload.role).to eq("owner")
     end
 
     it "lets an owner step down when another one is left, and sends them away" do
       create(:member, :owner, org:)
 
-      patch member_path(org, owner), params: { member: { roles: %w[member] } }
+      patch member_path(org, owner), params: { member: { role: "member" } }
 
-      expect(owner.reload.roles).to eq(%w[member])
+      expect(owner.reload.role).to eq("member")
       expect(response).to redirect_to(root_path)
     end
   end

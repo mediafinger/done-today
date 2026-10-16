@@ -3,27 +3,16 @@ require "rails_helper"
 RSpec.describe Member do
   let(:org) { create(:org) }
 
-  describe "roles" do
-    it "adds and removes roles without duplicating them" do
-      create(:member, :owner, org:) # the org keeps an owner
-      member = create(:member, org:)
-
-      member.add_role!("owner")
-      member.add_role!("owner")
-
-      expect(member.reload.roles).to contain_exactly("member", "owner")
-
-      member.delete_role!("owner")
-
-      expect(member.reload.roles).to contain_exactly("member")
+  describe "role" do
+    it "is member by default" do
+      expect(create(:member, org:)).to have_attributes(role: "member", owner?: false)
     end
 
     it "refuses an unknown role" do
-      member = create(:member, org:)
+      member = build(:member, org:, role: "wizard")
 
-      member.add_role("wizard")
-
-      expect(member.errors[:roles]).to be_present
+      expect(member).not_to be_valid
+      expect(member.errors[:role]).to be_present
     end
   end
 
@@ -67,7 +56,7 @@ RSpec.describe Member do
     let(:owner) { create(:member, :owner, org:) }
 
     it "refuses to demote the last active owner" do
-      owner.roles = %w[member]
+      owner.role = "member"
 
       expect(owner).not_to be_valid
       expect(owner.errors[:base]).to include("#{org.name} needs at least one active owner")
@@ -81,14 +70,14 @@ RSpec.describe Member do
 
     it "does not count an archived owner" do
       create(:member, :owner, org:, archived_at: 1.day.ago)
-      owner.roles = %w[member]
+      owner.role = "member"
 
       expect(owner).not_to be_valid
     end
 
     it "does not count an owner of another org" do
       create(:member, :owner)
-      owner.roles = %w[member]
+      owner.role = "member"
 
       expect(owner).not_to be_valid
     end
@@ -96,7 +85,7 @@ RSpec.describe Member do
     it "lets one of two owners step down" do
       create(:member, :owner, org:)
 
-      expect { owner.delete_role!("owner") }.not_to raise_error
+      expect { owner.update!(role: "member") }.not_to raise_error
       expect { owner.archive! }.not_to raise_error
     end
 
@@ -110,7 +99,7 @@ RSpec.describe Member do
       create(:member, :owner, org:)
       owner.archive!
 
-      expect { owner.delete_role!("owner") }.not_to raise_error
+      expect { owner.update!(role: "member") }.not_to raise_error
     end
   end
 

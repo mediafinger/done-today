@@ -1,6 +1,7 @@
-# member - can participate in projects (after invitation)
-# owner - can manage members, can manage organization,
-#         can manage projects, can manage participants, can read all existing entries
+# Every member has one org role:
+#   member - can participate in projects (after invitation)
+#   owner - can manage members, can manage organization,
+#           can manage projects, can manage participants, can read all existing entries
 #
 # What the roles allow is decided in app/policies.
 #
@@ -26,16 +27,14 @@ class Member < ApplicationRecord
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
 
-  scope :includes_a_role_of, ->(roles) { roles ? where("roles && ARRAY[?]::text[]", roles) : all }
-  scope :includes_all_roles, ->(roles) { roles ? where("roles @> ARRAY[?]::text[]", roles) : all }
+  enum :role, VALID_ROLES.index_with(&:itself), validate: { message: "%{value} is not an org role" }, scopes: false
+
+  scope :owners, -> { where(role: "owner") }
 
   before_validation :set_user_name, on: :create
 
-  validates :name, presence: true
+  validates :name, :role, presence: true
   validate :org_keeps_an_owner, on: :update
-  validates :roles, presence: true, array_inclusion: {
-    in: VALID_ROLES, message: "%{rejected_values} not allowed, roles must be in #{VALID_ROLES}"
-  }
 
   def archived?
     archived_at.present?
@@ -49,42 +48,17 @@ class Member < ApplicationRecord
     update!(archived_at: nil)
   end
 
-  def add_role!(role)
-    add_role(role).save!
-  end
-
-  def add_role(role)
-    unless VALID_ROLES.include?(role.to_s)
-      errors.add(:roles, "invalid role, must be in #{VALID_ROLES}")
-      return self
-    end
-
-    roles << role.to_s
-    roles.uniq!
-
-    self
-  end
-
-  def delete_role!(role)
-    delete_role(role).save!
-  end
-
-  def delete_role(role)
-    self.roles = (roles - Array(role.to_s)).uniq
-    self
-  end
-
   def active_owner?
-    !archived? && roles.include?("owner")
+    !archived? && owner?
   end
 
   private
 
   # Serialize concurrent changes with `org.with_lock`, or two owners can demote each other.
   def org_keeps_an_owner
-    was_active_owner = attribute_in_database(:archived_at).nil? && attribute_in_database(:roles).include?("owner")
+    was_active_owner = attribute_in_database(:archived_at).nil? && attribute_in_database(:role) == "owner"
     return if !was_active_owner || active_owner?
-    return if org.members.active.includes_all_roles(%w[owner]).where.not(id:).exists?
+    return if org.members.active.owners.where.not(id:).exists?
 
     errors.add(:base, :last_owner, org: org.name)
   end

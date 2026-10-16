@@ -124,7 +124,7 @@ RSpec.describe "GET /" do
     end
 
     it "stays on the picker for an org owner who takes part in no project" do
-      member.add_role!("owner")
+      member.update!(role: "owner")
       project
       sign_in(user)
 

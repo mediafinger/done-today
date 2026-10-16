@@ -1,7 +1,7 @@
 # ActionPolicy policies, one per record type, always asked for one Member (the
 #   signed-in user within the org of the path, nil outside of one).
 #
-#   * org roles live on `Member#roles` (member, owner)
+#   * the org role lives on `Member#role` (member, owner)
 #   * project roles live on `Participant#roles` (observer, participant, owner)
 #
 #   Rules answer "may this member do X to this record?", relation scopes return
@@ -26,7 +26,7 @@ class ApplicationPolicy < ActionPolicy::Base
   end
 
   def org_owner?
-    active? && member.roles.include?("owner")
+    active? && member.owner?
   end
 
   def deny_inactive

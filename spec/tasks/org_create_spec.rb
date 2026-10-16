@@ -24,7 +24,7 @@ RSpec.describe "done:org:create" do
         .to output(%r{Created Acme at /acme.*Invited ada@example.com as owner.*/invitations/}m).to_stdout
 
       org = Org.find_by!(name: "Acme")
-      expect(org.invitations.sole).to have_attributes(email: "ada@example.com", name: "Ada", roles: %w[member owner])
+      expect(org.invitations.sole).to have_attributes(email: "ada@example.com", name: "Ada", role: "owner")
       expect(org.members).to be_empty
       expect(User.exists?(email: "ada@example.com")).to be(false)
     end
@@ -57,7 +57,7 @@ RSpec.describe "done:org:create" do
     it "makes the account an owner right away, without a mail" do
       expect { run(NAME: "Acme", OWNER_EMAIL: "ada@example.com") }.to output(/ada@example.com is an owner of Acme/).to_stdout
 
-      expect(Org.find_by!(name: "Acme").members.sole).to have_attributes(user: ada, roles: %w[member owner])
+      expect(Org.find_by!(name: "Acme").members.sole).to have_attributes(user: ada, role: "owner")
       expect(ActionMailer::Base.deliveries).to be_empty
     end
 
@@ -68,7 +68,7 @@ RSpec.describe "done:org:create" do
 
       expect { run(NAME: "Acme", OWNER_EMAIL: "ada@example.com") }.to output(/Acme exists/).to_stdout
 
-      expect(member.reload).to have_attributes(roles: %w[member owner], archived_at: nil)
+      expect(member.reload).to have_attributes(role: "owner", archived_at: nil)
       expect(Org.where(name: "Acme").count).to eq(1)
     end
   end

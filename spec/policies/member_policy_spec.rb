@@ -18,7 +18,7 @@ RSpec.describe MemberPolicy do
     succeed "for an owner"
 
     succeed "for a member with only the owner role" do
-      let(:member) { create(:member, org:, roles: %w[owner]) }
+      let(:member) { create(:member, org:, role: "owner") }
     end
 
     failed "for a member" do
@@ -40,7 +40,7 @@ RSpec.describe MemberPolicy do
     succeed "for an owner"
 
     succeed "for a member with only the owner role" do
-      let(:member) { create(:member, org:, roles: %w[owner]) }
+      let(:member) { create(:member, org:, role: "owner") }
     end
 
     succeed "for an owner, about themselves" do

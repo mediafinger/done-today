@@ -2,10 +2,10 @@ FactoryBot.define do
   factory :member do
     org
     user
-    roles { %w[member] }
+    role { "member" }
 
     trait :owner do
-      roles { %w[member owner] }
+      role { "owner" }
     end
   end
 end
