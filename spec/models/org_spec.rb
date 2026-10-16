@@ -37,6 +37,19 @@ RSpec.describe Org do
       expect(%w[Support FAQ Contact Blog Site].map { build(:org, name: it) }).to all(be_invalid)
     end
 
+    # error pages live at /404.html, /500.html, ...
+    it "refuses a name that starts with a number of up to 3 digits" do
+      org = build(:org, name: "404 Club")
+
+      expect(org).not_to be_valid
+      expect(org.errors[:name]).to include("can't start with a number of up to 3 digits")
+      expect(%w[1st 42 500].map { build(:org, name: it) }).to all(be_invalid)
+    end
+
+    it "allows a name that starts with a longer number" do
+      expect(create(:org, name: "2026 Retro").slug).to eq("2026-retro")
+    end
+
     it "refuses a name without a letter or digit" do
       org = build(:org, name: "!!!")
 
@@ -55,6 +68,13 @@ RSpec.describe Org do
       org = create(:org)
 
       expect(org.update(slug: "help")).to be(false)
+      expect(org.errors[:slug]).to be_present
+    end
+
+    it "refuses a slug set by hand that starts with a number of up to 3 digits" do
+      org = create(:org)
+
+      expect(org.update(slug: "404")).to be(false)
       expect(org.errors[:slug]).to be_present
     end
   end

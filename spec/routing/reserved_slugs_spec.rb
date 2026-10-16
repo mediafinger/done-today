@@ -18,7 +18,7 @@ RSpec.describe "Reserved slugs" do
   it "reserves every file in public/" do
     names = Rails.public_path.children.map { it.basename.to_s.sub(/\..*\z/, "") }
 
-    expect(names - Sluggable::RESERVED_SLUGS).to be_empty
+    expect(names.reject { Sluggable.reserved?(it) }).to be_empty
   end
 
   it "reserves every org-level path" do

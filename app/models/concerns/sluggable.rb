@@ -11,8 +11,8 @@ module Sluggable
   RESERVED_SLUGS = [
     # pages
     *%w[datenschutz help impressum invitations members passwords projects session settings up user],
-    # framework paths and files in public/
-    *%w[400 404 406-unsupported-browser 422 500 503 assets cable favicon icon manifest rails robots service-worker],
+    # framework paths and files in public/ (error pages are covered by NUMBERED)
+    *%w[assets cable favicon icon manifest rails robots service-worker],
     *%w[recede_historical_location refresh_historical_location resume_historical_location],
     # planned areas and pages
     *%w[admin api blog contact dev faq jobs site support],
@@ -20,15 +20,18 @@ module Sluggable
     *%w[dark_mode days display_mode entries light_mode open orgs preferences sessions system_mode tags users weeks]
   ].freeze
 
+  # 404, 500-x, 1st: error pages and status-like paths, while 2026-retro stays possible
+  NUMBERED = /\A\d{1,3}(?!\d)/
+
   def self.reserved?(slug)
-    RESERVED_SLUGS.include?(slug)
+    RESERVED_SLUGS.include?(slug) || slug.to_s.match?(NUMBERED)
   end
 
   included do
     before_validation :set_slug, on: :create
 
     validate :name_gives_a_usable_slug, on: :create
-    validates :slug, presence: true, exclusion: { in: RESERVED_SLUGS }, on: :update
+    validates :slug, presence: true, exclusion: { in: RESERVED_SLUGS }, format: { without: NUMBERED }, on: :update
   end
 
   def to_param
@@ -51,6 +54,8 @@ module Sluggable
   def name_gives_a_usable_slug
     if slug.blank?
       errors.add(:name, :no_slug)
+    elsif slug.match?(NUMBERED)
+      errors.add(:name, :numbered_slug)
     elsif Sluggable.reserved?(slug)
       errors.add(:name, :reserved_slug, slug:)
     end

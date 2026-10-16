@@ -62,6 +62,13 @@ RSpec.describe Project do
       expect(%w[Help Admin Support].map { build(:project, org:, name: it) }).to all(be_invalid)
     end
 
+    it "refuses a name that starts with a number of up to 3 digits" do
+      project = build(:project, org:, name: "500 Days")
+
+      expect(project).not_to be_valid
+      expect(project.errors[:name]).to include("can't start with a number of up to 3 digits")
+    end
+
     it "refuses a name without a letter or digit" do
       project = build(:project, name: "???")
 
