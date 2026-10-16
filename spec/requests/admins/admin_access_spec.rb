@@ -2,7 +2,7 @@ require "rails_helper"
 
 # Only admins are routed to /admin, everyone else gets what an unknown path answers (AdminConstraint).
 RSpec.describe "Admin area" do
-  let(:admin_paths) { %w[ /admin ] }
+  let(:admin_paths) { %w[ /admin /admin/mission_control_jobs ] }
 
   def expect_status_for_all(status)
     admin_paths.each do |path|
@@ -31,10 +31,11 @@ RSpec.describe "Admin area" do
   end
 
   # AdminPolicy is the second gate, should the route constraint ever let a request through
-  it "is forbidden for a user who is no admin even when routed" do
+  it "is not found for a user who is no admin even when routed" do
     allow(AdminConstraint).to receive(:matches?).and_return(true)
     sign_in(create(:user))
 
-    expect_status_for_all(:forbidden)
+    expect_status_for_all(:not_found)
+    expect(response.body).to include("Page not found")
   end
 end

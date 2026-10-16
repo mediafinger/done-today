@@ -186,6 +186,13 @@ RSpec.describe "Authorization role matrix" do
     get admin_home_path
   end
 
+  # Mission Control inherits from AdminController
+  row "GET /admin/mission_control_jobs", {
+    anonymous: :to_sign_in, no_org: :not_found, archived: :not_found, member: :not_found, org_owner: :not_found, admin: :ok
+  } do
+    get "/admin/mission_control_jobs"
+  end
+
   row "GET /session/new", { anonymous: :ok, no_org: :ok, member: :ok } do
     get new_session_path
   end

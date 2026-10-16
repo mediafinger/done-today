@@ -92,6 +92,9 @@ Rails.application.routes.draw do
   # only admins are routed here, everyone else ends in the catch-all below (AdminConstraint)
   namespace :admin, module: "admins", constraints: ->(request) { AdminConstraint.matches?(request) } do
     get "", to: "pages#show", as: "home"
+
+    # inherits from AdminController, see config/initializers/mission_control.rb
+    mount MissionControl::Jobs::Engine, at: "/mission_control_jobs"
   end
 
   # keep this at the bottom of the routes file

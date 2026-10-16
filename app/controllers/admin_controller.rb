@@ -9,4 +9,11 @@ class AdminController < ApplicationController
 
   # nothing in the admin area belongs to an org, there is nothing to scope
   skip_verify_authorized_scoped
+
+  private
+
+  # the same 404 as AdminConstraint's, as a static page: inside an engine the app's layout has no route helpers
+  def render_forbidden
+    render file: Rails.public_path.join("404.html"), status: :not_found, layout: false
+  end
 end
