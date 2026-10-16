@@ -1,5 +1,5 @@
 # The markup examples the help page and the cheat sheet next to the entry field show.
-#   spec/models/syntax_guide_spec.rb parses every one of them, so the help cannot
+#   spec/values/syntax_guide_spec.rb parses every one of them, so the help cannot
 #   drift from what EntryLog accepts.
 #
 # `parsed` maps EntryLog readers to what they return for `log`; `issues` lists the
