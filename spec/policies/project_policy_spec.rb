@@ -184,6 +184,49 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  # send, resend and revoke the guest invitations of the project
+  describe_rule :invite_guest? do
+    succeed "for a project lead" do
+      let(:member) { member_with(org_role: "member", project_role: "lead") }
+    end
+
+    succeed "for an org owner" do
+      let(:member) { member_with(org_role: "owner", project_role: nil) }
+    end
+
+    succeed "for an org manager" do
+      let(:member) { member_with(org_role: "manager", project_role: nil) }
+    end
+
+    failed "for a participant" do
+      let(:member) { member_with(org_role: "member", project_role: "participant") }
+    end
+
+    failed "for a guest" do
+      let(:member) { member_with(org_role: "guest", project_role: "participant") }
+    end
+
+    failed "for a member" do
+      let(:member) { member_with(org_role: "member", project_role: nil) }
+    end
+
+    failed "for an owner of another org" do
+      let(:member) { member_with(org_role: "owner", project_role: nil, of: create(:org)) }
+    end
+
+    context "with an archived project" do
+      before { project.archive! }
+
+      failed "for a project lead" do
+        let(:member) { member_with(org_role: "member", project_role: "lead") }
+      end
+
+      failed "for an org owner" do
+        let(:member) { member_with(org_role: "owner", project_role: "lead") }
+      end
+    end
+  end
+
   it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
 
   %i[export_csv? export_days_csv?].each do |rule|
