@@ -8,6 +8,14 @@ class MemberPolicy < ApplicationPolicy
   # roles, deactivate, reactivate
   alias_rule :update?, :deactivate?, :reactivate?, to: :manage?
 
+  # the members of the own org, archived ones and guests included: index? and manage? decide
+  #   who lists or changes them, so a guest gets the 403 of the rule, not a 404
+  relation_scope do |relation|
+    next relation.none unless active?
+
+    relation.where(org_id: member.org_id)
+  end
+
   # who a project manager may add to a project: the internals, and the guests of the projects they manage
   relation_scope(:addable) do |relation|
     next relation.none unless internal?

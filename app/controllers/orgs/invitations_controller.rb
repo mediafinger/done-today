@@ -7,8 +7,6 @@ module Orgs
 
     # a 403 before any lookup, each invitation is authorized as well
     before_action { authorize! Member, to: :invite? }
-    # invitations are looked up in current_org, only managers and owners get here
-    skip_verify_authorized_scoped
 
     rate_limit to: 20, within: 1.hour, only: %i[ create resend ], by: -> { current_member.id },
       with: -> { redirect_to members_path(current_org), alert: t("controllers.invitations.rate_limited") }
@@ -16,7 +14,7 @@ module Orgs
     # inviting a pending email again sends it with the new role, and kills the old link
     def create
       attributes = params.expect(invitation: %i[ email name role project_id project_role ])
-      invitation = current_org.invitations.pending.find_or_initialize_by(email: attributes[:email])
+      invitation = authorized_scope(current_org.invitations).pending.find_or_initialize_by(email: attributes[:email])
       invitation.assign_attributes(name: attributes[:name], role: attributes[:role], **guest_attributes(attributes))
       authorize! invitation
 
@@ -36,7 +34,7 @@ module Orgs
     private
 
     def invitation
-      @invitation ||= authorize! current_org.invitations.pending.find(params[:id])
+      @invitation ||= authorize! authorized_scope(current_org.invitations).pending.find(params[:id])
     end
 
     # only guests are invited to a project

@@ -136,6 +136,39 @@ RSpec.describe MemberPolicy do
     end
   end
 
+  # the members of the own org, who lists or changes them is up to index? and manage?
+  describe "the default scope" do
+    # a guest of the org, and an owner of another org
+    let!(:others) { { guest: create(:member, :guest, org:), stranger: create(:member, :owner) } }
+
+    before { colleague }
+
+    def guest = others[:guest]
+    def stranger = others[:stranger]
+
+    def visible
+      described_class.new(member:).apply_scope(Member.all, type: :active_record_relation)
+    end
+
+    it "holds everybody of the own org" do
+      expect(visible).to contain_exactly(member, colleague, guest)
+    end
+
+    context "with a deactivated member" do
+      let(:member) { create(:member, org:).tap(&:archive!) }
+
+      it("shows nobody") { expect(visible).to be_empty }
+    end
+
+    context "without a member" do
+      let(:member) { nil }
+
+      it("shows nobody") { expect(visible).to be_empty }
+    end
+
+    it("never shows another org") { expect(visible).not_to include(stranger) }
+  end
+
   # who a project manager may add to a project
   describe "the addable scope" do
     # a guest of the project, and one of another project
