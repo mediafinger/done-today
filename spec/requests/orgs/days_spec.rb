@@ -175,13 +175,13 @@ RSpec.describe "Orgs::Days" do
 
     it "explains the issues in a box above the entries" do
       create(:entry, day:, member:, log: "start@09:00 kickoff")
-      create(:entry, day:, member:, log: "end@25:00 for~40h wrapped up", status: "todo")
+      create(:entry, day:, member:, log: "end@24:00 for~40h wrapped up", status: "todo")
 
       box = validate_day.at_css("#time-issues")
 
       expect(box.css("li").map { it.text.squish }).to eq([
         "#{member.name} for~40h exceeds 24h",
-        "#{member.name} end@25:00 for~40h is still marked as todo"
+        "#{member.name} end@24:00 for~40h is still marked as todo"
       ])
       expect(response.body.index("time-issues")).to be < response.body.index(%(id="editable-entries"))
     end

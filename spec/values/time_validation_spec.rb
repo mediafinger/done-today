@@ -112,16 +112,12 @@ RSpec.describe TimeValidation do
       expect(messages(entry("start@09:00 for~40h end@17:00"))).to include("for~40h exceeds 24h")
     end
 
-    it "names the range a too long duration came from" do
-      expect(messages(entry("start@01:00 from@01:00 to@26:00 end@26:00"))).to include("from@01:00 to@26:00 exceeds 24h")
+    it "names the markers a too long duration came from" do
+      expect(messages(entry("start@01:00 from@01:00 for~30h end@24:00"))).to include("from@01:00 for~30h exceeds 24h")
     end
 
-    it "reports a day that adds up to more than 24h" do
-      expect(messages(entry("start@01:00"), entry("end@26:00"))).to include("the day adds up to 25h, more than 24h")
-    end
-
-    it "accepts a day of exactly 24h" do
-      expect(messages(entry("start@01:00"), entry("end@25:00"))).to be_empty
+    it "accepts a day of exactly 24h, from 0:00 to 24:00" do
+      expect(messages(entry("start@0:00"), entry("end@24:00"))).to be_empty
     end
   end
 

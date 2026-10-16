@@ -6,8 +6,8 @@ RSpec.describe EntriesHelper do
       expect(helper.format_clock(570)).to eq("09:30")
     end
 
-    it "keeps hours past midnight instead of wrapping them" do
-      expect(helper.format_clock(1530)).to eq("25:30")
+    it "shows the end of the day as 24:00 instead of wrapping it to 00:00" do
+      expect(helper.format_clock(1440)).to eq("24:00")
     end
 
     it "stands in for a missing time" do

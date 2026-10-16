@@ -32,9 +32,9 @@ class SyntaxGuide
       parsed: { day_end_minutes: (17 * 60) + 30 }
     ),
     Example.new(
-      markup: "end@", log: "end@25:30",
-      meaning: "Past midnight the hours keep counting, up to 29: this is 01:30 the next morning.",
-      parsed: { day_end_minutes: (25 * 60) + 30 }
+      markup: "end@", log: "end@24:00",
+      meaning: "Midnight, the end of the day. Times run from 0:00 to 24:00, so work past midnight is logged on the next day.",
+      parsed: { day_end_minutes: 24 * 60 }
     ),
     Example.new(
       markup: "from@ to@", log: "Call with the client from@11:00 to@12:30",
@@ -84,6 +84,11 @@ class SyntaxGuide
       markup: nil, log: "start@9",
       meaning: "A clock time needs its two minute digits: start@9:00, start@9.00 or start@900.",
       parsed: { day_start_minutes: nil, issues: %i[invalid_time] }
+    ),
+    Example.new(
+      markup: nil, log: "end@25:30",
+      meaning: "There is no 25:30. End the day with end@24:00 and log the rest on the next day.",
+      parsed: { day_end_minutes: nil, issues: %i[invalid_time] }
     )
   ].freeze
 
