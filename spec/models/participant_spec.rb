@@ -19,6 +19,39 @@ RSpec.describe Participant do
     expect(stranger.errors[:member]).to be_present
   end
 
+  describe "guests" do
+    let(:guest) { create(:participant, project:, member: create(:member, :guest, org: project.org)).member }
+
+    it "refuses a guest as project owner" do
+      participant = guest.participations.sole
+
+      expect(participant.update(roles: %w[owner])).to be(false)
+      expect(participant.errors[:roles]).to include("owner is not a project role for guests")
+    end
+
+    it "deactivates a guest whose last participation is removed" do
+      guest.participations.sole.destroy!
+
+      expect(guest.reload).to be_archived
+    end
+
+    it "keeps a guest with another participation active" do
+      create(:participant, member: guest, project: create(:project, org: project.org))
+
+      guest.participations.find_by!(project:).destroy!
+
+      expect(guest.reload).not_to be_archived
+    end
+
+    it "leaves members without a project active" do
+      member = create(:participant, project:).member
+
+      member.participations.sole.destroy!
+
+      expect(member.reload).not_to be_archived
+    end
+  end
+
   describe "#role" do
     # the UI gives each participant one role
     it "is the strongest of the roles" do

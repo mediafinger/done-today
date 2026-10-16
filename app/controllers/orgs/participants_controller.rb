@@ -7,8 +7,8 @@ module Orgs
     before_action { authorize! current_project, to: :manage? }
 
     def create
-      # a deactivated member or one of another org is a 404, the form does not offer them
-      member = current_org.members.active.find(participant_params[:member_id])
+      # a deactivated member, one of another org or a guest of another project is a 404, the form does not offer them
+      member = authorized_scope(current_org.members.active, as: :addable).find(participant_params[:member_id])
       participant = current_project.participants.new(member:, roles: [ participant_params[:role] ])
 
       respond(participant.save, :added, participant)

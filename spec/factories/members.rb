@@ -4,6 +4,10 @@ FactoryBot.define do
     user
     role { "member" }
 
+    trait :guest do
+      role { "guest" }
+    end
+
     trait :owner do
       role { "owner" }
     end

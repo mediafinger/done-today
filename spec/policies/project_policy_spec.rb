@@ -53,6 +53,41 @@ RSpec.describe ProjectPolicy do
     end
   end
 
+  # internals see that every project of the org exists, guests only theirs
+  describe "the listable scope" do
+    before do
+      create(:project, org:)
+      create(:project) # of another org
+    end
+
+    {
+      "member" => true, "owner" => true, "guest" => false
+    }.each do |org_role, lists_all|
+      context "with org role #{org_role}, participating in the project" do
+        let(:member) { member_with(org_role:, project_roles: %w[participant]) }
+
+        it "lists #{lists_all ? "all projects of the org" : "only their project"}" do
+          expect(scope(:listable)).to match_array(lists_all ? org.projects : [ project ])
+        end
+      end
+    end
+
+    it "lists nothing for an archived member" do
+      create(:member, :owner, org:)
+      member = member_with(org_role: "owner", project_roles: nil).tap(&:archive!)
+
+      expect(described_class.new(member:).apply_scope(Project.all, type: :active_record_relation, name: :listable)).to be_empty
+    end
+  end
+
+  context "with a guest participating in the project" do
+    let(:member) { member_with(org_role: "guest", project_roles: %w[participant]) }
+
+    it "allows what a participant may do" do
+      expect(allowed).to eq([ true, true, false, false ])
+    end
+  end
+
   # archived projects stay readable and exportable, nobody writes into them any more
   context "with an archived project" do
     before { project.archive! }

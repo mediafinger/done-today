@@ -39,11 +39,11 @@
     <tbody>
       <% @participants.each do |participant| %>
         <tr id="<%= dom_id(participant) %>">
-          <td><%= participant.member.name %><%= " (deactivated)" if participant.member.archived? %><%= " (you)" if participant.member_id == current_member.id %></td>
+          <td><%= participant.member.name %><%= " (guest)" if participant.member.guest? %><%= " (deactivated)" if participant.member.archived? %><%= " (you)" if participant.member_id == current_member.id %></td>
           <td>
             <%= form_with model: participant, url: participant_path(current_org, @project, participant), method: :patch, namespace: dom_id(participant) do |form| %>
               <fieldset role="group">
-                <%= form.select :role, Participant::RANKED_ROLES.reverse, { selected: participant.role }, aria: { label: "Role" } %>
+                <%= form.select :role, participant_roles_for(participant.member), { selected: participant.role }, aria: { label: "Role" } %>
                 <%= form.submit "Save role", class: "slim" %>
               </fieldset>
             <% end %>
@@ -60,7 +60,7 @@
   <% if @candidates.any? %>
     <%= form_with model: Participant.new, url: participants_path(current_org, @project), id: "new-participant" do |form| %>
       <fieldset role="group">
-        <%= form.select :member_id, @candidates.map { [ it.name, it.id ] }, {}, aria: { label: "Member" } %>
+        <%= form.select :member_id, grouped_options_for_select(participant_candidates(@candidates)), {}, aria: { label: "Member" } %>
         <%= form.select :role, Participant::RANKED_ROLES.reverse, { selected: "participant" }, aria: { label: "Role" } %>
         <%= form.submit "Add", class: "slim" %>
       </fieldset>

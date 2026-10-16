@@ -55,7 +55,8 @@ module Orgs
 
     # archived projects are only listed for those who could unarchive them
     def index
-      @projects = authorized_scope(current_org.projects).active.order(:name)
+      @projects = authorized_scope(current_org.projects, as: :listable).active.includes(participants: :member).order(:name)
+      @readable_ids = authorized_scope(current_org.projects).ids.to_set
       @archived_projects = authorized_scope(current_org.projects, as: :manageable).archived.order(:name)
     end
 
@@ -171,7 +172,8 @@ module Orgs
     # for the participants on the edit page, candidates are the active members who do not take part yet
     def set_participants
       @participants = current_project.participants.includes(:member).order("member.name")
-      @candidates = current_org.members.active.where.not(id: @participants.select(:member_id)).order(:name)
+      @candidates = authorized_scope(current_org.members.active, as: :addable)
+        .where.not(id: @participants.select(:member_id)).order(:name)
     end
 
     def project_params

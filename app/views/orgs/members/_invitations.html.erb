@@ -1,0 +1,38 @@
+<%= form_with model: Invitation.new, url: invitations_path(current_org), id: "new-invitation" do |form| %>
+  <fieldset>
+    <legend>Invite by email, the link is valid for <%= distance_of_time_in_words(Invitation::EXPIRES_IN) %></legend>
+    <%= form.email_field :email, required: true, placeholder: "Email address", aria: { label: "Email address" } %>
+    <%= form.text_field :name, placeholder: "Name (optional, they can change it)", aria: { label: "Name" } %>
+    <%= form.select :role, Member::INTERNAL_ROLES, {}, aria: { label: "Role" } %>
+  </fieldset>
+  <%= form.submit "Invite", class: "slim" %>
+<% end %>
+
+<% if @invitations.any? %>
+  <h3>Invited</h3>
+
+  <table id="pending-invitations">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Sent on</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @invitations.each do |invitation| %>
+        <tr id="<%= dom_id(invitation) %>">
+          <td><%= invitation.email %><%= " (#{invitation.name})" if invitation.name %></td>
+          <td><%= invitation.role %></td>
+          <td><%= invitation.sent_at.to_date %><%= ", expired" if invitation.expired? %></td>
+          <td>
+            <%= button_to "Resend", resend_invitation_path(current_org, invitation), method: :patch, class: "slim" %>
+            <%= button_to "Revoke", invitation_path(current_org, invitation), method: :delete, class: "slim secondary",
+                  form: { data: { turbo_confirm: "Revoke the invitation of #{invitation.email}?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

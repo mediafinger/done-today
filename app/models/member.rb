@@ -1,5 +1,6 @@
 # Every member has one org role:
-#   member - can participate in projects (after invitation)
+#   guest - an external: participates in projects, sees only those, never owns one
+#   member - an internal: can participate in projects (after invitation), sees all projects and members
 #   owner - can manage members, can manage organization,
 #           can manage projects, can manage participants, can read all existing entries
 #
@@ -10,7 +11,8 @@
 #   `unarchive!` gives the access back.
 #
 class Member < ApplicationRecord
-  VALID_ROLES = %w[member owner].freeze
+  VALID_ROLES = %w[guest member owner].freeze
+  INTERNAL_ROLES = %w[member owner].freeze
 
   belongs_to :org, inverse_of: :members
   belongs_to :user, inverse_of: :memberships
@@ -30,11 +32,14 @@ class Member < ApplicationRecord
   enum :role, VALID_ROLES.index_with(&:itself), validate: { message: "%{value} is not an org role" }, scopes: false
 
   scope :owners, -> { where(role: "owner") }
+  scope :internal, -> { where(role: INTERNAL_ROLES) }
+  scope :guests, -> { where(role: "guest") }
 
   before_validation :set_user_name, on: :create
 
   validates :name, :role, presence: true
   validate :org_keeps_an_owner, on: :update
+  validate :guest_with_a_project, on: :update, if: -> { will_save_change_to_role?(to: "guest") }
 
   def archived?
     archived_at.present?
@@ -46,6 +51,10 @@ class Member < ApplicationRecord
 
   def unarchive!
     update!(archived_at: nil)
+  end
+
+  def internal?
+    INTERNAL_ROLES.include?(role)
   end
 
   def active_owner?
@@ -61,6 +70,14 @@ class Member < ApplicationRecord
     return if org.members.active.owners.where.not(id:).exists?
 
     errors.add(:base, :last_owner, org: org.name)
+  end
+
+  # a guest only sees their projects, so they need one, and they own none
+  def guest_with_a_project
+    owned = participations.includes_all_roles(%w[owner]).includes(:project).map { it.project.name }
+
+    errors.add(:role, :guest_owner, projects: owned.sort.to_sentence) if owned.any?
+    errors.add(:role, :guest_without_project) if participations.none?
   end
 
   def set_user_name
