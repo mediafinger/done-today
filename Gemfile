@@ -37,12 +37,17 @@ group :development, :test do
   gem "factory_bot_rails", "~> 6.2"
   gem "rspec-rails", "~> 8.0"
   gem "rubocop-rails-omakase", require: false # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  # gem "rubocop-capybara"
+  gem "rubocop-capybara"
   gem "rubocop-factory_bot"
   gem "rubocop-faker"
   gem "rubocop-rake"
   gem "rubocop-rspec"
   gem "rubocop-rspec_rails"
+end
+
+group :test do
+  gem "capybara", "~> 3.40"
+  gem "cuprite", "~> 0.19" # drives Chrome through CDP, no chromedriver or Selenium needed
 end
 
 group :development do

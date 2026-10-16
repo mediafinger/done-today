@@ -8,7 +8,7 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 #   Enabled: false
 
 plugins:
-  # - rubocop-capybara
+  - rubocop-capybara
   - rubocop-factory_bot
   - rubocop-faker
   - rubocop-performance
