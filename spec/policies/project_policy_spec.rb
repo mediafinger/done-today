@@ -227,13 +227,15 @@ RSpec.describe ProjectPolicy do
     end
   end
 
-  it { expect(policy.resolve_rule(:validate_times?)).to eq(:show?) }
+  %i[validate_times?].each do |rule|
+    it { expect(rule).to be_an_alias_of(policy, :show?) }
+  end
 
   %i[export_csv? export_days_csv?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:export?) }
+    it { expect(rule).to be_an_alias_of(policy, :export?) }
   end
 
   %i[edit? update? archive? unarchive?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
+    it { expect(rule).to be_an_alias_of(policy, :manage?) }
   end
 end

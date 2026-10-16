@@ -115,9 +115,6 @@ RSpec.describe MemberPolicy do
     end
   end
 
-  # send, resend and revoke invitations
-  it { expect(policy.resolve_rule(:invite?)).to eq(:manage?) }
-
   # who a project manager may add to a project
   describe "the addable scope" do
     # a guest of the project, and one of another project
@@ -166,7 +163,8 @@ RSpec.describe MemberPolicy do
     end
   end
 
-  %i[update? deactivate? reactivate?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
+  # send, resend and revoke invitations, change roles, deactivate and reactivate
+  %i[invite? update? deactivate? reactivate?].each do |rule|
+    it { expect(rule).to be_an_alias_of(policy, :manage?) }
   end
 end
