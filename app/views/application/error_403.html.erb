@@ -1,3 +1,8 @@
-<h1> 403 </h1>
+<% content_for :title, "Not allowed · Done Today" %>
+
+<p>Error 403</p>
+<h1>Not allowed</h1>
 
 <p>Your role does not allow this.</p>
+
+<p><%= link_to "Back to Done Today", root_path, role: "button" %></p>
