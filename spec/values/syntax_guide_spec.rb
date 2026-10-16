@@ -29,6 +29,14 @@ RSpec.describe SyntaxGuide do
     expect(markups).to include("#tag", "start@", "end@", "from@", "to@", "for~", "#break")
   end
 
+  it "names every clock time form the parser accepts" do
+    forms = %w[9:00 09:00 9.00 09.00 900 0900]
+    meanings = described_class::EXAMPLES.map(&:meaning).join(" ")
+
+    expect(forms.map { EntryLog.new("start@#{it}").day_start_minutes }).to all(eq(540))
+    expect(meanings).to include(*forms)
+  end
+
   it "adds the example day up to the working time it states" do
     day = create(:day)
     member = create(:member, org: day.org)

@@ -22,7 +22,7 @@ class SyntaxGuide
     ),
     Example.new(
       markup: "start@", log: "start@9.00",
-      meaning: "The same. Every clock time can be written as 9:00, 09:00, 9.00, 900 or 0900: " \
+      meaning: "The same. Every clock time can be written as 9:00, 09:00, 9.00, 09.00, 900 or 0900: " \
                "the last two digits are the minutes.",
       parsed: { day_start_minutes: 9 * 60 }
     ),
