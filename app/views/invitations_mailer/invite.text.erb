@@ -1,0 +1,4 @@
+<%= @invitation.invited_by&.name || "Someone" %> invited you to <%= @invitation.org.name %> on Done today.
+
+Accept the invitation within <%= distance_of_time_in_words(Invitation::EXPIRES_IN) %>:
+<%= @url %>

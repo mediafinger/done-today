@@ -1,0 +1,18 @@
+<h1>Join <%= @invitation.org.name %></h1>
+
+<p>
+  <%= @invitation.invited_by&.name || "Someone" %> invited <strong><%= @invitation.email %></strong>.
+  Choose your name and a password.
+</p>
+
+<%= form_with model: @user, url: accept_invitation_path(params[:token]), method: :patch do |form| %>
+  <% if @user.errors.any? %>
+    <p><small><%= @user.errors.full_messages.to_sentence %></small></p>
+  <% end %>
+
+  <%= form.email_field :email, readonly: true, autocomplete: "username" %>
+  <%= form.text_field :name, required: true, autofocus: true, autocomplete: "name", placeholder: "Your name", minlength: 3, maxlength: 72 %>
+  <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Choose a password", minlength: 10, maxlength: 72 %>
+  <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat the password", minlength: 10, maxlength: 72 %>
+  <%= form.submit "Join #{@invitation.org.name}" %>
+<% end %>

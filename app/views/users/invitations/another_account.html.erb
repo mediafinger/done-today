@@ -1,0 +1,9 @@
+<h1>Join <%= @invitation.org.name %></h1>
+
+<p>
+  This invitation is for <strong><%= @invitation.email %></strong>,
+  you are signed in as <strong><%= current_user.email %></strong>.
+  Sign out, then open the link from the email again.
+</p>
+
+<%= button_to "Sign out", session_path, method: :delete %>

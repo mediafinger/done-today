@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_050000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -48,6 +48,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_040000) do
     t.index ["member_id"], name: "index_entries_on_member_id"
     t.index ["org_id"], name: "index_entries_on_org_id"
     t.index ["tags"], name: "index_entries_on_tags", using: :gin
+  end
+
+  create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "org_id", null: false
+    t.uuid "invited_by_id"
+    t.string "email", null: false
+    t.string "name"
+    t.text "roles", default: ["member"], null: false, array: true
+    t.datetime "sent_at", null: false
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
+    t.index ["org_id", "email"], name: "index_invitations_on_org_id_and_email_pending", unique: true, where: "(accepted_at IS NULL)"
+    t.index ["org_id"], name: "index_invitations_on_org_id"
   end
 
   create_table "members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -137,6 +152,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_040000) do
   add_foreign_key "entries", "days"
   add_foreign_key "entries", "members"
   add_foreign_key "entries", "orgs"
+  add_foreign_key "invitations", "members", column: "invited_by_id"
+  add_foreign_key "invitations", "orgs"
   add_foreign_key "members", "orgs"
   add_foreign_key "members", "users"
   add_foreign_key "participants", "members"

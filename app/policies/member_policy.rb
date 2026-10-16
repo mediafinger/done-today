@@ -6,6 +6,11 @@ class MemberPolicy < ApplicationPolicy
     self.class.org_owner?(member)
   end
 
+  # send, resend and revoke invitations to the org
+  def invite?
+    index?
+  end
+
   # roles, deactivate, reactivate
   def manage?
     index? && record.org_id == member.org_id

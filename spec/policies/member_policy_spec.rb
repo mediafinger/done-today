@@ -15,6 +15,7 @@ RSpec.describe MemberPolicy do
 
       it { expect(described_class.new(member, Member).index?).to be(index) }
       it { expect(described_class.new(member, colleague).manage?).to be(manage) }
+      it { expect(described_class.new(member, Member).invite?).to be(index) }
     end
   end
 
@@ -34,7 +35,10 @@ RSpec.describe MemberPolicy do
     create(:member, :owner, org:)
     owner = create(:member, :owner, org:).tap(&:archive!)
 
-    expect([ described_class.new(owner, Member).index?, described_class.new(owner, colleague).manage? ]).to all(be(false))
+    expect([
+      described_class.new(owner, Member).index?, described_class.new(owner, colleague).manage?,
+      described_class.new(owner, Member).invite?
+    ]).to all(be(false))
   end
 
   it "allows nothing without a member" do
