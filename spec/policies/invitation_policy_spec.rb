@@ -104,4 +104,55 @@ RSpec.describe InvitationPolicy do
   %i[create? resend? destroy?].each do |rule|
     it { expect(rule).to be_an_alias_of(policy, :manage?) }
   end
+
+  # the invitations a member may resend or revoke
+  describe "the default scope" do
+    before { invitations }
+
+    # one to the org, one each to two of its projects, and one to another org
+    def invitations
+      @invitations ||= {
+        org: create(:invitation, org:),
+        project: create(:invitation, :guest, org:, project:),
+        other_project: create(:invitation, :guest, org:, project: create(:project, org:)),
+        elsewhere: create(:invitation)
+      }
+    end
+
+    def to_the_org = invitations[:org]
+    def guest_of_project = invitations[:project]
+    def guest_of_other_project = invitations[:other_project]
+
+    def visible
+      described_class.new(member:).apply_scope(Invitation.all, type: :active_record_relation)
+    end
+
+    it "shows an org owner every invitation of the org" do
+      expect(visible).to contain_exactly(to_the_org, guest_of_project, guest_of_other_project)
+    end
+
+    context "with a manager" do
+      let(:member) { create(:member, :manager, org:) }
+
+      it("shows every invitation of the org") { expect(visible).to contain_exactly(to_the_org, guest_of_project, guest_of_other_project) }
+    end
+
+    context "with a project lead" do
+      let(:member) { project_lead }
+
+      it("shows the guest invitations of the projects they lead") { expect(visible).to contain_exactly(guest_of_project) }
+    end
+
+    context "with a member" do
+      let(:member) { create(:member, org:) }
+
+      it("shows none") { expect(visible).to be_empty }
+    end
+
+    context "without a member" do
+      let(:member) { nil }
+
+      it("shows none") { expect(visible).to be_empty }
+    end
+  end
 end

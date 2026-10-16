@@ -42,7 +42,7 @@ module Orgs
     private
 
     def invitation
-      @invitation ||= authorize! current_project.invitations.pending.find(params[:id])
+      @invitation ||= authorize! authorized_scope(current_project.invitations).pending.find(params[:id])
     end
 
     def back_path

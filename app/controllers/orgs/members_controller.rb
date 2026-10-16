@@ -4,13 +4,10 @@ module Orgs
   #   Deactivating archives the member, their entries stay.
   #
   class MembersController < AppOrgBaseController
-    # members are looked up in current_org, only internals get here
-    skip_verify_authorized_scoped
-
     def index
       authorize!
 
-      members = current_org.members.includes(:user).order(:name)
+      members = authorized_scope(current_org.members).includes(:user).order(:name)
 
       @active_members = members.active.internal
       @guests = members.active.guests.includes(participations: :project)
@@ -18,7 +15,7 @@ module Orgs
       return unless @can_manage
 
       @archived_members = members.archived
-      @invitations = current_org.invitations.pending.includes(:invited_by, :project).order(:email)
+      @invitations = authorized_scope(current_org.invitations).pending.includes(:invited_by, :project).order(:email)
     end
 
     def update
@@ -37,7 +34,7 @@ module Orgs
 
     # another org's member is a 404
     def member
-      @member ||= current_org.members.find(params[:id])
+      @member ||= authorized_scope(current_org.members).find(params[:id])
     end
 
     # Authorized with the change assigned: a colleague of a non-manager, an owner of a manager
