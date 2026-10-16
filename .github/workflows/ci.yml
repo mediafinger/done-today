@@ -91,3 +91,6 @@ jobs:
         run: |
           bundle exec rake ci
           # run: bin/rspec --exclude-pattern "spec/{system,controllers}/**/*_spec.rb"
+
+      - name: Run the system specs
+        run: bundle exec rake ui # headless Chrome, preinstalled on ubuntu-latest

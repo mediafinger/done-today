@@ -115,6 +115,12 @@ For auditing operations within organizations, we implement a lightweight event-l
    ```bash
    bin/rails server
    ```
+4. **Tests**: `rake ci` runs everything except the system specs in `spec/system`. `rake ui` runs those in headless Chrome
+   through Cuprite (Chrome has to be installed, `HEADLESS=0` opens the window). CI runs both.
+   ```bash
+   bin/mcp_rake ci
+   bin/mcp_rake ui
+   ```
 
 ### Admin and Dev Areas
 - **`/admin`** (admins only): links to **`/admin/mission_control_jobs`** (Mission Control, the Solid Queue dashboard).
