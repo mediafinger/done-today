@@ -54,4 +54,33 @@ RSpec.describe Project do
       expect(project.errors[:slug]).to be_present
     end
   end
+
+  # regression: `has_many :days, dependent: :destroy` and `Day has_many :entries, dependent: :destroy`
+  #   deleted a project's whole history
+  describe "destroying" do
+    let(:project) { create(:project) }
+    let!(:entry) { create(:entry, day: create(:day, project:), member: create(:participant, project:).member) }
+
+    it "refuses while the project has days and keeps their entries" do
+      expect { project.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+
+      expect(described_class.exists?(project.id)).to be(true)
+      expect(Day.exists?(entry.day_id)).to be(true)
+      expect(Entry.exists?(entry.id)).to be(true)
+      expect(project.participants.count).to eq(1)
+    end
+
+    it "is refused by the database too, when callbacks are skipped" do
+      expect { described_class.transaction(requires_new: true) { described_class.where(id: project.id).delete_all } }
+        .to raise_error(ActiveRecord::InvalidForeignKey)
+
+      expect(Entry.exists?(entry.id)).to be(true)
+    end
+
+    it "works for a project without days, and takes its participants along" do
+      other = create(:participant).project
+
+      expect { other.destroy! }.to change(described_class, :count).by(-1).and change(Participant, :count).by(-1)
+    end
+  end
 end

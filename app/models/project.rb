@@ -5,7 +5,8 @@ class Project < ApplicationRecord
 
   belongs_to :org
 
-  has_many :days, dependent: :destroy
+  # days and their entries are history (the DB FK refuses as well)
+  has_many :days, dependent: :restrict_with_exception
   has_many :participants, inverse_of: :project, dependent: :destroy
 
   has_many :entries, through: :days
