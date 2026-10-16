@@ -3,6 +3,7 @@ require_relative "boot"
 # Read ENV variables and make AppConf settings available
 require_relative "app_conf"
 require_relative "mail_settings"
+require_relative "../lib/middleware/request_id_sanitizer"
 
 require "rails"
 # Pick the frameworks you want:
@@ -30,7 +31,7 @@ module DoneToday
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets middleware tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -47,5 +48,33 @@ module DoneToday
 
     # policies are asked on behalf of the Member, see ApplicationPolicy
     config.action_policy.controller_authorize_current_user = false
+
+    # Middleware configuration:
+
+    # Rack::RequestID ensures that every request has HTTP_X_REQUEST_ID set
+    # It needs to reside in the callchain before ActionDispatch::RequestId
+    # ActionDispatch::RequestId creates a request_id or uses HTTP_X_REQUEST_ID
+    # but it will not change the request header (only sets the response header)
+    config.middleware.insert_before(
+      ActionDispatch::RequestId,
+      ::Rack::RequestID, include_response_header: true, overwrite: false
+    )
+    # Rack::RequestID copies the incoming id to the response unchanged, so clean it first
+    config.middleware.insert_before(::Rack::RequestID, RequestIdSanitizer)
+
+    # behind DebugExceptions, so Rails logs and renders Rack::Timeout's own errors too (a request
+    # that queued too long is refused before it reaches the app), start with DEBUG=true for 300 seconds
+    config.middleware.insert_after(
+      ActionDispatch::DebugExceptions,
+      Rack::Timeout, service_timeout: AppConf.rack_timeout # seconds
+    )
+    Rack::Timeout::Logger.disable # we only log the errors, not the verbose status messages
+
+    # a timeout is our capacity problem, not a bug in the request: 503 with public/503.html
+    config.action_dispatch.rescue_responses.merge!(
+      "Rack::Timeout::RequestTimeoutException" => :service_unavailable,
+      "Rack::Timeout::RequestTimeoutError" => :service_unavailable,
+      "Rack::Timeout::RequestExpiryError" => :service_unavailable
+    )
   end
 end
