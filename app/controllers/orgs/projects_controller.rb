@@ -8,6 +8,7 @@ module Orgs
     # every action but the org's list of projects and creating one is below /:org_slug/:project_slug
     before_action :set_current_project, except: %i[ index new create ]
     before_action :authorize_manage, only: %i[ edit update archive unarchive ]
+    before_action :set_participants, only: %i[ edit update ]
 
     def show
       @project = current_project
@@ -158,6 +159,12 @@ module Orgs
 
     def authorize_manage
       authorize!(current_project, :manage?)
+    end
+
+    # for the participants on the edit page, candidates are the active members who do not take part yet
+    def set_participants
+      @participants = current_project.participants.includes(:member).order("member.name")
+      @candidates = current_org.members.active.where.not(id: @participants.select(:member_id)).order(:name)
     end
 
     def project_params

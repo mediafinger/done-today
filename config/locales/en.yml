@@ -49,5 +49,9 @@ en:
       created: "Created %{name}"
       renamed: "Renamed %{old_name} to %{name}"
       unarchived: "Unarchived %{name}"
+    participants:
+      added: "Added %{name} as %{role}"
+      removed: "Removed %{name}, their entries stay"
+      updated: "%{name} is now %{role}"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"
     unknown_week: "%{week} is not a week, it has to look like 2026-W39"

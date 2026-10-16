@@ -252,6 +252,28 @@ RSpec.describe "Authorization role matrix" do
     patch unarchive_project_path(org, project)
   end
 
+  row "POST /:org/:project/participants", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { project.participants.exists?(member: personas[:member]) } do
+    post participants_path(org, project), params: { participant: { member_id: personas[:member].id, role: "observer" } }
+  end
+
+  row "PATCH /:org/:project/participants/:id", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { colleague.participations.find_by!(project:).roles == %w[owner] } do
+    patch participant_path(org, project, colleague.participations.find_by!(project:)), params: { participant: { role: "owner" } }
+  end
+
+  # the colleague's entries stay, see spec/requests/orgs/participants_spec.rb
+  row "DELETE /:org/:project/participants/:id", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { !colleague.participations.exists?(project:) } do
+    delete participant_path(org, project, colleague.participations.find_by!(project:))
+  end
+
   # an archived project is read-only for everybody, listed only for those who manage it
   row "GET /:org (its projects) with P archived", {
     outsider: :not_found, member: :hidden, observer: :hidden, participant: :hidden, project_owner: :listed,
