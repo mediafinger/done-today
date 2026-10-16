@@ -74,23 +74,6 @@ The data model should look like this:
 * log (text)
 * status (todo | doing | done)
 
-### Integrations
-
-* belongs_to :org
-* --
-* has_many :project_integrations
-* --
-* service (email | slack | ...)
-* credentials (jsonb)
-* type (reminder | notification | summary)
-* template (erb text)
-
-### ProjectIntegration
-
-* belongs_to :org
-* belongs_to :project
-* belongs_to :integration
-
 ### RecordHistory
 
 * belongs_to :org

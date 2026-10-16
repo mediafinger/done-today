@@ -3,10 +3,8 @@ class Project < ApplicationRecord
 
   has_many :days, dependent: :destroy
   has_many :participants, inverse_of: :project, dependent: :destroy
-  has_many :project_integrations, dependent: :destroy
 
   has_many :entries, through: :days
-  has_many :integrations, through: :project_integrations
   has_many :members, through: :participants
 
   before_validation :set_slug, on: :create
