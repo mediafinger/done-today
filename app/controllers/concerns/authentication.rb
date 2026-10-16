@@ -34,7 +34,7 @@ module Authentication
     end
 
     def find_session_by_cookie
-      Session.includes(:org, :user).find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      Session.includes(:user).find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
     end
 
     def request_authentication

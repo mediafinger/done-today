@@ -36,7 +36,7 @@ To prevent the ad-hoc reading of environment variables across the codebase, we u
 
 ### 3. Authentication & Sessions
 The project utilizes custom cookie-based signed session handling modeled after standard Rails 8 conventions:
-- The [Session](file:///Users/andy/Dropbox/www/2025/done_today/app/models/session.rb) model is backed by the database and stores the association to the current `User`, selected `Org`, and selected `Project`.
+- The [Session](file:///Users/andy/Dropbox/www/2025/done_today/app/models/session.rb) model is backed by the database and only links the cookie to its `User`. Org and project are part of the path, see below.
 - Authentication logic is encapsulated in the [Authentication](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/authentication.rb) controller concern.
 - The [User](file:///Users/andy/Dropbox/www/2025/done_today/app/models/user.rb) model uses `has_secure_password` for password digestion.
 - Password safety is verified against compromised credentials database using HIBP (Have I Been Pwned) via the `not_pwned` validator.
