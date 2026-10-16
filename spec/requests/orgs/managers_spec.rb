@@ -49,6 +49,17 @@ RSpec.describe "Org managers" do
     expect(row_of(invitation).css("form")).to be_empty
   end
 
+  it "lists the other pending invitations with resend and revoke" do
+    invitations = [ org.invitations.create!(email: "carl@example.com", role: "manager"), create(:invitation, :guest, org:) ]
+
+    get members_path(org)
+
+    invitations.each do |invitation|
+      expect(row_of(invitation).css("form").pluck("action"))
+        .to eq([ resend_invitation_path(org, invitation), invitation_path(org, invitation) ])
+    end
+  end
+
   it "shows a deactivated owner without reactivating them" do
     archived = create(:member, :owner, org:, name: "Ada").tap(&:archive!)
 

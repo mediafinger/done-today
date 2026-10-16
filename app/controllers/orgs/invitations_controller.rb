@@ -1,10 +1,11 @@
 module Orgs
   # Org managers and owners invite people by email, and resend or revoke pending invitations.
-  #   Invitations as owner are for owners only. The invitee accepts in Users::InvitationsController.
+  #   Invitations as owner are for owners only (InvitationPolicy). The invitee accepts in Users::InvitationsController.
   #
   class InvitationsController < AppOrgBaseController
     include InvitationSending
 
+    # a 403 before any lookup, each invitation is authorized as well
     before_action { authorize! Member, to: :invite? }
     # invitations are looked up in current_org, only managers and owners get here
     skip_verify_authorized_scoped
@@ -17,7 +18,7 @@ module Orgs
       attributes = params.expect(invitation: %i[ email name role project_id project_role ])
       invitation = current_org.invitations.pending.find_or_initialize_by(email: attributes[:email])
       invitation.assign_attributes(name: attributes[:name], role: attributes[:role], **guest_attributes(attributes))
-      authorize_owner_role!(invitation)
+      authorize! invitation
 
       send_invitation(invitation, :sent, back: members_path(current_org))
     end
@@ -35,12 +36,7 @@ module Orgs
     private
 
     def invitation
-      @invitation ||= current_org.invitations.pending.find(params[:id]).tap { authorize_owner_role!(it) }
-    end
-
-    # giving the owner role, or taking it from a pending invitation, is for owners
-    def authorize_owner_role!(invitation)
-      authorize! Member, to: :grant_owner? if [ invitation.role, invitation.role_in_database ].include?("owner")
+      @invitation ||= authorize! current_org.invitations.pending.find(params[:id])
     end
 
     # only guests are invited to a project

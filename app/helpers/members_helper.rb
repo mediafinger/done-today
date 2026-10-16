@@ -1,11 +1,13 @@
 # Members (internal) and guests (external) side by side.
 #
 module MembersHelper
-  # a project an internal knows of but may not read
+  # a project an internal knows of but may not read: leads, managers and owners add participants
   def join_project_hint(project)
     leads = project.participants.select { it.lead? && !it.member.archived? }.map { it.member.name }.sort
+    return "ask an org manager or owner to join" if leads.empty?
 
-    leads.any? ? "ask #{leads.to_sentence(last_word_connector: " or ", two_words_connector: " or ")} to join" : "ask an org manager or owner to join"
+    names = leads.to_sentence(last_word_connector: " or ", two_words_connector: " or ")
+    "ask the project #{"lead".pluralize(leads.size)} #{names}, an org manager or owner to join"
   end
 
   # only owners give the owner role

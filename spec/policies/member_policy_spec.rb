@@ -81,6 +81,27 @@ RSpec.describe MemberPolicy do
       failed "about a deactivated owner" do
         let(:record) { archived_owner }
       end
+
+      # asked with the change applied: giving or taking the owner role is for owners
+      failed "about a member to be made owner" do
+        let(:record) { colleague.tap { it.role = "owner" } }
+      end
+
+      failed "about an owner to be made member" do
+        let(:record) { create(:member, :owner, org:).tap { it.role = "member" } }
+      end
+
+      succeed "about a member to be made manager" do
+        let(:record) { colleague.tap { it.role = "manager" } }
+      end
+    end
+
+    succeed "for an owner, about a member to be made owner" do
+      let(:record) { colleague.tap { it.role = "owner" } }
+    end
+
+    succeed "for an owner, about an owner to be made member" do
+      let(:record) { create(:member, :owner, org:).tap { it.role = "member" } }
     end
 
     failed "for a member" do
@@ -114,9 +135,6 @@ RSpec.describe MemberPolicy do
       let(:member) { create(:member, org:) }
     end
   end
-
-  # send, resend and revoke invitations
-  it { expect(policy.resolve_rule(:invite?)).to eq(:manage?) }
 
   # who a project manager may add to a project
   describe "the addable scope" do
@@ -166,7 +184,8 @@ RSpec.describe MemberPolicy do
     end
   end
 
-  %i[update? deactivate? reactivate?].each do |rule|
-    it { expect(policy.resolve_rule(rule)).to eq(:manage?) }
+  # send, resend and revoke invitations, change roles, deactivate and reactivate
+  %i[invite? update? deactivate? reactivate?].each do |rule|
+    it { expect(rule).to be_an_alias_of(policy, :manage?) }
   end
 end

@@ -10,9 +10,10 @@ class ProjectPolicy < ApplicationPolicy
   pre_check :allow_org_manager, except: %i[ create_entry? invite_guest? request_access? ]
 
   alias_rule :validate_times?, to: :show?
-  alias_rule :export_csv?, :export_days_csv?, to: :export?
   # rename, archive, unarchive
   alias_rule :edit?, :update?, :archive?, :unarchive?, to: :manage?
+  # a full export covers everybody's entries, the edit trail (RecordHistory) everybody's changes
+  alias_rule :export?, :export_csv?, :export_days_csv?, :entry_history?, to: :manage?
 
   relation_scope do |relation|
     next relation.none unless active?
@@ -50,10 +51,6 @@ class ProjectPolicy < ApplicationPolicy
 
   def create_entry?
     !record.archived? && WRITE_ROLES.include?(role)
-  end
-
-  def export?
-    role == "lead"
   end
 
   def manage?

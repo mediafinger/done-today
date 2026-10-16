@@ -39,6 +39,11 @@ class ApplicationPolicy < ActionPolicy::Base
     active? && member.owner?
   end
 
+  # a member or invitation with the owner role, or a pending change that gives or takes it
+  def owner_role?
+    record.respond_to?(:role_in_database) && [ record.role, record.role_in_database ].include?("owner")
+  end
+
   def deny_inactive
     deny! unless active?
   end

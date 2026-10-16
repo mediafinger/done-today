@@ -90,4 +90,33 @@ RSpec.describe Entry do
       expect(build(:entry, :todo)).not_to be_done
     end
   end
+
+  describe "validations" do
+    let(:day) { create(:day) }
+
+    def entry(**attributes)
+      build(:entry, day:, member: create(:member, org: day.org), **attributes)
+    end
+
+    it "takes a log of 3 to 500 characters" do
+      expect(entry(log: "ok")).not_to be_valid
+      expect(entry(log: "x" * 501)).not_to be_valid
+      expect(entry(log: "x" * 500)).to be_valid
+    end
+
+    it "refuses a status that is none of todo, doing and done" do
+      expect(entry(status: "blocked")).not_to be_valid
+      expect(entry(status: "done")).to be_valid
+    end
+  end
+
+  describe "the day's place in time" do
+    it "tells today, future and past days apart" do
+      today, yesterday, tomorrow = [ 0, -1, 1 ].map { build(:entry, day: build(:day, date: Time.zone.today + it)) }
+
+      expect([ today.today?, today.past?, today.future? ]).to eq([ true, false, false ])
+      expect([ yesterday.today?, yesterday.past?, yesterday.future? ]).to eq([ false, true, false ])
+      expect([ tomorrow.today?, tomorrow.past?, tomorrow.future? ]).to eq([ false, false, true ])
+    end
+  end
 end

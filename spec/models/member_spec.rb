@@ -172,4 +172,28 @@ RSpec.describe Member do
       expect { other.destroy! }.to change(described_class, :count).by(-1).and change(Participant, :count).by(-1)
     end
   end
+
+  it "takes the user's name unless given one" do
+    user = create(:user, name: "Ada Lovelace")
+
+    expect(create(:member, user:).name).to eq("Ada Lovelace")
+    expect(create(:member, user:, name: "Ada").name).to eq("Ada")
+  end
+
+  it "joins an org only once" do
+    member = create(:member)
+
+    expect { create(:member, org: member.org, user: member.user) }.to raise_error(ActiveRecord::RecordNotUnique)
+  end
+
+  it "forgets who sent an invitation when deleted, the invitation stays" do
+    org = create(:org)
+    create(:member, :owner, org:)
+    inviter = create(:member, :owner, org:)
+    invitation = create(:invitation, org:, invited_by: inviter)
+
+    inviter.destroy!
+
+    expect(invitation.reload.invited_by).to be_nil
+  end
 end

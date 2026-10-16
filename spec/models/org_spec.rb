@@ -45,4 +45,25 @@ RSpec.describe Org do
 
     expect(RecordHistory.count).to be_zero
   end
+
+  describe "validations" do
+    it "needs a name, unique across orgs" do
+      create(:org, name: "Acme")
+
+      expect(build(:org, name: "")).not_to be_valid
+      expect(build(:org, name: "Acme")).not_to be_valid
+    end
+  end
+
+  it "derives the slug from the name" do
+    expect(create(:org, name: "Acme & Sons GmbH").slug).to eq("acme-sons-gmbh")
+  end
+
+  it "keeps the slug when renamed, so links keep working" do
+    org = create(:org, name: "Acme")
+
+    org.update!(name: "Acme Corp")
+
+    expect(org.reload.slug).to eq("acme")
+  end
 end
