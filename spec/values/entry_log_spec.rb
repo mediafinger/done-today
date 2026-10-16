@@ -81,6 +81,26 @@ RSpec.describe EntryLog do
     it "is case insensitive" do
       expect(parse("START@09:00").day_start_minutes).to eq(540)
     end
+
+    it "accepts a full stop instead of the colon" do
+      expect(parse("start@9.00").day_start_minutes).to eq(540)
+      expect(parse("end@17.30").day_end_minutes).to eq(1050)
+      expect(parse("from@09.15").segments).to eq([ [ :time, :from, 555, "from@09.15" ] ])
+    end
+
+    it "accepts three or four digits without a separator, the last two being the minutes" do
+      expect(parse("start@900").day_start_minutes).to eq(540)
+      expect(parse("start@0900").day_start_minutes).to eq(540)
+      expect(parse("to@1230").to_minutes).to eq(750)
+      expect(parse("end@2530").day_end_minutes).to eq(1530)
+    end
+
+    it "leaves a full stop that ends the sentence as prose" do
+      expect(parse("Done end@17.30.").segments).to eq(
+        [ [ :text, "Done " ], [ :time, :end, 1050, "end@17.30" ], [ :text, "." ] ]
+      )
+      expect(parse("Done end@1730.").day_end_minutes).to eq(1050)
+    end
   end
 
   describe "ranges and durations" do
@@ -145,6 +165,24 @@ RSpec.describe EntryLog do
     it "rejects a three digit minute rather than reading the first two" do
       expect(parse("from@10:005").from_minutes).to be_nil
       expect(codes("from@10:005")).to eq([ :invalid_time ])
+    end
+
+    it "rejects digits that do not hold two minute digits, or too many of them" do
+      %w[start@9 start@12 start@09001 start@9.5 start@9,00].each do |log|
+        expect(parse(log).day_start_minutes).to be_nil, log
+        expect(codes(log)).to eq([ :invalid_time ]), log
+      end
+    end
+
+    it "reports a mistyped time with a full stop whole" do
+      expect(parse("start@9.5").segments).to eq([ [ :text, "start@9.5" ] ])
+      expect(parse("start@9.5").issues.map(&:message)).to eq([ "start@9.5 is not a valid time, it is kept as text" ])
+      expect(parse("start@9x.").issues.map(&:message)).to eq([ "start@9x is not a valid time, it is kept as text" ])
+    end
+
+    it "checks the bounds without a separator too" do
+      expect(codes("from@1075")).to eq([ :invalid_time ])
+      expect(codes("end@3000")).to eq([ :invalid_time ])
     end
 
     it "reports a mistyped duration but keeps the text" do
