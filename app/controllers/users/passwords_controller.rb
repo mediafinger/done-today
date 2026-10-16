@@ -11,7 +11,7 @@ module Users
 
     def create
       if user = User.find_by(email: params[:email])
-        PasswordsMailer.reset(user).deliver_later
+        Users::PasswordsMailer.reset(user).deliver_later
       end
 
       redirect_to new_session_path, notice: "Password reset instructions sent (if user with that email address exists)."
