@@ -4,6 +4,7 @@
 
 <ul id="entries">
   <% @entries.each_with_index do |entry, index| %>
-    <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_member: true %>
+    <%= render "orgs/entries/entry", entry: entry, entries: @entries, index: index, with_member: true,
+          edited: @edited_ids.include?(entry.id) %>
   <% end %>
 </ul>

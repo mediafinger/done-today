@@ -1,6 +1,6 @@
 module Orgs
-  # Writes entries into the project of the path. They are read and edited on the
-  #   day, week, tag and member pages.
+  # Writes entries into the project of the path, each write with a RecordHistory.
+  #   They are read and edited on the day, week, tag and member pages.
   #
   class EntriesController < AppOrgBaseController
     include ProjectEntries
@@ -25,7 +25,8 @@ module Orgs
         status: create_params[:status] || "todo",
       )
 
-      saved = open_day?(@entry) && day.save! && @entry.save
+      # a failing history takes the new day along
+      saved = open_day?(@entry) && Entry.transaction { day.save! && @entry.create_with_history }
 
       # on success the form starts over with a blank entry, on failure it keeps
       #   what was typed so the error can be corrected instead of retyped
@@ -42,7 +43,7 @@ module Orgs
       @entry.status = update_params[:status] if update_params.key?(:status)
       @entry.log    = update_params[:log]    if update_params.key?(:log)
 
-      respond_to_save(open_day?(@entry) && @entry.save, entry: @entry)
+      respond_to_save(open_day?(@entry) && @entry.update_with_history, entry: @entry)
     end
 
     private

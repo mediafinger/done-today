@@ -36,4 +36,13 @@ RSpec.describe Org do
 
     expect([ Member.count, Entry.count, Participant.count ]).to all(be_zero)
   end
+
+  # regression: `dependent: :destroy` raised ActiveRecord::ReadOnlyRecord on the read-only histories
+  it "deletes its record histories when destroyed" do
+    history = create(:record_history)
+
+    history.org.destroy!
+
+    expect(RecordHistory.count).to be_zero
+  end
 end

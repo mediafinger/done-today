@@ -20,4 +20,8 @@ class EntryPolicy < ApplicationPolicy
 
     roles.include?("owner") || (roles.include?("participant") && record.member_id == member.id)
   end
+
+  def history?
+    ProjectPolicy.new(member, record.day.project).entry_history?
+  end
 end

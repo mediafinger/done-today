@@ -29,6 +29,8 @@ RSpec.describe ProjectPolicy do
       it { expect(policy.create_entry?).to be(create_entry) }
       it { expect(policy.export?).to be(export) }
       it { expect(policy.manage?).to be(manage) }
+      # the edit trail of the entries is for those who manage the project
+      it { expect(policy.entry_history?).to be(manage) }
 
       it "lists the project as readable exactly when it may be shown" do
         expect(described_class.readable(member).include?(project)).to be(show)

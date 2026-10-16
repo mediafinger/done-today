@@ -36,6 +36,11 @@ class ProjectPolicy < ApplicationPolicy
     org_owner_of?(record) || roles.include?("owner")
   end
 
+  # who changed which entry when (RecordHistory)
+  def entry_history?
+    manage?
+  end
+
   private
 
   def roles
