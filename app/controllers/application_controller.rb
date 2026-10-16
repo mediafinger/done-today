@@ -12,7 +12,10 @@ class ApplicationController < ActionController::Base
     render :error_404, status: :not_found
   end
 
+  # nothing is selected after signing in: the user's orgs and their projects
   def home
+    @memberships = current_user.memberships.active.includes(:org, participations: :project).sort_by { it.org.name }
+
     render :home, status: :ok
   end
 end

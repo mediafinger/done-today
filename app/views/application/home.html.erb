@@ -1,25 +1,17 @@
 <h1> What have you done today? </h1>
 
-<% if current_user.memberships.active.blank? %>
-  Ask to join an org <!-- TODO -->
+<% if @memberships.none? %>
+  <p>You are not a member of any org yet. Ask an owner of one to add you.</p>
 <% end %>
 
-<article>
-  <h2>Show me the money </h2>
-  <p>And fill out the stuff</p>
-  <p>And fill out the stuff</p>
-  <p>And fill out the stuff</p>
-  <p>And fill out the stuff</p>
-</article>
+<% @memberships.each do |member| %>
+  <article>
+    <h2><%= link_to member.org.name, org_path(member.org), method: :get %></h2>
 
-<article>
-  <h2>Show me the money </h2>
-  <section>
-      <p>And fill out the stuff</p>
-      <p>And fill out the stuff</p>
-      <p>And fill out the stuff</p>
-      <p>And fill out the stuff</p>
-  </section>
-  <section>And fill out the stuff</section>
-  <section>And fill out the stuff</section>
-</article>
+    <ul>
+      <% member.participations.sort_by { it.project.name }.each do |participation| %>
+        <li><%= link_to participation.project.name, project_path(member.org, participation.project), method: :get %></li>
+      <% end %>
+    </ul>
+  </article>
+<% end %>
