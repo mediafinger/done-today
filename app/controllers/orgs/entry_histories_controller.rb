@@ -1,5 +1,5 @@
 module Orgs
-  # The edit trail of one entry (RecordHistory), for the owners of its project and org.
+  # The edit trail of one entry (RecordHistory), for the leads of its project and the managers and owners of its org.
   #
   class EntryHistoriesController < AppOrgBaseController
     include ProjectEntries

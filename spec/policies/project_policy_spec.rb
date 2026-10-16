@@ -27,13 +27,13 @@ RSpec.describe ProjectPolicy do
     [ "member", nil ] => [ false, false, false, false ],
     [ "member", %w[observer] ] => [ true, false, false, false ],
     [ "member", %w[participant] ] => [ true, true, false, false ],
-    [ "member", %w[owner] ] => [ true, true, true, true ],
+    [ "member", %w[lead] ] => [ true, true, true, true ],
     [ "manager", nil ] => [ true, false, true, true ],
     [ "manager", %w[participant] ] => [ true, true, true, true ],
     [ "owner", nil ] => [ true, false, true, true ],
     [ "owner", %w[observer] ] => [ true, false, true, true ],
     [ "owner", %w[participant] ] => [ true, true, true, true ],
-    [ "owner", %w[owner] ] => [ true, true, true, true ]
+    [ "owner", %w[lead] ] => [ true, true, true, true ]
   }.each do |(org_role, project_roles), (show, create_entry, export, manage)|
     context "with org role #{org_role} and project roles #{project_roles.inspect}" do
       let(:member) { member_with(org_role:, project_roles:) }
@@ -98,7 +98,7 @@ RSpec.describe ProjectPolicy do
     {
       [ "member", %w[observer] ] => [ true, false, false, false ],
       [ "member", %w[participant] ] => [ true, false, false, false ],
-      [ "member", %w[owner] ] => [ true, false, true, true ],
+      [ "member", %w[lead] ] => [ true, false, true, true ],
       [ "owner", nil ] => [ true, false, true, true ],
       [ "owner", %w[participant] ] => [ true, false, true, true ]
     }.each do |(org_role, project_roles), expected|
@@ -121,7 +121,7 @@ RSpec.describe ProjectPolicy do
     {
       [ "member", nil ] => [ false, false ],
       [ "member", %w[participant] ] => [ false, false ],
-      [ "member", %w[owner] ] => [ false, true ],
+      [ "member", %w[lead] ] => [ false, true ],
       [ "manager", nil ] => [ true, true ],
       [ "owner", nil ] => [ true, true ]
     }.each do |(org_role, project_roles), (create, manageable)|
@@ -163,7 +163,7 @@ RSpec.describe ProjectPolicy do
   end
 
   context "with an archived owner of the org and the project" do
-    let(:member) { member_with(org_role: "owner", project_roles: %w[owner]).tap(&:archive!) }
+    let(:member) { member_with(org_role: "owner", project_roles: %w[lead]).tap(&:archive!) }
 
     before { create(:member, :owner, org:) } # the org keeps an owner
 

@@ -6,8 +6,8 @@ FactoryBot.define do
     member { association :member, org: project.org }
     roles { %w[participant] }
 
-    trait :owner do
-      roles { %w[owner] }
+    trait :lead do
+      roles { %w[lead] }
     end
 
     trait :observer do

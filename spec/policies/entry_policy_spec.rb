@@ -25,11 +25,11 @@ RSpec.describe EntryPolicy do
     [ "member", nil ] => [ false, false ],
     [ "member", %w[observer] ] => [ false, false ],
     [ "member", %w[participant] ] => [ true, false ],
-    [ "member", %w[owner] ] => [ true, true ],
+    [ "member", %w[lead] ] => [ true, true ],
     [ "owner", nil ] => [ false, false ],
     [ "owner", %w[observer] ] => [ false, false ],
     [ "owner", %w[participant] ] => [ true, false ],
-    [ "owner", %w[owner] ] => [ true, true ]
+    [ "owner", %w[lead] ] => [ true, true ]
   }.each do |(org_role, project_roles), (own, colleagues)|
     context "with org role #{org_role} and project roles #{project_roles.inspect}" do
       let(:member) { member_with(org_role:, project_roles:) }
@@ -60,8 +60,8 @@ RSpec.describe EntryPolicy do
     end
   end
 
-  context "with a project owner" do
-    let(:member) { member_with(org_role: "member", project_roles: %w[owner]) }
+  context "with a project lead" do
+    let(:member) { member_with(org_role: "member", project_roles: %w[lead]) }
 
     it "does not let them edit entries of another project" do
       elsewhere = create(:entry, day: create(:day, project: create(:project, org: project.org)))
@@ -81,7 +81,7 @@ RSpec.describe EntryPolicy do
   end
 
   context "with an archived project" do
-    let(:member) { member_with(org_role: "owner", project_roles: %w[owner]) }
+    let(:member) { member_with(org_role: "owner", project_roles: %w[lead]) }
 
     it "lets nobody edit its entries" do
       own_entry = create(:entry, day:, member:)

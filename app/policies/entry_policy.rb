@@ -1,4 +1,4 @@
-# A participant edits their own entries, a project owner everybody's. Nobody edits
+# A participant edits their own entries, a project lead everybody's. Nobody edits
 #   the entries of an archived project.
 #
 class EntryPolicy < ApplicationPolicy
@@ -9,11 +9,11 @@ class EntryPolicy < ApplicationPolicy
   relation_scope(:editable) do |relation|
     next relation.none unless active?
 
-    owned = member.participations.includes_all_roles(%w[owner]).select(:project_id)
+    led = member.participations.includes_all_roles(%w[lead]).select(:project_id)
     joined = member.participations.includes_all_roles(%w[participant]).select(:project_id)
     days = Day.where.not(project_id: Project.archived.select(:id))
 
-    relation.where(day: days.where(project_id: owned))
+    relation.where(day: days.where(project_id: led))
       .or(relation.where(member:, day: days.where(project_id: joined)))
   end
 
@@ -23,7 +23,7 @@ class EntryPolicy < ApplicationPolicy
 
     roles = project_roles(project)
 
-    roles.include?("owner") || (roles.include?("participant") && record.member_id == member.id)
+    roles.include?("lead") || (roles.include?("participant") && record.member_id == member.id)
   end
 
   def history?

@@ -37,11 +37,11 @@ RSpec.describe Member do
       expect(member.errors[:role]).to include("guest has to participate in a project first")
     end
 
-    it "refuses to make a project owner a guest, naming the project" do
-      member = create(:participant, :owner, project:).member
+    it "refuses to make a project lead a guest, naming the project" do
+      member = create(:participant, :lead, project:).member
 
       expect(member.update(role: "guest")).to be(false)
-      expect(member.errors[:role]).to include("guest cannot own #{project.name}, change the project role first")
+      expect(member.errors[:role]).to include("guest cannot lead #{project.name}, change the project role first")
     end
   end
 

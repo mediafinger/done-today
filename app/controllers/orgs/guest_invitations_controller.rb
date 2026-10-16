@@ -1,5 +1,5 @@
 module Orgs
-  # Org managers and owners, and project owners, invite guests (externals) to the project, and resend or
+  # Org managers and owners, and project leads, invite guests (externals) to the project, and resend or
   #   revoke those invitations. The invitee accepts in Users::InvitationsController.
   #
   class GuestInvitationsController < AppOrgBaseController

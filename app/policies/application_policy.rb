@@ -3,7 +3,7 @@
 #
 #   * the org role lives on `Member#role` (guest, member, manager, owner): all but guests are internal,
 #     managers and owners manage the org, only owners touch the owner role
-#   * project roles live on `Participant#roles` (observer, participant, owner)
+#   * project roles live on `Participant#roles` (observer, participant, lead)
 #
 #   Rules answer "may this member do X to this record?", relation scopes return
 #   the records a member may see or change. Pre-checks do not run for scopes.

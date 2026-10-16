@@ -1,5 +1,5 @@
 module Orgs
-  # Org and project owners add active members of the org to a project, change their
+  # Org managers and owners, and project leads, add active members of the org to a project, change their
   #   role and remove them. Removing takes the access, the entries stay.
   #
   class ParticipantsController < AppOrgBaseController
@@ -43,7 +43,7 @@ module Orgs
       end
     end
 
-    # A project owner who stepped down or removed themselves cannot manage the project
+    # A project lead who stepped down or removed themselves cannot manage the project
     #   any more. A fresh policy, the memoized one answered before the change.
     def after_change_path
       policy = ProjectPolicy.new(current_project, member: current_member)

@@ -76,7 +76,7 @@ RSpec.describe "Archived members" do
       member.update!(name: "Archie")
       create(:entry, member:, day: create(:day, project:, date: Date.new(2026, 3, 2)), log: "Archived work")
       member.archive!
-      sign_in(create(:participant, :owner, project:).member.user)
+      sign_in(create(:participant, :lead, project:).member.user)
     end
 
     it "still shows the archived member's entries" do

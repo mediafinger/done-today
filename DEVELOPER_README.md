@@ -61,7 +61,7 @@ The app supports multi-tenant organization boundaries and project selection:
   - Org roles: `member`, `manager` and `owner` are internals, they list every project of the org (`ProjectPolicy` scope `:listable`) and
     the members (`/:org/members`, read-only for members). A `manager` does what an owner does, except giving or taking the owner role
     (`MemberPolicy#grant_owner?`, also for invitations) and changing, deactivating or reactivating an owner. A `guest` is an external: they only see the projects they participate in,
-    are never a project owner, and are deactivated when their last participation is removed. Project owners only add the guests
+    never lead a project, and are deactivated when their last participation is removed. Project leads only add the guests
     of the projects they manage (`MemberPolicy` scope `:addable`), and invite new guests to them (`ProjectPolicy#invite_guest?`,
     `Orgs::GuestInvitationsController`). A guest invitation carries the project and the project role.
   - A record the member may not read is a 404: look it up through a scope, `authorized_scope(current_org.projects).find_by!(...)`.

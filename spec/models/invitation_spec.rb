@@ -61,9 +61,9 @@ RSpec.describe Invitation do
       expect(build(:invitation, :guest, org:, project: create(:project, org:).tap(&:archive!))).not_to be_valid
     end
 
-    # guests never own a project
-    it "refuse the project role owner" do
-      expect(build(:invitation, :guest, org:, project:, project_role: "owner")).not_to be_valid
+    # guests never lead a project
+    it "refuse the project role lead" do
+      expect(build(:invitation, :guest, org:, project:, project_role: "lead")).not_to be_valid
     end
 
     it "keep members and owners out of a project" do

@@ -1,7 +1,7 @@
 require "rails_helper"
 
 # Who may do what is covered by spec/requests/authorization_matrix_spec.rb,
-#   this is what an org owner or a project owner sees and changes.
+#   this is what an org owner or a project lead sees and changes.
 #
 RSpec.describe "Orgs::Participants" do
   let(:org) { create(:org) }
@@ -32,6 +32,13 @@ RSpec.describe "Orgs::Participants" do
 
       expect(row_of(anna).text).to include("Anna")
       expect(row_of(anna).at_css("select option[selected]")["value"]).to eq("participant")
+    end
+
+    it "offers the project roles, weakest first, and explains them" do
+      get edit_project_path(org, project)
+
+      expect(page.css("#new-participant select[name='participant[role]'] option").pluck("value")).to eq(%w[observer participant lead])
+      expect(page.text.squish).to include("leads also edit everybody's entries and manage the project")
     end
 
     it "offers the active members of the org who do not take part yet" do
@@ -66,7 +73,7 @@ RSpec.describe "Orgs::Participants" do
     end
 
     it "lets an org owner add themselves, to log time in the project" do
-      post participants_path(org, project), params: { participant: { member_id: owner.id, role: "owner" } }
+      post participants_path(org, project), params: { participant: { member_id: owner.id, role: "lead" } }
 
       expect(ProjectPolicy.new(project, member: owner).apply(:create_entry?)).to be(true)
     end
@@ -79,7 +86,7 @@ RSpec.describe "Orgs::Participants" do
     end
 
     it "refuses someone who already takes part" do
-      post participants_path(org, project), params: { participant: { member_id: anna.member_id, role: "owner" } }
+      post participants_path(org, project), params: { participant: { member_id: anna.member_id, role: "lead" } }
 
       expect(anna.reload.roles).to eq(%w[participant])
       expect(flash[:alert]).to be_present
@@ -105,24 +112,24 @@ RSpec.describe "Orgs::Participants" do
 
   describe "PATCH /:org/:project/participants/:id" do
     it "changes the role" do
-      patch participant_path(org, project, anna), params: { participant: { role: "owner" } }
+      patch participant_path(org, project, anna), params: { participant: { role: "lead" } }
 
-      expect(anna.reload.roles).to eq(%w[owner])
+      expect(anna.reload.roles).to eq(%w[lead])
       expect(response).to redirect_to(edit_project_path(org, project))
-      expect(flash[:notice]).to eq("Anna is now owner")
+      expect(flash[:notice]).to eq("Anna is now lead")
     end
 
     it "does not touch a participant of another project" do
       elsewhere = create(:participant, project: create(:project, org:))
 
-      patch participant_path(org, project, elsewhere), params: { participant: { role: "owner" } }
+      patch participant_path(org, project, elsewhere), params: { participant: { role: "lead" } }
 
       expect(response).to have_http_status(:not_found)
       expect(elsewhere.reload.roles).to eq(%w[participant])
     end
 
-    it "sends a project owner who stepped down to the project page" do
-      me = create(:participant, :owner, project:)
+    it "sends a project lead who stepped down to the project page" do
+      me = create(:participant, :lead, project:)
       sign_in(me.member.user)
 
       patch participant_path(org, project, me), params: { participant: { role: "participant" } }
@@ -155,8 +162,8 @@ RSpec.describe "Orgs::Participants" do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "sends a project owner who removed themselves to the org" do
-      me = create(:participant, :owner, project:)
+    it "sends a project lead who removed themselves to the org" do
+      me = create(:participant, :lead, project:)
       sign_in(me.member.user)
 
       delete participant_path(org, project, me)

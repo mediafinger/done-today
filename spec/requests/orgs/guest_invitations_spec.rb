@@ -1,12 +1,12 @@
 require "rails_helper"
 
-# Org owners and project owners invite guests (externals) to a project.
+# Org owners and project leads invite guests (externals) to a project.
 #   Who may do what is covered by spec/requests/authorization_matrix_spec.rb.
 #
 RSpec.describe "Guest invitations" do
   let(:org) { create(:org, name: "Acme") }
   let(:project) { create(:project, org:, name: "Website") }
-  let(:project_owner) { create(:participant, :owner, project:, member: create(:member, org:, name: "Pat")).member }
+  let(:project_lead) { create(:participant, :lead, project:, member: create(:member, org:, name: "Pat")).member }
   let(:owner) { create(:member, :owner, org:) }
 
   def page
@@ -18,20 +18,20 @@ RSpec.describe "Guest invitations" do
   end
 
   describe "POST /:org/:project/guest_invitations" do
-    before { sign_in(project_owner.user) }
+    before { sign_in(project_lead.user) }
 
     it "stores a guest invitation to the project and mails the link" do
       expect { invite_guest("Gus@Example.com", project_role: "observer") }.to have_enqueued_mail(InvitationsMailer, :invite)
 
       expect(org.invitations.sole).to have_attributes(
-        email: "gus@example.com", name: "Gus", role: "guest", project:, project_role: "observer", invited_by: project_owner
+        email: "gus@example.com", name: "Gus", role: "guest", project:, project_role: "observer", invited_by: project_lead
       )
       expect(response).to redirect_to(edit_project_path(org, project))
       expect(flash[:notice]).to eq("Invited gus@example.com")
     end
 
-    it "refuses the project role owner" do
-      invite_guest("gus@example.com", project_role: "owner")
+    it "refuses the project role lead" do
+      invite_guest("gus@example.com", project_role: "lead")
 
       expect(flash[:alert]).to be_present
       expect(org.invitations).to be_empty

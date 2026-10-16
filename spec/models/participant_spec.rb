@@ -22,11 +22,11 @@ RSpec.describe Participant do
   describe "guests" do
     let(:guest) { create(:participant, project:, member: create(:member, :guest, org: project.org)).member }
 
-    it "refuses a guest as project owner" do
+    it "refuses a guest as project lead" do
       participant = guest.participations.sole
 
-      expect(participant.update(roles: %w[owner])).to be(false)
-      expect(participant.errors[:roles]).to include("owner is not a project role for guests")
+      expect(participant.update(roles: %w[lead])).to be(false)
+      expect(participant.errors[:roles]).to include("lead is not a project role for guests")
     end
 
     it "deactivates a guest whose last participation is removed" do
@@ -57,7 +57,7 @@ RSpec.describe Participant do
     it "is the strongest of the roles" do
       expect(described_class.new(roles: %w[observer]).role).to eq("observer")
       expect(described_class.new(roles: %w[observer participant]).role).to eq("participant")
-      expect(described_class.new(roles: %w[participant owner]).role).to eq("owner")
+      expect(described_class.new(roles: %w[participant lead]).role).to eq("lead")
     end
   end
 
