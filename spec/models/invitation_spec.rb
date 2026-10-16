@@ -99,6 +99,28 @@ RSpec.describe Invitation do
       expect(invitation.reload).to be_accepted
     end
 
+    it "reactivates an archived member of the same user instead of adding a second one" do
+      archived = create(:member, org:, user:, roles: %w[member owner])
+      create(:member, :owner, org:)
+      archived.archive!
+
+      expect(invitation.accept!(user)).to eq(archived)
+      expect(archived.reload).to have_attributes(archived_at: nil, roles: %w[member])
+    end
+
+    it "leaves the roles of a member who joined after the invitation was sent" do
+      invitation
+      member = create(:member, :owner, org:, user:)
+
+      expect(invitation.accept!(user)).to eq(member)
+      expect(member.reload.roles).to eq(%w[member owner])
+      expect(invitation.reload).to be_accepted
+    end
+
+    it "refuses an account with another email" do
+      expect { invitation.accept!(create(:user)) }.to raise_error(ArgumentError)
+    end
+
     it "accepts only once" do
       invitation.accept!(user)
 

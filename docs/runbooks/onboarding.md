@@ -19,3 +19,8 @@ bin/rails done:org:create NAME="Acme" OWNER_EMAIL=ada@example.com OWNER_NAME="Ad
 
 `/:org/members` → "Invite by email", with the roles member and/or owner. The list below the form shows pending
 invitations with "Resend" (new link, old one dies) and "Revoke".
+
+- An email that already has an account (e.g. a member of another org) gets the same link. It asks them to sign in,
+  then to "Join". The link never sets the password of an existing account.
+- Inviting a deactivated member back reactivates their membership with the invited roles. Their entries and
+  project participations come back with it.

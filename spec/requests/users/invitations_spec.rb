@@ -136,13 +136,92 @@ RSpec.describe "Users::Invitations" do
   end
 
   describe "an email that already has an account" do
-    let!(:ada) { create(:user, email: "ada@example.com") }
+    let!(:ada) { create(:user, email: "ada@example.com", name: "Ada L.") }
+
+    it "asks them to sign in, then comes back to the invitation" do
+      get accept_invitation_path(token)
+
+      expect(response).to redirect_to(new_session_path(email: "ada@example.com"))
+      expect(flash[:notice]).to eq("Sign in as ada@example.com to join Acme")
+
+      sign_in(ada)
+
+      expect(response).to redirect_to(accept_invitation_url(token))
+    end
+
+    it "offers to join once signed in, without asking for a password" do
+      sign_in(ada)
+
+      get accept_invitation_path(token)
+
+      expect(response).to have_http_status(:ok)
+      expect(page.at_css("form[action='#{accept_invitation_path(token)}'] [type=submit]")["value"]).to eq("Join Acme")
+      expect(page.css("input[type=password]")).to be_empty
+    end
+
+    it "says who invited them" do
+      sign_in(ada)
+
+      get accept_invitation_path(token)
+
+      expect(page.at_css("main p").text.squish).to eq("#{invitation.invited_by.name} invited you, ada@example.com, as member.")
+    end
+
+    it "adds the member once signed in and lands in the org" do
+      other = create(:member, user: ada)
+      sign_in(ada)
+
+      patch accept_invitation_path(token)
+
+      expect(org.members.find_by!(user: ada)).to have_attributes(roles: %w[member], name: "Ada L.")
+      expect(invitation.reload).to be_accepted
+      expect(other.reload).not_to be_archived
+      expect(response).to redirect_to(org_path(org))
+    end
 
     it "never sets the password of the existing account" do
       accept
 
+      expect(response).to redirect_to(new_session_path(email: "ada@example.com"))
       expect(ada.reload.authenticate(password)).to be(false)
+      expect(ada.name).to eq("Ada L.")
       expect(org.members.exists?(user: ada)).to be(false)
+      expect(invitation.reload).not_to be_accepted
+    end
+
+    it "ignores a password sent along by the signed-in invitee" do
+      sign_in(ada)
+
+      accept
+
+      expect(ada.reload.authenticate(password)).to be(false)
+      expect(org.members.exists?(user: ada)).to be(true)
+    end
+
+    it "reactivates their archived member, with the invited roles" do
+      member = create(:member, org:, user: ada, roles: %w[member])
+      create(:entry, member:, day: create(:day, project: create(:project, org:)))
+      member.archive!
+      invitation.update!(roles: %w[member owner])
+      sign_in(ada)
+
+      expect { patch accept_invitation_path(token) }.not_to change(Member, :count)
+
+      expect(member.reload).to have_attributes(archived_at: nil, roles: %w[member owner])
+      expect(member.entries.count).to eq(1)
+      expect(response).to redirect_to(org_path(org))
+    end
+
+    it "leaves an active member as it is, who joined after the invitation was sent" do
+      token
+      member = create(:member, :owner, org:, user: ada)
+      sign_in(ada)
+
+      expect { patch accept_invitation_path(token) }.not_to change(Member, :count)
+
+      expect(member.reload.roles).to eq(%w[member owner])
+      expect(invitation.reload).to be_accepted
+      expect(response).to redirect_to(org_path(org))
     end
   end
 

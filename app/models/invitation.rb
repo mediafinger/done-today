@@ -2,7 +2,7 @@
 #   that expires after EXPIRES_IN, and dies when the invitation is resent (sent_at)
 #   or accepted (accepted_at). Nothing secret is stored.
 #
-#   Accepting creates the Member, see Users::InvitationsController.
+#   Accepting creates or reactivates the Member, see Users::InvitationsController.
 #
 class Invitation < ApplicationRecord
   EXPIRES_IN = 7.days
@@ -39,12 +39,20 @@ class Invitation < ApplicationRecord
     sent_at < EXPIRES_IN.ago
   end
 
-  # Returns the new member. The lock refuses a second accept of the same link.
+  # Returns the member: a new one, the user's archived one reactivated with the invited
+  #   roles (one row per org and user), or their active one left as it is.
+  #   The lock refuses a second accept of the same link.
   def accept!(user)
+    raise ArgumentError, "the invitation is for #{email}" unless user.email == email
+
     with_lock do
       raise AlreadyAccepted if accepted?
 
-      org.members.create!(user:, roles:).tap { update!(accepted_at: Time.current) }
+      member = org.members.find_or_initialize_by(user:)
+      member.update!(roles:, archived_at: nil) unless member.persisted? && !member.archived?
+      update!(accepted_at: Time.current)
+
+      member
     end
   end
 

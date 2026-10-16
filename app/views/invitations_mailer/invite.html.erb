@@ -1,5 +1,5 @@
 <p>
-  <%= @invitation.invited_by&.name || "Someone" %> invited you to <strong><%= @invitation.org.name %></strong> on Done today.
+  <%= @invitation.invited_by ? "#{@invitation.invited_by.name} invited you" : "You are invited" %> to <strong><%= @invitation.org.name %></strong> on Done today.
 </p>
 <p>
   <%= link_to "Accept the invitation", @url %> within <%= distance_of_time_in_words(Invitation::EXPIRES_IN) %>.

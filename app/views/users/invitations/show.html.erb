@@ -1,7 +1,7 @@
 <h1>Join <%= @invitation.org.name %></h1>
 
 <p>
-  <%= @invitation.invited_by&.name || "Someone" %> invited <strong><%= @invitation.email %></strong>.
+  <%= @invitation.invited_by ? "#{@invitation.invited_by.name} invited" : "An invitation for" %> <strong><%= @invitation.email %></strong>.
   Choose your name and a password.
 </p>
 

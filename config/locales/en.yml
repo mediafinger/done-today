@@ -48,6 +48,7 @@ en:
       resent: "Sent the invitation to %{email} again"
       revoked: "Revoked the invitation of %{email}"
       sent: "Invited %{email}"
+      sign_in_first: "Sign in as %{email} to join %{org}"
       welcome: "Welcome to %{org}"
     members:
       deactivated: "Deactivated %{name}, their entries stay"

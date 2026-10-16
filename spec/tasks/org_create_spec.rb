@@ -6,13 +6,13 @@ RSpec.describe "done:org:create" do
 
   before do
     Rails.application.load_tasks unless Rake::Task.task_defined?("done:org:create")
-    task.reenable
     ActionMailer::Base.deliveries.clear
   end
 
   def run(**env)
     env = env.transform_keys(&:to_s)
     ENV.update(env)
+    task.reenable # tasks only run once per process
     task.invoke
   ensure
     env.each_key { ENV.delete(it) }
@@ -40,6 +40,14 @@ RSpec.describe "done:org:create" do
       token = output[%r{/invitations/(\S+)}, 1]
 
       expect(Invitation.find_by_token_for(:acceptance, CGI.unescape(token))).to eq(Org.find_by!(name: "Acme").invitations.sole)
+    end
+
+    it "sends a new link when run again, keeping the name" do
+      expect { run(NAME: "Acme", OWNER_EMAIL: "ada@example.com", OWNER_NAME: "Ada") }.to output.to_stdout
+      expect { run(NAME: "Acme", OWNER_EMAIL: "ada@example.com") }.to output(/Acme exists at/).to_stdout
+
+      expect(Org.find_by!(name: "Acme").invitations.sole.name).to eq("Ada")
+      expect(ActionMailer::Base.deliveries.size).to eq(2)
     end
   end
 

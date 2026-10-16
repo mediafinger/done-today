@@ -39,6 +39,18 @@ RSpec.describe "Orgs::Invitations" do
       expect(flash[:alert]).to eq("ada@example.com is already a member")
     end
 
+    it "invites an account of another org" do
+      create(:member, user: create(:user, email: "ada@example.com"))
+
+      expect { invite("ada@example.com") }.to have_enqueued_mail(InvitationsMailer, :invite)
+    end
+
+    it "invites a deactivated member back" do
+      create(:member, org:, user: create(:user, email: "ada@example.com")).archive!
+
+      expect { invite("ada@example.com") }.to have_enqueued_mail(InvitationsMailer, :invite)
+    end
+
     it "refuses an invalid email" do
       invite("not an email")
 
