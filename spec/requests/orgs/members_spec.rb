@@ -34,7 +34,7 @@ RSpec.describe "Orgs::Members" do
 
       get members_path(org)
 
-      ids = page.css("input[type=checkbox]").pluck("id")
+      ids = page.css("#active-members input[type=checkbox]").pluck("id")
       expect(ids.size).to eq(4)
       expect(ids.uniq.size).to eq(ids.size)
     end

@@ -12,6 +12,8 @@ Rails.application.routes.draw do
   scope module: :users, path: "/" do
     resource :session, only: %i[ new create destroy ]
     resources :passwords, param: :token, only: %i[ new create edit update ]
+    # the emailed invitation link, owners send it from /:org/members
+    resources :invitations, param: :token, only: %i[ show update ], as: :accept_invitations
 
     resource :user, only: %i[ edit update ] do
       resource :email, only: %i[ edit update ], controller: "user_emails"
@@ -37,6 +39,10 @@ Rails.application.routes.draw do
     resources :members, only: %i[ index update ] do
       patch :deactivate, on: :member
       patch :reactivate, on: :member
+    end
+
+    resources :invitations, only: %i[ create destroy ] do
+      patch :resend, on: :member
     end
 
     resources :projects, only: %i[ new create ]

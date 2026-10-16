@@ -42,6 +42,10 @@ RSpec.describe "Authorization role matrix" do
     colleagues_entry.member
   end
 
+  def pending_invitation
+    org.invitations.find_or_create_by!(email: "pending@example.com") { it.sent_at = 2.days.ago }
+  end
+
   def link_to_project?
     Nokogiri::HTML(response.body).css("main a").any? { it["href"] == project_path(org, project) }
   end
@@ -213,6 +217,27 @@ RSpec.describe "Authorization role matrix" do
     colleague.archive!
 
     patch reactivate_member_path(org, colleague)
+  end
+
+  row "POST /:org/invitations", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { org.invitations.exists?(email: "invited@example.com") } do
+    post invitations_path(org), params: { invitation: { email: "invited@example.com", roles: %w[member] } }
+  end
+
+  row "PATCH /:org/invitations/:id/resend", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { org.invitations.find_by!(email: "pending@example.com").sent_at > 1.hour.ago } do
+    patch resend_invitation_path(org, pending_invitation)
+  end
+
+  row "DELETE /:org/invitations/:id", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { !org.invitations.exists?(email: "pending@example.com") } do
+    delete invitation_path(org, pending_invitation)
   end
 
   row "GET /:org/projects/new", {

@@ -36,10 +36,20 @@ en:
         password_challenge: "Current password"
     errors:
       models:
+        invitation:
+          already_a_member: "%{email} is already a member"
         member:
           last_owner: "%{org} needs at least one active owner"
   controllers:
     day_locked: "%{date} is locked, unlock the day to change it"
+    invitations:
+      invalid: "That invitation link is invalid or has expired, ask for a new one"
+      rate_limited: "Too many invitations, try again later"
+      resent: "Sent the invitation to %{email} again"
+      revoked: "Revoked the invitation of %{email}"
+      sent: "Invited %{email}"
+      sign_in_first: "Sign in as %{email} to join %{org}"
+      welcome: "Welcome to %{org}"
     members:
       deactivated: "Deactivated %{name}, their entries stay"
       reactivated: "Reactivated %{name}"

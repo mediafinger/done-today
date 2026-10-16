@@ -1,0 +1,10 @@
+<h1>Join <%= @invitation.org.name %></h1>
+
+<p>
+  <%= @invitation.invited_by ? "#{@invitation.invited_by.name} invited" : "An invitation for" %> you,
+  <strong><%= current_user.email %></strong>, as <%= @invitation.roles.to_sentence %>.
+</p>
+
+<%= form_with url: accept_invitation_path(params[:token]), method: :patch do |form| %>
+  <%= form.submit "Join #{@invitation.org.name}" %>
+<% end %>

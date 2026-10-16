@@ -10,6 +10,7 @@ module Orgs
 
       @active_members = members.active
       @archived_members = members.archived
+      @invitations = current_org.invitations.pending.includes(:invited_by).order(:email)
     end
 
     def update

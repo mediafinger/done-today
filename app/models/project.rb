@@ -5,7 +5,7 @@
 class Project < ApplicationRecord
   # The slug is the second segment of every project URL (/acme/website/days/2026-10-15),
   #   next to the org-level pages /acme/members and /acme/settings.
-  RESERVED_SLUGS = %w[members projects settings].freeze
+  RESERVED_SLUGS = %w[invitations members projects settings].freeze
 
   belongs_to :org
 
