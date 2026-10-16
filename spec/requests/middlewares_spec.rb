@@ -78,15 +78,16 @@ RSpec.describe "Request id and timeout middlewares" do
   end
 
   describe "Rack::Timeout" do
-    it "starts right after the request id is set" do
-      expect(stack.index(Rack::Timeout)).to eq(stack.index(ActionDispatch::RequestId) + 1)
+    # its own errors (a request that queued too long) then get Rails' logging and error pages too
+    it "sits right behind ActionDispatch::DebugExceptions" do
+      expect(stack.index(Rack::Timeout)).to eq(stack.index(ActionDispatch::DebugExceptions) + 1)
     end
 
     it "takes the timeout from AppConf" do
       expect(middlewares.find { it.klass == Rack::Timeout }.args).to eq([ { service_timeout: AppConf.rack_timeout } ])
     end
 
-    %w[RequestTimeoutException RequestTimeoutError].each do |name|
+    %w[RequestTimeoutException RequestTimeoutError RequestExpiryError].each do |name|
       it "maps Rack::Timeout::#{name} to 503" do
         expect(ActionDispatch::ExceptionWrapper.status_code_for_exception("Rack::Timeout::#{name}")).to eq(503)
       end
@@ -100,6 +101,15 @@ RSpec.describe "Request id and timeout middlewares" do
       get "/session/new"
 
       expect(response).to have_http_status(:service_unavailable)
+    end
+
+    it "answers a request that queued longer than the wait timeout with the 503 page" do
+      queued_since = ((Time.now.to_f - 60) * 1000).to_i # ms, as nginx and Heroku send it
+
+      get "/session/new", headers: { "X-Request-Start" => queued_since.to_s }
+
+      expect(response).to have_http_status(:service_unavailable)
+      expect(response.body).to include("Error 503")
     end
 
     it "serves public/503.html for it" do

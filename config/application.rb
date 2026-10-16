@@ -62,9 +62,10 @@ module DoneToday
     # Rack::RequestID copies the incoming id to the response unchanged, so clean it first
     config.middleware.insert_before(::Rack::RequestID, RequestIdSanitizer)
 
-    # start the timer once the request has its id, start with DEBUG=true for 300 seconds
+    # behind DebugExceptions, so Rails logs and renders Rack::Timeout's own errors too (a request
+    # that queued too long is refused before it reaches the app), start with DEBUG=true for 300 seconds
     config.middleware.insert_after(
-      ActionDispatch::RequestId,
+      ActionDispatch::DebugExceptions,
       Rack::Timeout, service_timeout: AppConf.rack_timeout # seconds
     )
     Rack::Timeout::Logger.disable # we only log the errors, not the verbose status messages
@@ -72,7 +73,8 @@ module DoneToday
     # a timeout is our capacity problem, not a bug in the request: 503 with public/503.html
     config.action_dispatch.rescue_responses.merge!(
       "Rack::Timeout::RequestTimeoutException" => :service_unavailable,
-      "Rack::Timeout::RequestTimeoutError" => :service_unavailable
+      "Rack::Timeout::RequestTimeoutError" => :service_unavailable,
+      "Rack::Timeout::RequestExpiryError" => :service_unavailable
     )
   end
 end
