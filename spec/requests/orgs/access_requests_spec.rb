@@ -64,7 +64,7 @@ RSpec.describe "Access requests" do
       get org_path(org)
 
       expect(project_item.at_css("form")["action"]).to eq(access_requests_path(org, project))
-      expect(project_item.text).to include("ask Pat to join")
+      expect(project_item.text).to include("ask the project lead Pat, an org manager or owner to join")
     end
 
     it "shows a pending request instead of the form" do

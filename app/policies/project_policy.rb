@@ -59,17 +59,12 @@ class ProjectPolicy < ApplicationPolicy
 
   # send, resend and revoke the guest invitations of the project
   def invite_guest?
-    !record.archived? && (org_manager? || role == "lead")
+    !record.archived? && allowed_to?(:manage?)
   end
 
   # members ask to join an active project they do not take part in, its leads grant it (manage?)
   def request_access?
     internal? && !org_manager? && !record.archived? && role.nil?
-  end
-
-  # who changed which entry when (RecordHistory)
-  def entry_history?
-    manage?
   end
 
   private
