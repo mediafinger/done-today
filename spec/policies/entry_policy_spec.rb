@@ -61,4 +61,15 @@ RSpec.describe EntryPolicy do
     expect(described_class.editable(owner)).to be_empty
     expect(described_class.readable(owner)).to be_empty
   end
+
+  it "lets nobody edit the entries of an archived project" do
+    owner = member_with(org_roles: %w[member owner], project_roles: %w[owner])
+    own_entry = create(:entry, day:, member: owner)
+    project.archive!
+
+    expect(described_class.new(owner, own_entry).update?).to be(false)
+    expect(described_class.new(owner, colleagues_entry).update?).to be(false)
+    expect(described_class.editable(owner)).to be_empty
+    expect(described_class.readable(owner)).to include(own_entry, colleagues_entry)
+  end
 end

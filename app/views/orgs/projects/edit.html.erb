@@ -1,0 +1,24 @@
+<h2>Manage <%= link_to @project.name_in_database, project_path(current_org, @project) %></h2>
+
+<section>
+  <h3>Name</h3>
+
+  <p>The link to the project keeps its address <code><%= project_path(current_org, @project) %></code>.</p>
+
+  <%= render "orgs/projects/form", project: @project %>
+</section>
+
+<section>
+  <h3>Archive</h3>
+
+  <% if @project.archived? %>
+    <p>Archived on <%= @project.archived_at.to_date %>. Its entries can be read and exported, but not changed.</p>
+
+    <%= button_to "Unarchive", unarchive_project_path(current_org, @project), method: :patch, class: "slim" %>
+  <% else %>
+    <p>An archived project keeps its entries for reading and exporting, but takes no new ones. It can be unarchived.</p>
+
+    <%= button_to "Archive", archive_project_path(current_org, @project), method: :patch, class: "slim secondary",
+          form: { data: { turbo_confirm: "Archive #{@project.name_in_database}? Its entries stay readable." } } %>
+  <% end %>
+</section>

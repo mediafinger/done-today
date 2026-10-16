@@ -1,15 +1,25 @@
-<!-- TODO: test and place this button: -->
-<!-- %= link_to "new project", new_project_path, method: :get, role: "button", class: "slim" % -->
-
-<!-- TODO: list all projects by name: -->
 <div class="spacing-grid">
   <div class="left">
     <h2> Projects of <%= current_org.name %> </h2>
 
-    <ul>
+    <ul id="active-projects">
       <% @projects.each do |project| %>
         <li class="nude"><%= link_to project.name, project_path(current_org, project), method: :get, role: "button", class: "slim" %></li>
       <% end %>
     </ul>
+
+    <% if policy(Project).create? %>
+      <%= link_to "New project", new_project_path(current_org), method: :get, role: "button", class: "slim secondary" %>
+    <% end %>
+
+    <% if @archived_projects.any? %>
+      <h3>Archived</h3>
+
+      <ul id="archived-projects">
+        <% @archived_projects.each do |project| %>
+          <li class="nude"><%= link_to project.name, project_path(current_org, project), method: :get %> (<%= project.archived_at.to_date %>)</li>
+        <% end %>
+      </ul>
+    <% end %>
   </div>
 </div>

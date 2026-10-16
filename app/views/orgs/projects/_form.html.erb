@@ -1,0 +1,9 @@
+<%= form_with model: project, url: project.persisted? ? project_path(current_org, project) : projects_path(current_org) do |form| %>
+  <%= form.label :name %>
+  <%= form.text_field :name, required: true, aria: { invalid: (true if project.errors[:name].any?) } %>
+  <% if project.errors.any? %>
+    <small><%= project.errors.full_messages.to_sentence %></small>
+  <% end %>
+
+  <%= form.submit project.persisted? ? "Rename" : "Create project", class: "slim" %>
+<% end %>

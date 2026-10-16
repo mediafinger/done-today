@@ -1,9 +1,13 @@
 module Orgs
+  # A project's pages, and its management: org owners create projects, org and
+  #   project owners rename, archive and unarchive them. Projects are never deleted.
+  #
   class ProjectsController < AppOrgBaseController
     VIEWS = %w[days weeks months].freeze
 
-    # every action but the org's list of projects is below /:org_slug/:project_slug
-    before_action :set_current_project, except: :index
+    # every action but the org's list of projects and creating one is below /:org_slug/:project_slug
+    before_action :set_current_project, except: %i[ index new create ]
+    before_action :authorize_manage, only: %i[ edit update archive unarchive ]
 
     def show
       @project = current_project
@@ -11,6 +15,7 @@ module Orgs
       @view = view
 
       @exportable = policy(@project).export?
+      @manageable = policy(@project).manage?
 
       if @view == "days"
         @with_date = true
@@ -41,8 +46,60 @@ module Orgs
       #   .order("days.date desc", "days.project_id asc", "entries.status desc", "entries.member_id asc", "entries.created_at asc")
     end
 
+    # archived projects are only listed for those who could unarchive them
     def index
-      @projects = ProjectPolicy.readable(current_member).order(:name)
+      @projects = ProjectPolicy.readable(current_member).active.order(:name)
+      @archived_projects = ProjectPolicy.manageable(current_member).archived.order(:name)
+    end
+
+    def new
+      authorize!(Project, :create?)
+
+      @project = current_org.projects.new
+    end
+
+    def create
+      authorize!(Project, :create?)
+
+      @project = current_org.projects.new(project_params)
+
+      if @project.save
+        redirect_to edit_project_path(current_org, @project), notice: t("controllers.projects.created", name: @project.name)
+      else
+        render :new, status: :unprocessable_content
+      end
+    end
+
+    def edit
+      @project = current_project
+    end
+
+    # renames the project, the slug stays so links keep working
+    def update
+      # a copy, so a refused name does not show up in the switcher
+      @project = current_org.projects.find(current_project.id)
+      old_name = @project.name
+
+      if @project.update(project_params)
+        redirect_to edit_project_path(current_org, @project),
+          notice: t("controllers.projects.renamed", old_name:, name: @project.name)
+      else
+        render :edit, status: :unprocessable_content
+      end
+    end
+
+    def archive
+      current_project.archive!
+
+      redirect_to project_path(current_org, current_project),
+        notice: t("controllers.projects.archived", name: current_project.name)
+    end
+
+    def unarchive
+      current_project.unarchive!
+
+      redirect_to project_path(current_org, current_project),
+        notice: t("controllers.projects.unarchived", name: current_project.name)
     end
 
     # One month of the project as a CSV: a line per member, with their hours and
@@ -98,6 +155,14 @@ module Orgs
     end
 
     private
+
+    def authorize_manage
+      authorize!(current_project, :manage?)
+    end
+
+    def project_params
+      params.expect(project: [ :name ])
+    end
 
     # a project the member may read but not export is a 404 as well
     def exportable_project

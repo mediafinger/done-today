@@ -44,5 +44,10 @@ en:
       deactivated: "Deactivated %{name}, their entries stay"
       reactivated: "Reactivated %{name}"
       updated: "Updated the roles of %{name}"
+    projects:
+      archived: "Archived %{name}, its entries stay readable"
+      created: "Created %{name}"
+      renamed: "Renamed %{old_name} to %{name}"
+      unarchived: "Unarchived %{name}"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"
     unknown_week: "%{week} is not a week, it has to look like 2026-W39"

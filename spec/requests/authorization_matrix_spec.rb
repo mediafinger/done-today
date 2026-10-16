@@ -208,6 +208,104 @@ RSpec.describe "Authorization role matrix" do
     patch reactivate_member_path(org, colleague)
   end
 
+  row "GET /:org/projects/new", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :ok
+  } do
+    get new_project_path(org)
+  end
+
+  row "POST /:org/projects", {
+    outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :written
+  }, written: -> { org.projects.exists?(name: "Created by the matrix") } do
+    post projects_path(org), params: { project: { name: "Created by the matrix" } }
+  end
+
+  row "GET /:org/:project/edit", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :ok,
+    org_owner: :ok
+  } do
+    get edit_project_path(org, project)
+  end
+
+  row "PATCH /:org/:project (rename)", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { project.reload.name == "Renamed by the matrix" } do
+    patch project_path(org, project), params: { project: { name: "Renamed by the matrix" } }
+  end
+
+  row "PATCH /:org/:project/archive", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { project.reload.archived? } do
+    patch archive_project_path(org, project)
+  end
+
+  row "PATCH /:org/:project/unarchive", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :written,
+    org_owner: :written
+  }, written: -> { !project.reload.archived? } do
+    project.archive!
+
+    patch unarchive_project_path(org, project)
+  end
+
+  # an archived project is read-only for everybody, listed only for those who manage it
+  row "GET /:org (its projects) with P archived", {
+    outsider: :not_found, member: :hidden, observer: :hidden, participant: :hidden, project_owner: :listed,
+    org_owner: :listed
+  } do
+    project.archive!
+
+    get org_path(org)
+  end
+
+  row "GET /:org/:project archived", {
+    outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_owner: :ok, org_owner: :ok
+  } do
+    project.archive!
+
+    get project_path(org, project)
+  end
+
+  row "GET /:org/:project/days/:date/edit archived", {
+    observer: :read_only, participant: :read_only, project_owner: :read_only, org_owner: :read_only
+  } do
+    colleagues_entry # the day exists
+    project.archive!
+
+    get edit_day_path(org, project, Time.zone.today)
+  end
+
+  row "POST /:org/:project/entries archived", {
+    outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_owner: :forbidden,
+    org_owner: :forbidden
+  }, written: -> { Entry.exists?(log: "Logged by the matrix") } do
+    project.archive!
+
+    post entries_path(org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Logged by the matrix" } }
+  end
+
+  row "PATCH /:org/:project/entries/:id of their own, archived", {
+    participant: :forbidden, project_owner: :forbidden
+  }, written: -> { own_entry.reload.log == "Changed by the matrix" } do
+    own_entry
+    project.archive!
+
+    patch entry_path(org, project, own_entry), params: { entry: { log: "Changed by the matrix" } }
+  end
+
+  row "GET /:org/:project/export_csv archived", {
+    outsider: :not_found, member: :not_found, observer: :not_found, participant: :not_found,
+    project_owner: :ok, org_owner: :ok
+  } do
+    project.archive!
+
+    get export_csv_project_path(org, project, month: "2026-03")
+  end
+
   # Nothing is selected in the session: two tabs on two projects of two orgs
   #   read and write each its own, in any order.
   describe "two projects in parallel" do

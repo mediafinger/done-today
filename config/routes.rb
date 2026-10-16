@@ -39,9 +39,15 @@ Rails.application.routes.draw do
       patch :reactivate, on: :member
     end
 
+    resources :projects, only: %i[ new create ]
+
     # the org-level paths above are never a project (Project::RESERVED_SLUGS)
     scope ":project_slug" do
       get "/", to: "projects#show", as: :project
+      patch "/", to: "projects#update", as: nil
+      get "edit", to: "projects#edit", as: :edit_project
+      patch "archive", to: "projects#archive", as: :archive_project
+      patch "unarchive", to: "projects#unarchive", as: :unarchive_project
       get "validate_times", to: "projects#validate_times", as: :validate_times_project
       get "export_csv", to: "projects#export_csv", as: :export_csv_project
       get "export_days_csv", to: "projects#export_days_csv", as: :export_days_csv_project
