@@ -29,7 +29,7 @@
       <div class="left">
         <% if show_date %>
           <h3 class="entry-group-heading">
-            <%= link_to date_label(entry.day.date, with_weekday:), day_path(entry.day.date, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+            <%= link_to date_label(entry.day.date, with_weekday:), day_path(current_org, entry.day.project, entry.day.date), method: :get, class: "camouflage s-link" %>
           </h3>
         <% end %>
       </div>
@@ -39,7 +39,7 @@
       <div class="left">
         <% if show_project %>
           <h3 class="entry-group-heading">
-            <%= link_to entry.project.name, project_path(entry.day.project.slug), method: :get, class: "camouflage s-link" %>
+            <%= link_to entry.project.name, project_path(current_org, entry.day.project), method: :get, class: "camouflage s-link" %>
           </h3>
         <% end %>
       </div>
@@ -49,7 +49,7 @@
       <div class="left">
         <% if show_member %>
           <h3 class="entry-group-heading">
-            <%= link_to entry.member.name, member_entries_path(entry.member_id, project_id: @project&.id), method: :get, class: "camouflage s-link" %>
+            <%= link_to entry.member.name, member_entries_path(current_org, entry.day.project, entry.member_id), method: :get, class: "camouflage s-link" %>
           </h3>
         <% end %>
       </div>

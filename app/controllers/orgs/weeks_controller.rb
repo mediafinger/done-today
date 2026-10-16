@@ -9,7 +9,7 @@ module Orgs
       @week = monday
 
       if @week.nil?
-        return redirect_to project_path(project.slug, view: "weeks"),
+        return redirect_to project_path(current_org, project, view: "weeks"),
           alert: t("controllers.unknown_week", week: params[:week])
       end
 

@@ -6,7 +6,7 @@ RSpec.describe "Orgs::Weeks" do
   let(:member) { create(:member, org:) }
   let!(:participant) { create(:participant, project:, member:) }
 
-  before { sign_in_and_open(participant) }
+  before { sign_in(participant.member.user) }
 
   describe "GET /weeks/:week" do
     def entry_on(date, log)
@@ -14,8 +14,8 @@ RSpec.describe "Orgs::Weeks" do
       create(:entry, day:, member:, log:)
     end
 
-    def read_week(week, **params)
-      get week_path(week, project_id: project.id, **params)
+    def read_week(week)
+      get week_path(org, project, week)
       Nokogiri::HTML(response.body)
     end
 
@@ -56,8 +56,8 @@ RSpec.describe "Orgs::Weeks" do
 
       expect(arrows.map(&:text)).to eq(%w[⬅️ ➡️])
       expect(arrows.map { it["href"] }).to eq([
-        week_path("2026-W52", project_id: project.id),
-        week_path("2027-W01", project_id: project.id)
+        week_path(org, project, "2026-W52"),
+        week_path(org, project, "2027-W01")
       ])
     end
 
@@ -70,16 +70,8 @@ RSpec.describe "Orgs::Weeks" do
     it "sends a week it cannot read back to the project's weeks" do
       read_week("2026-W99")
 
-      expect(response).to redirect_to(project_path(project.slug, view: "weeks"))
+      expect(response).to redirect_to(project_path(org, project, view: "weeks"))
       expect(flash[:alert]).to eq("2026-W99 is not a week, it has to look like 2026-W39")
-    end
-
-    it "uses the current project without a project_id" do
-      entry_on("2026-09-14", "monday of w38")
-
-      get week_path("2026-W38")
-
-      expect(response.body).to include("monday of w38")
     end
   end
 end

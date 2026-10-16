@@ -38,13 +38,13 @@ module Orgs
       if saved
         redirect_to after_change_path, notice: t("controllers.members.#{done}", name: member.name)
       else
-        redirect_to members_path, alert: member.errors.full_messages.to_sentence
+        redirect_to members_path(current_org), alert: member.errors.full_messages.to_sentence
       end
     end
 
     # an owner who stepped down or deactivated themselves cannot see the list any more
     def after_change_path
-      member.id == current_member.id && !member.active_owner? ? root_path : members_path
+      member.id == current_member.id && !member.active_owner? ? root_path : members_path(current_org)
     end
   end
 end

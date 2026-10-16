@@ -5,12 +5,12 @@
   </div>
 
   <div class="center">
-    <%= link_to "weeks", project_path(@project.slug, view: "weeks"), method: :get, role: "button", class: "slim" %>
+    <%= link_to "weeks", project_path(current_org, @project, view: "weeks"), method: :get, role: "button", class: "slim" %>
   </div>
 
   <div class="right">
-    <%= link_to "⬅️", week_path(week_param(@week - 1.week), project_id: @project.id), method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", week_path(week_param(@week + 1.week), project_id: @project.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", week_path(current_org, @project, week_param(@week - 1.week)), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", week_path(current_org, @project, week_param(@week + 1.week)), method: :get, role: "button", class: "slim" %>
   </div>
 
 </div>

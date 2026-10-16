@@ -11,7 +11,7 @@
 
       <%# a full month of everybody's entries -- for an owner of the org or the project %>
       <% if exportable && view == "months" %>
-        <%= link_to "Export Month", export_csv_project_path(project.slug, month: period.start.strftime("%Y-%m")),
+        <%= link_to "Export Month", export_csv_project_path(project.org, project, month: period.start.strftime("%Y-%m")),
               method: :get, role: "button", class: "slim" %>
       <% end %>
     </h3>
@@ -19,7 +19,7 @@
     <ul>
       <% period.rows.each do |row| %>
         <li class="nude left-spacer">
-          <%= link_to row.member.name, member_entries_path(row.member, project_id: project.id), method: :get, class: "camouflage" %>
+          <%= link_to row.member.name, member_entries_path(project.org, project, row.member), method: :get, class: "camouflage" %>
           <% if row.total_minutes %>
             (<%= format_minutes(row.total_minutes) %>)
           <% end %>
@@ -27,7 +27,7 @@
           <%# the member's single days of the month %>
           <% if exportable && view == "months" %>
             <%= link_to "Export days",
-                  export_days_csv_project_path(project.slug, month: period.start.strftime("%Y-%m"), member_id: row.member.id),
+                  export_days_csv_project_path(project.org, project, month: period.start.strftime("%Y-%m"), member_id: row.member.id),
                   method: :get, role: "button", class: "slim" %>
           <% end -%>
 

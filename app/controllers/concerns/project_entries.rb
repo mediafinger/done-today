@@ -1,23 +1,16 @@
-# For the pages listing the entries of one project. `?project_id=` names any project
-#   the member may read (404 otherwise), without it the current project is shown.
+# For the pages below /:org_slug/:project_slug, which list or write that project's entries.
 #
 module ProjectEntries
   extend ActiveSupport::Concern
 
   included do
-    before_action :require_project
+    before_action :set_current_project
   end
 
   private
 
-  # nil rather than raising, `require_project` turns it into a redirect
   def project
-    @project ||=
-      if params[:project_id].present?
-        ProjectPolicy.readable(current_member).find(params[:project_id])
-      else
-        current_project
-      end
+    @project ||= current_project
   end
 
   def readable_entries

@@ -7,16 +7,14 @@
   </div>
 
   <div class="center">
-    <% if @project != current_project && policy(@project).create_entry? %>
-      <%= link_to "Switch to project '#{@project.name}' to add or edit", open_path(@project.org.slug, @project.slug), method: :get, role: "button", class: "slim" %>
-    <% elsif @project == current_project && policy(@project).create_entry? %>
-      <%= link_to "add or edit", edit_day_path(Time.zone.today), method: :get, role: "button", class: "slim" %>
+    <% if policy(@project).create_entry? %>
+      <%= link_to "add or edit", edit_day_path(current_org, @project, Time.zone.today), method: :get, role: "button", class: "slim" %>
     <% end %>
   </div>
 
   <div class="right">
-    <%= link_to "⬅️", member_entries_path(@members[index - 1], project_id: @project.id), method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", member_entries_path(@members[(index + 1) % @members.size], project_id: @project.id), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", member_entries_path(current_org, @project, @members[index - 1]), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", member_entries_path(current_org, @project, @members[(index + 1) % @members.size]), method: :get, role: "button", class: "slim" %>
   </div>
 
 </div>

@@ -1,17 +1,12 @@
 module Orgs
-  # Writes entries, always into the current project. They are read and edited on the
-  #   day, week, tag and member pages; `index` only forwards the URLs from before.
+  # Writes entries into the project of the path. They are read and edited on the
+  #   day, week, tag and member pages.
   #
   class EntriesController < AppOrgBaseController
-    include ProjectEntries # checks the `?project_id=` of the old URLs
+    include ProjectEntries
 
     # the unlock toggle of the day page comes along as `unlocked`
     before_action :set_unlocked, only: %i[ create update ]
-
-    # /entries?date=&mode=&tag=&week=&member_id=&project_id= may be bookmarked
-    def index
-      redirect_to old_url_target, status: :moved_permanently
-    end
 
     # create_params[:date] is coming from a hidden form field and contains either
     #   the day's date or the date given in the URL.
@@ -52,39 +47,6 @@ module Orgs
 
     private
 
-    # Entries go into the current project only: `?project_id=` used to pass the
-    #   project check and then fail on a missing current project.
-    #
-    def project
-      action_name == "index" ? super : current_project
-    end
-
-    def old_url_target
-      project_id = params[:project_id].presence
-
-      return tag_path(params[:tag], project_id:) if params[:tag].present?
-      return week_path(params[:week], project_id:) if params[:week].present?
-      return member_entries_path(params[:member_id], project_id:) if params[:member_id].present?
-
-      editing = params[:mode] == "edit"
-
-      # the project page lists the same entries, by day
-      return project_path(project.slug) if project_id && params[:date].blank? && !editing
-
-      if editing
-        edit_day_path(old_date, project_id:, unlocked: params[:unlocked].presence, validate: params[:validate].presence)
-      else
-        day_path(old_date, project_id:)
-      end
-    end
-
-    # an unparseable date used to show today
-    def old_date
-      Date.parse(params[:date].to_s)
-    rescue Date::Error
-      Time.zone.today
-    end
-
     # The lock on past days guards against changing them in passing. Whoever may
     #   write can lift it, by sending `unlocked` along like the unlocked page does.
     #
@@ -107,7 +69,7 @@ module Orgs
       respond_to do |format|
         format.turbo_stream { render status: saved ? :ok : :unprocessable_content }
         format.html do
-          path = edit_day_path(entry.day.date, unlocked: (@unlocked || nil))
+          path = edit_day_path(current_org, current_project, entry.day.date, unlocked: (@unlocked || nil))
 
           if saved
             redirect_to path

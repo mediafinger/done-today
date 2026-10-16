@@ -24,10 +24,9 @@ RSpec.describe "Archived members" do
 
     it "turns them away from the org" do
       sign_in(member.user)
-      get open_path(org.slug, project.slug)
+      get project_path(org, project)
 
-      expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to eq("You are not a member of this org")
+      expect(response).to have_http_status(:not_found)
     end
 
     it "still opens their other orgs and lists only those" do
@@ -35,32 +34,29 @@ RSpec.describe "Archived members" do
       other = create(:participant, member: other_member, project: create(:project, org: other_member.org))
       sign_in(member.user)
 
-      get open_path(other.org.slug, other.project.slug)
+      get project_path(other.org, other.project)
 
-      expect(response).to redirect_to(project_path(other.project.slug))
-
-      get settings_path
-
-      expect(org_switcher_links).to include(open_path(other.org.slug))
-      expect(org_switcher_links).not_to include(open_path(org.slug))
+      expect(response).to have_http_status(:ok)
+      expect(org_switcher_links).to include(org_path(other.org))
+      expect(org_switcher_links).not_to include(org_path(org))
     end
   end
 
   context "when archived while the org is open" do
     before do
-      sign_in_and_open(participant)
+      sign_in(member.user)
+      get project_path(org, project)
       member.archive!
     end
 
-    it "drops the org from the session" do
-      get projects_path
+    it "loses the org with the next request" do
+      get org_path(org)
 
-      expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to eq("Select an org first")
+      expect(response).to have_http_status(:not_found)
     end
 
     it "refuses new entries" do
-      expect { post entries_path, params: { entry: { date: Time.zone.today.iso8601, log: "Too late" } } }
+      expect { post entries_path(org, project), params: { entry: { date: Time.zone.today.iso8601, log: "Too late" } } }
         .not_to change(Entry, :count)
     end
   end
@@ -68,9 +64,11 @@ RSpec.describe "Archived members" do
   it "lets a reactivated member back in" do
     member.archive!
     member.unarchive!
-    sign_in_and_open(participant)
+    sign_in(member.user)
 
-    expect(response).to redirect_to(project_path(project.slug))
+    get project_path(org, project)
+
+    expect(response).to have_http_status(:ok)
   end
 
   context "with a colleague reading the project" do
@@ -78,17 +76,17 @@ RSpec.describe "Archived members" do
       member.update!(name: "Archie")
       create(:entry, member:, day: create(:day, project:, date: Date.new(2026, 3, 2)), log: "Archived work")
       member.archive!
-      sign_in_and_open(create(:participant, :owner, project:))
+      sign_in(create(:participant, :owner, project:).member.user)
     end
 
     it "still shows the archived member's entries" do
-      get project_path(project.slug)
+      get project_path(org, project)
 
       expect(response.body).to include("Archived work")
     end
 
     it "still exports them" do
-      get export_csv_project_path(project.slug, month: "2026-03")
+      get export_csv_project_path(org, project, month: "2026-03")
 
       expect(response.body).to include("Archie")
     end

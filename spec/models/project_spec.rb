@@ -37,5 +37,21 @@ RSpec.describe Project do
       expect(other).not_to be_valid
       expect(other.errors[:slug]).to be_present
     end
+
+    it "is the URL param" do
+      expect(create(:project, name: "Web Site").to_param).to eq("web-site")
+    end
+
+    # /:org/members and /:org/settings sit where /:org/:project would
+    it "steers clear of the org-level paths" do
+      expect(create(:project, name: "Members").slug).to match(/\Amembers-\d+\z/)
+    end
+
+    it "refuses a reserved word set by hand" do
+      project = create(:project)
+
+      expect(project.update(slug: "settings")).to be(false)
+      expect(project.errors[:slug]).to be_present
+    end
   end
 end

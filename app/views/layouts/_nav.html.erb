@@ -20,7 +20,7 @@
     <div class="right zup">
       <% if current_user %>
         <%= link_to "👤", edit_user_path, role: "button", class: "slim", title: "Account", aria: { label: "Account" } %>
-        <%= link_to "⚙", settings_path, method: :get, role: "button", class: "slim" %>
+        <%= link_to "⚙", current_org ? org_settings_path(current_org) : settings_path, method: :get, role: "button", class: "slim" %>
       <% end %>
     </div>
 

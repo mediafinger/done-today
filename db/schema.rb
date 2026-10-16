@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -113,13 +113,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
-    t.uuid "org_id"
-    t.uuid "project_id"
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.uuid "user_id", null: false
-    t.index ["org_id"], name: "index_sessions_on_org_id"
-    t.index ["project_id"], name: "index_sessions_on_project_id"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
@@ -147,7 +143,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_150000) do
   add_foreign_key "participants", "projects"
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
-  add_foreign_key "sessions", "orgs"
-  add_foreign_key "sessions", "projects"
   add_foreign_key "sessions", "users"
 end

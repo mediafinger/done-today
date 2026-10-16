@@ -1,8 +1,6 @@
-<!-- TODO: ensure this page works without current_org / current_member or current_project -->
+<%# /settings, and /:org_slug/settings, which adds the org's part %>
 
-<% if current_user %>
-  <%= button_to "Logout", session_path, method: :delete, role: "button", class: "slim" %>
-<% end %>
+<%= button_to "Logout", session_path, method: :delete, role: "button", class: "slim" %>
 
 <h2>Settings</h2>
 
@@ -10,36 +8,29 @@
   <li> User name: <b><%= current_user.name %></b></li>
   <% if current_org %>
     <li>
-      Selected org: <b><%= current_org.name %></b>
+      Org: <b><%= current_org.name %></b>
       <% if policy(Member).index? %>
-        (<%= link_to "manage members", members_path %>)
+        (<%= link_to "manage members", members_path(current_org) %>)
       <% end %>
     </li>
-  <% end %>
-  <% if current_member %>
     <li>Participant of projects: <b><%= current_member.projects.pluck(:name).join(", ") %></b></li>
-  <% end %>
-  <% if current_project %>
-    <li> Current project: <b><%= current_project.name %></b></li>
   <% end %>
 </ul>
 
-<% if current_project %>
-  <h2>All members of current project '<%= current_project.name %>'</h2>
-
-  <ul>
-    <% current_project.members.each do |member| %>
-      <li><%= link_to member.name, member_entries_path(member, project_id: current_project.id), method: :get %></li>
-    <% end %>
-  </ul>
-<% end %>
-
 <% if current_org %>
-  <h2>Projects of current organization '<%= current_org.name %>'</h2>
+  <h2>Projects of '<%= current_org.name %>'</h2>
 
   <ul>
     <% @projects.each do |project| %>
-      <li><%= link_to project.name, project_path(project.slug), method: :get %></li>
+      <li><%= link_to project.name, project_path(current_org, project), method: :get %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <h2>Orgs</h2>
+
+  <ul>
+    <% @orgs.each do |org| %>
+      <li><%= link_to org.name, org_settings_path(org), method: :get %></li>
     <% end %>
   </ul>
 <% end %>

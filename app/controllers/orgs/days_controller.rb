@@ -22,9 +22,8 @@ module Orgs
       @day = project.days.find_by(date: @date) || project.days.build(org: current_org, date: @date)
       @new_entry = Entry.new(org: current_org, member: current_member, day: @day)
 
-      # observers, org owners who do not participate, and anyone looking at another
-      #   than the current project (entries are created there) read the day instead
-      writable = project == current_project && policy(project).create_entry?
+      # observers and org owners who do not participate read the day instead
+      writable = policy(project).create_entry?
 
       # a past day is read-only until it is unlocked on purpose
       @unlockable = writable && @date.past?
