@@ -248,6 +248,45 @@ RSpec.describe "Orgs::Tags" do
       end
     end
 
+    context "with one participant" do
+      before do
+        entry_on("2026-10-05", "#call for~40m")
+        entry_on("2026-10-05", "#review for~30m")
+        entry_on("2026-10-06", "#call for~1h", by: colleague)
+        entry_on("2026-10-07", "#retro for~1h", by: colleague)
+      end
+
+      it "sums only that participant's tag times, by tag" do
+        page = read_tag_times("2026-10", member_id: colleague.id)
+
+        expect(page.at_css(".spacing-grid h2").text).to include(colleague.name)
+        expect(table(page)).to eq([ [ [ "#call", "1h" ] ], [ [ "#retro", "1h" ] ] ])
+      end
+
+      it "is linked from each participant's name in the report of everyone" do
+        links = read_tag_times("2026-10").css("#tag-times tbody td a")
+
+        expect(links.map { [ it.text, it["href"] ] }.uniq).to contain_exactly(
+          [ "anna", tags_path(org, project, month: "2026-10", member_id: member.id) ],
+          [ "Bert", tags_path(org, project, month: "2026-10", member_id: colleague.id) ]
+        )
+      end
+
+      it "keeps the participant when switching periods, and links back to everyone" do
+        page = read_tag_times("2026-03", member_id: colleague.id)
+        hrefs = page.css(".spacing-grid .right a, #period-kinds a").map { it["href"] }
+
+        expect(hrefs).to all(include("member_id=#{colleague.id}"))
+        expect(page.at_css("#everyone")["href"]).to eq(tags_path(org, project, month: "2026-03"))
+      end
+
+      it "doesn't know members of other orgs" do
+        get tags_path(org, project, member_id: create(:member).id)
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     it "is linked from the project page" do
       get project_path(org, project)
 

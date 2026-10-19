@@ -9,18 +9,19 @@ module Orgs
     before_action { authorize! project, to: :show? }
 
     # Each tag's time in a period (ReportPeriod), from the durations on its lines (EntryLog#timed_tag).
+    #   `?member_id=` narrows it down to one member.
     def index
+      @member = current_org.members.find(params[:member_id]) if params[:member_id].present?
       @period = ReportPeriod.from_params(params, today: Time.zone.today)
 
       if @period.nil?
         kind = ReportPeriod.kind_in(params)
 
-        return redirect_to tags_path(current_org, project), alert: t("controllers.unknown_#{kind}", kind => params[kind])
+        return redirect_to tags_path(current_org, project, member_id: @member&.id), alert: t("controllers.unknown_#{kind}", kind => params[kind])
       end
 
-      @tag_times = TagTimes.new(
-        authorized_scope(Entry.all).joins(:day).where(days: { project_id: project.id, date: @period.range })
-      )
+      entries = authorized_scope(Entry.all).joins(:day).where(days: { project_id: project.id, date: @period.range })
+      @tag_times = TagTimes.new(@member ? entries.where(member: @member) : entries)
     end
 
     def show
