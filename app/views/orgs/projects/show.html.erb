@@ -10,6 +10,7 @@
           class: "slim #{'btn-inactive' unless view == @view}", aria: { current: ("page" if view == @view) } %>
   <% end %>
 
+  <%= link_to "tag times", tags_path(current_org, @project), method: :get, role: "button", class: "slim" %>
   <%= link_to "validate times", validate_times_project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
 
   <% if @manageable %>

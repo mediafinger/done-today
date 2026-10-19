@@ -1,0 +1,47 @@
+<div class="spacing-grid" style="margin-bottom: 0.5rem;">
+
+  <div class="left">
+    <h2> <%= @project.name %> tag times <%= @month.strftime("%Y-%m") %> </h2>
+  </div>
+
+  <div class="center">
+    <%= link_to "project", project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+  </div>
+
+  <div class="right">
+    <%= link_to "⬅️", tags_path(current_org, @project, month: @month.prev_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", tags_path(current_org, @project, month: @month.next_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
+  </div>
+
+</div>
+
+<% if @tag_times.rows.any? %>
+  <div class="overflow-auto">
+    <table id="tag-times">
+      <thead>
+        <tr>
+          <th scope="col">Tag</th>
+          <th scope="col">Who</th>
+          <th scope="col">Time</th>
+        </tr>
+      </thead>
+      <% @tag_times.rows.each do |row| %>
+        <tbody>
+          <tr>
+            <th scope="rowgroup" rowspan="<%= row.members.size + 1 %>"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
+            <td>Total</td>
+            <td><strong><%= format_minutes(row.minutes) %></strong></td>
+          </tr>
+          <% row.members.each do |member, minutes| %>
+            <tr>
+              <td><%= member.name %></td>
+              <td><%= format_minutes(minutes) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      <% end %>
+    </table>
+  </div>
+<% else %>
+  <p>No tag times in <%= @month.strftime("%Y-%m") %>. A duration counts for the one #tag on its line, like <code>#call for~40m</code>.</p>
+<% end %>
