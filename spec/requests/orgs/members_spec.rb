@@ -57,6 +57,20 @@ RSpec.describe "Orgs::Members" do
       expect(response.body).not_to include("Stranger")
     end
 
+    it "links the org's tag times" do
+      get members_path(org)
+
+      expect(page.at_css("#org-tag-times")["href"]).to eq(org_tags_path(org))
+    end
+
+    it "doesn't link the org's tag times for a member" do
+      sign_in(colleague.user)
+
+      get members_path(org)
+
+      expect(page.at_css("#org-tag-times")).to be_nil
+    end
+
     it "is linked from the settings page" do
       get org_settings_path(org)
 
