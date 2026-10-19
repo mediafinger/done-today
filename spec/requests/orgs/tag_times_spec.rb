@@ -1,4 +1,5 @@
 require "rails_helper"
+require "csv"
 
 RSpec.describe "Orgs::TagTimes" do
   let(:org) { create(:org) }
@@ -119,6 +120,49 @@ RSpec.describe "Orgs::TagTimes" do
         get org_tags_path(org, member_id: create(:member).id)
 
         expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    describe "as CSV" do
+      before do
+        entry_on("2026-10-05", "#call for~40m")
+        entry_on("2026-10-06", "#call for~1h", project: mobile)
+        entry_on("2026-10-07", "#retro for~20m", by: bert)
+        entry_on("2026-11-02", "#call for~2h")
+      end
+
+      def export(**params)
+        get org_tags_path(org, format: :csv, **params)
+        CSV.parse(response.body, headers: true)
+      end
+
+      it "sends the period, a line per tag, member and project" do
+        rows = export(month: "2026-10")
+
+        expect(response.media_type).to eq("text/csv")
+        expect(response.headers["Content-Disposition"]).to include("#{org.name.parameterize}_tag-times_2026-10.csv")
+        expect(rows.map { it.to_h.values_at("project", "period", "tag", "member", "minutes") }).to eq([
+          [ "Mobile", "2026-10", "#call", "anna", "60" ],
+          [ "Website", "2026-10", "#call", "anna", "40" ],
+          [ "Website", "2026-10", "#retro", "Bert", "20" ]
+        ])
+      end
+
+      it "sends one member's lines, named after them" do
+        rows = export(month: "2026-10", member_id: bert.id)
+
+        expect(response.headers["Content-Disposition"]).to include("_bert_tag-times_2026-10.csv")
+        expect(rows.map { it["member"] }).to eq([ "Bert" ])
+      end
+
+      it "is linked from the report, for the period and member shown" do
+        everyone = read_tag_times(week: "2026-W42").at_css("#export-csv")["href"]
+        one = read_tag_times(month: "2026-10", member_id: bert.id).at_css("#export-csv")["href"]
+
+        expect([ everyone, one ]).to eq([
+          org_tags_path(org, week: "2026-W42", format: :csv),
+          org_tags_path(org, month: "2026-10", member_id: bert.id, format: :csv)
+        ])
       end
     end
 

@@ -349,6 +349,13 @@ RSpec.describe "Authorization role matrix" do
     get org_tags_path(org, month: "2026-10", member_id: colleague.id)
   end
 
+  row "GET /:org/tags.csv", {
+    **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
+    org_owner: :ok
+  } do
+    get org_tags_path(org, month: "2026-10", format: :csv)
+  end
+
   row "GET /:org/:project", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_lead: :ok, org_owner: :ok
   } do

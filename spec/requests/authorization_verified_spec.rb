@@ -112,7 +112,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
 
   # actions answering in another format too, each one a request of its own
   def self.formats(controller, action)
-    { "orgs/tags#index" => %w[csv] }.fetch("#{controller}##{action}", [])
+    { "orgs/tags#index" => %w[csv], "orgs/tag_times#index" => %w[csv] }.fetch("#{controller}##{action}", [])
   end
 
   app_routes.each do |verb, spec, controller, action|
