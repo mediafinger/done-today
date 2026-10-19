@@ -21,6 +21,7 @@ class Project < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :org_id }
   validates :slug, uniqueness: { scope: :org_id }
+  validates :times_required, inclusion: [ true, false ]
 
   def archived?
     archived_at.present?
