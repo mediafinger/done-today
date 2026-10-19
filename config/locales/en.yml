@@ -87,3 +87,4 @@ en:
       updated: "%{name} is now %{role}"
     unknown_month: "%{month} is not a month, it has to look like 2026-09"
     unknown_week: "%{week} is not a week, it has to look like 2026-W39"
+    unknown_year: "%{year} is not a year, it has to look like 2026"

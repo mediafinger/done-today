@@ -1,7 +1,7 @@
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
   <div class="left">
-    <h2> <%= @project.name %> tag times <%= @month.strftime("%Y-%m") %> </h2>
+    <h2> <%= @project.name %> tag times <%= @period.label %> </h2>
   </div>
 
   <div class="center">
@@ -9,10 +9,18 @@
   </div>
 
   <div class="right">
-    <%= link_to "⬅️", tags_path(current_org, @project, month: @month.prev_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", tags_path(current_org, @project, month: @month.next_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", tags_path(current_org, @project, **@period.previous.param), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", tags_path(current_org, @project, **@period.following.param), method: :get, role: "button", class: "slim" %>
   </div>
 
+</div>
+
+<div id="period-kinds" class="project-views">
+  <% ReportPeriod::KINDS.each do |kind| %>
+    <% current = kind == @period.kind %>
+    <%= link_to kind, tags_path(current_org, @project, **@period.as(kind, today: Time.zone.today).param), method: :get, role: "button",
+          class: "slim #{'btn-inactive' unless current}", aria: { current: ("page" if current) } %>
+  <% end %>
 </div>
 
 <% if @tag_times.rows.any? %>
@@ -43,5 +51,5 @@
     </table>
   </div>
 <% else %>
-  <p>No tag times in <%= @month.strftime("%Y-%m") %>. A duration counts for the one #tag on its line, like <code>#call for~40m</code>.</p>
+  <p>No tag times in <%= @period.label %>. A duration counts for the one #tag on its line, like <code>#call for~40m</code>.</p>
 <% end %>
