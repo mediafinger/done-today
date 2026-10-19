@@ -1,6 +1,7 @@
 # Checks a day's entries for time markup that cannot add up: syntax the parser had
-# to give up on, a start@ without its end@, a total no day can hold, time that is
-# still todo. A day without any time markup only counts when the project requires times.
+# to give up on, a start@ without its end@, a total no day can hold, tag times
+# beyond the total, time that is still todo. A day without any time markup only
+# counts when the project requires times.
 #
 # The parser already reports what it found wrong inside a single log (EntryLog#issues);
 # this adds what only becomes visible with the whole day in view. Every member of the
@@ -80,7 +81,7 @@ class TimeValidation
       return [ Issue.new(code: :no_times, message: "no time information given", member:, entry: nil) ]
     end
 
-    boundary_issues(member, timed) + total_issues(member, member_entries) +
+    boundary_issues(member, timed) + total_issues(member, member_entries) + tag_time_issues(member, member_entries) +
       past_end_issues(member, member_entries) + todo_issues(member, timed)
   end
 
@@ -114,6 +115,20 @@ class TimeValidation
                              "longer than the #{TimeSummary.format_minutes(summary.end_minutes - summary.start_minutes)} " \
                              "between #{TimeSummary.format_clock(summary.start_minutes)} and " \
                              "#{TimeSummary.format_clock(summary.end_minutes)}", member, nil) ]
+  end
+
+  # Tag times are for reports and never feed the total, but more of them than the
+  #   day's working time cannot all be right. A negative day is reported already.
+  #
+  def tag_time_issues(member, member_entries)
+    net = TimeSummary.new(member_entries).net_minutes
+    return [] if net.nil? || net.negative?
+
+    tagged = member_entries.sum { |entry| entry.parsed.timed_tag ? entry.parsed.duration_minutes : 0 }
+    return [] unless tagged > net
+
+    [ issue(:tags_exceed_day, "the tag times add up to #{TimeSummary.format_minutes(tagged)}, " \
+                              "more than the #{TimeSummary.format_minutes(net)} working time", member, nil) ]
   end
 
   # An entry that starts at a time and runs for a duration finishes at a time, and
