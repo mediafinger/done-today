@@ -179,10 +179,8 @@ RSpec.describe "Orgs::Days" do
 
       box = validate_day.at_css("#time-issues")
 
-      expect(box.css("li").map { it.text.squish }).to eq([
-        "#{member.name} for~40h exceeds 24h",
-        "#{member.name} end@24:00 for~40h is still marked as todo"
-      ])
+      expect(box.css("li").map { it["data-code"] }).to eq(%w[over_a_day tags_exceed_day todo_time])
+      expect(box.at_css("li").text.squish).to eq("#{member.name} for~40h exceeds 24h")
       expect(response.body.index("time-issues")).to be < response.body.index(%(id="editable-entries"))
     end
 

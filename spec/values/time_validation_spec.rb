@@ -143,6 +143,49 @@ RSpec.describe TimeValidation do
     end
   end
 
+  describe "tag times beyond the working time" do
+    let(:day_of_3h) { [ entry("start@09:00"), entry("end@12:00") ] }
+
+    it "reports tag times that add up to more than the day's total" do
+      expect(codes(day_of_3h, entry("#call for~2h"), entry("#review from@10:00 to@11:30"))).to eq(%i[tags_exceed_day])
+      expect(codes(day_of_3h, entry("#call for~2h"), entry("#call for~1h30"))).to eq(%i[tags_exceed_day])
+    end
+
+    it "points at the day, not at an entry" do
+      issue = described_class.new([ day_of_3h, entry("#call for~4h") ].flatten).issues.first
+
+      expect(issue).to have_attributes(code: :tags_exceed_day, entry: nil)
+    end
+
+    it "accepts tag times that fill the day exactly" do
+      expect(codes(day_of_3h, entry("#call for~2h"), entry("#review for~1h"))).to be_empty
+    end
+
+    it "subtracts the breaks from the day first" do
+      expect(codes(day_of_3h, entry("#break for~30m"), entry("#call for~2h45m"))).to eq([ :tags_exceed_day ])
+    end
+
+    it "counts a todo entry, as the total does" do
+      expect(codes(day_of_3h, entry("#call for~4h", status: "todo"))).to eq(%i[tags_exceed_day todo_time])
+    end
+
+    it "leaves out durations that count for no tag" do
+      found = codes(day_of_3h, entry("#a #b for~4h"), entry("for~4h"), entry("#break #lunch from@09:00 for~1h"))
+
+      expect(found).not_to include(:tags_exceed_day)
+    end
+
+    it "says nothing while the day has no total" do
+      expect(codes(entry("start@09:00"), entry("#call for~10h"))).to eq([ :missing_end ])
+    end
+
+    it "sums each member's tag times against their own total" do
+      bert = create(:member, org: day.org, name: "bert")
+
+      expect(codes(day_of_3h, entry("#call for~2h"), entry("#call for~2h", by: bert))).not_to include(:tags_exceed_day)
+    end
+  end
+
   describe "an entry that runs past the end of the day" do
     it "reports a from@ whose duration reaches beyond end@" do
       expect(messages(entry("start@12:00"), entry("end@18:00"), entry("#break from@15:00 for~400m")))
