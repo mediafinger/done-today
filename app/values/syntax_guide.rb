@@ -58,6 +58,11 @@ class SyntaxGuide
       parsed: { duration_minutes: 90 }
     ),
     Example.new(
+      markup: "for~", log: "#Planning for~1h30",
+      meaning: "The same. After whole hours, two digits from 00 to 59 are the minutes.",
+      parsed: { duration_minutes: 90 }
+    ),
+    Example.new(
       markup: "for~", log: "#CodeReview for~45m",
       meaning: "Minutes only.",
       parsed: { duration_minutes: 45 }
@@ -89,6 +94,16 @@ class SyntaxGuide
     Example.new(
       markup: nil, log: "Planning for~90",
       meaning: "A duration needs its unit, h or m. A typo stays in the text and is listed as an issue above your entries.",
+      parsed: { duration_minutes: nil, issues: %i[invalid_duration] }
+    ),
+    Example.new(
+      markup: nil, log: "Planning for~1h5",
+      meaning: "Minutes without a unit need two digits: for~1h05 or for~1h5m.",
+      parsed: { duration_minutes: nil, issues: %i[invalid_duration] }
+    ),
+    Example.new(
+      markup: nil, log: "Planning for~1h75",
+      meaning: "An hour has no 75 minutes, with or without the m. Write for~2h15, for~2h15m or for~135m.",
       parsed: { duration_minutes: nil, issues: %i[invalid_duration] }
     ),
     Example.new(
