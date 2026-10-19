@@ -144,6 +144,33 @@ RSpec.describe EntryLog do
     end
   end
 
+  describe "#timed_tag" do
+    it "is the tag on the same line as the duration" do
+      expect(parse("#call for~40m").timed_tag).to eq("call")
+      expect(parse("from@10:00 to@11:00 #KickOffMeeting").timed_tag).to eq("kickoffmeeting")
+      expect(parse("#review #Review for~1h").timed_tag).to eq("review")
+    end
+
+    it "is nil without a duration" do
+      expect(parse("#call with the client").timed_tag).to be_nil
+      expect(parse("#call from@10:00").timed_tag).to be_nil
+      expect(parse("#call for~0m").timed_tag).to be_nil
+    end
+
+    it "is nil when several tags share the duration" do
+      expect(parse("for~1h30 #presenting #kickoff #PR123").timed_tag).to be_nil
+    end
+
+    it "is nil on a #break line, as #break marks the day and is no reporting tag" do
+      expect(parse("#break for~30m").timed_tag).to be_nil
+      expect(parse("#break #lunch for~30m").timed_tag).to be_nil
+    end
+
+    it "is nil when the duration has no tag" do
+      expect(parse("Call with the client for~30m").timed_tag).to be_nil
+    end
+  end
+
   describe "issues" do
     def codes(text, **) = parse(text, **).issues.map(&:code)
 
@@ -253,18 +280,18 @@ RSpec.describe EntryLog do
     end
 
     it "does not report an open range when for~ closes it" do
-      expect(codes("from@11:00 for~30m")).to be_empty
+      expect(codes("#call from@11:00 for~30m")).to be_empty
     end
 
     it "reports a for~ that disagrees with the from@/to@ span, and lets the range win" do
-      log = parse("from@11:00 to@12:00 for~30m")
+      log = parse("#call from@11:00 to@12:00 for~30m")
 
       expect(log.issues.map(&:code)).to eq([ :conflicting_duration ])
       expect(log.duration_minutes).to eq(60)
     end
 
     it "stays quiet when for~ and the range agree" do
-      expect(codes("from@11:00 to@12:00 for~1h")).to be_empty
+      expect(codes("#call from@11:00 to@12:00 for~1h")).to be_empty
     end
 
     it "reports to@ earlier than from@ as a negative range and stores no duration" do
@@ -286,6 +313,39 @@ RSpec.describe EntryLog do
 
       expect(log.issues.map(&:code)).to eq([ :duplicate_marker ])
       expect(log.day_start_minutes).to eq(540)
+    end
+
+    it "warns when several tags share a duration, which then counts for none of them" do
+      log = parse("for~1h30 #presenting #kickoff #PR123")
+
+      expect(log.issues.map(&:code)).to eq([ :ambiguous_tag_time ])
+      expect(log.issues.first.severity).to eq(:warning)
+      expect(log.issues.first.message).to eq("1h30m has several tags (#presenting #kickoff #pr123), it is counted for none of them")
+    end
+
+    it "warns when a #break line carries other tags, which the break does not count for" do
+      log = parse("#break #lunch for~30m")
+
+      expect(log.issues.map(&:code)).to eq([ :break_with_tag ])
+      expect(log.issues.first.severity).to eq(:warning)
+      expect(log.issues.first.message).to eq("the 30m #break is not counted for #lunch")
+      expect(codes("#break #lunch #food from@12:00 to@13:00")).to eq([ :break_with_tag ])
+    end
+
+    it "hints at a forgotten tag when a duration has none" do
+      log = parse("Call with the client from@11:00 to@12:30")
+
+      expect(log.issues.map(&:code)).to eq([ :untagged_duration ])
+      expect(log.issues.first.severity).to eq(:info)
+      expect(log.issues.first.message).to eq("1h30m has no #tag, is one missing?")
+    end
+
+    it "says nothing about tags without a duration, or for a single tag or a plain #break" do
+      expect(codes("#a #b notes")).to be_empty
+      expect(codes("#break #lunch from@12:00")).to eq([ :open_range ])
+      expect(codes("#call for~40m")).to be_empty
+      expect(codes("#break for~30m")).to be_empty
+      expect(codes("start@09:00 end@17:00")).to be_empty
     end
 
     it "carries a human readable message on every issue" do

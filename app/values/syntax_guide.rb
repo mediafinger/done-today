@@ -48,9 +48,9 @@ class SyntaxGuide
       parsed: { day_end_minutes: (17 * 60) + 30 }
     ),
     Example.new(
-      markup: "from@ to@", log: "Call with the client from@11:00 to@12:30",
-      meaning: "A time range. It lasts 1h30m.",
-      parsed: { from_minutes: 11 * 60, to_minutes: (12 * 60) + 30, duration_minutes: 90 }
+      markup: "from@ to@", log: "#Call with the client from@11:00 to@12:30",
+      meaning: "A time range. It lasts 1h30m and counts for #call.",
+      parsed: { from_minutes: 11 * 60, to_minutes: (12 * 60) + 30, duration_minutes: 90, timed_tag: "call" }
     ),
     Example.new(
       markup: "for~", log: "#Planning for~1h30m",
@@ -73,6 +73,21 @@ class SyntaxGuide
       parsed: { duration_minutes: 150 }
     ),
     Example.new(
+      markup: "#tag for~", log: "#call for~40m",
+      meaning: "40m for #call. A time counts for the tag on its own line, and never changes the working time.",
+      parsed: { duration_minutes: 40, timed_tag: "call" }
+    ),
+    Example.new(
+      markup: "#tag for~", log: "from@10:00 to@11:00 #KickOffMeeting",
+      meaning: "1h for #kickoffmeeting. Tags are shown in lowercase.",
+      parsed: { duration_minutes: 60, timed_tag: "kickoffmeeting" }
+    ),
+    Example.new(
+      markup: "#tag for~", log: "for~1h30 #presenting #kickoff #PR123",
+      meaning: "Several tags on one line with a time: it counts for none of them, and the line is listed as an issue.",
+      parsed: { duration_minutes: 90, timed_tag: nil, issues: %i[ambiguous_tag_time] }
+    ),
+    Example.new(
       markup: "#break", log: "#break for~30m",
       meaning: "A break. Its duration is subtracted from the time between start@ and end@.",
       parsed: { tags: %w[break], duration_minutes: 30 }
@@ -81,6 +96,11 @@ class SyntaxGuide
       markup: "#break", log: "#break from@12:30 to@13:00",
       meaning: "The same break, as a time range.",
       parsed: { tags: %w[break], duration_minutes: 30 }
+    ),
+    Example.new(
+      markup: "#break", log: "#break #lunch for~30m",
+      meaning: "A break as well. #break is no tag for times, so the 30m are not counted for #lunch, and the line is listed as an issue.",
+      parsed: { tags: %w[break lunch], duration_minutes: 30, timed_tag: nil, issues: %i[break_with_tag] }
     )
   ].freeze
 

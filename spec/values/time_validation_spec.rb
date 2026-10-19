@@ -18,7 +18,7 @@ RSpec.describe TimeValidation do
 
   describe "a day that adds up" do
     it "reports nothing" do
-      entries = [ entry("start@09:00"), entry("#break for~30m"), entry("from@10:00 to@11:00 review"), entry("end@17:30") ]
+      entries = [ entry("start@09:00"), entry("#break for~30m"), entry("from@10:00 to@11:00 #review"), entry("end@17:30") ]
 
       expect(messages(entries)).to be_empty
     end
@@ -101,7 +101,7 @@ RSpec.describe TimeValidation do
     end
 
     it "accepts a from@ closed by a for~" do
-      expect(messages(entry("start@09:00 from@11:00 for~30m end@17:00"))).to be_empty
+      expect(messages(entry("start@09:00 #call from@11:00 for~30m end@17:00"))).to be_empty
     end
 
     it "reports a to@ without a from@" do
@@ -155,7 +155,7 @@ RSpec.describe TimeValidation do
     end
 
     it "accepts an entry that finishes exactly at end@" do
-      expect(messages(entry("start@09:00"), entry("end@17:00"), entry("from@16:00 for~60m review"))).to be_empty
+      expect(messages(entry("start@09:00"), entry("end@17:00"), entry("from@16:00 for~60m #review"))).to be_empty
     end
 
     it "says nothing about a bare for~, which gives no finishing time" do
@@ -165,7 +165,7 @@ RSpec.describe TimeValidation do
     end
 
     it "says nothing while the day has no end@ yet" do
-      expect(messages(entry("start@09:00"), entry("from@16:00 for~600m review")))
+      expect(messages(entry("start@09:00"), entry("from@16:00 for~600m #review")))
         .to eq([ "start@09:00 has no end@" ])
     end
   end

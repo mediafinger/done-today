@@ -61,6 +61,9 @@ class EntryLog
 
   TIME_KINDS = { "start" => :start, "end" => :end, "from" => :from, "to" => :to }.freeze
 
+  # Marks a break of the working day, never a tag that times are reported for.
+  BREAK_TAG = "break"
+
   attr_reader :text, :segments, :issues,
               :day_start_minutes, :day_end_minutes, :from_minutes, :to_minutes, :duration_minutes
 
@@ -77,6 +80,14 @@ class EntryLog
 
   def tags
     @tags ||= segments.filter_map { |type, name, _raw| name.downcase if type == :tag }.uniq
+  end
+
+  # The tag this line's duration counts for in reports: the only tag on a line with a
+  #   duration. Never part of the day total, which is start@, end@ and #break alone.
+  def timed_tag
+    return nil unless duration_minutes && tags.exclude?(BREAK_TAG)
+
+    tags.first if tags.one?
   end
 
   # True when the log carries markup only -- `start@09:00`, or `#break for~30m` --
@@ -178,6 +189,7 @@ class EntryLog
     @to_minutes = single(:to)
     @duration_minutes = resolve_duration
     check_open_range
+    check_tag_time
   end
 
   def times
@@ -233,6 +245,23 @@ class EntryLog
     return if to_minutes || times.any? { |kind, _minutes| kind == :for }
 
     add_issue(:open_range, on_past_day ? :warning : :info, "from@ has no to@ or for~ yet")
+  end
+
+  # A duration counts for a tag only when it is the line's one tag besides #break.
+  def check_tag_time
+    return unless duration_minutes
+
+    others = tags - [ BREAK_TAG ]
+    time = TimeSummary.format_minutes(duration_minutes)
+    named = others.map { "##{it}" }.join(" ")
+
+    if tags.include?(BREAK_TAG)
+      add_issue(:break_with_tag, :warning, "the #{time} #break is not counted for #{named}") if others.any?
+    elsif others.many?
+      add_issue(:ambiguous_tag_time, :warning, "#{time} has several tags (#{named}), it is counted for none of them")
+    elsif others.none?
+      add_issue(:untagged_duration, :info, "#{time} has no #tag, is one missing?")
+    end
   end
 
   def add_issue(code, severity, message)
