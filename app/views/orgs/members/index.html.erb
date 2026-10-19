@@ -1,5 +1,9 @@
 <h2>Members of <%= current_org.name %></h2>
 
+<% if allowed_to?(:read_tag_times_report?, current_org) %>
+  <p><%= link_to "tag times", org_tags_path(current_org), id: "org-tag-times", method: :get, role: "button", class: "slim" %></p>
+<% end %>
+
 <% if @can_manage %>
   <%= render "invitations" %>
 <% end %>

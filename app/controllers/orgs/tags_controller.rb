@@ -5,32 +5,13 @@ module Orgs
   #
   class TagsController < AppOrgBaseController
     include ProjectEntries
+    include TagTimesReport
 
     before_action { authorize! project, to: :show? }
 
-    # Each tag's time in a period (ReportPeriod), from the durations on its lines (EntryLog#timed_tag).
-    #   `?member_id=` narrows it down to one member. As CSV with `.csv` (TagTimesExport).
+    # Each tag's time in a period, from the durations on its lines (EntryLog#timed_tag), see TagTimesReport
     def index
-      @member = current_org.members.find(params[:member_id]) if params[:member_id].present?
-      @period = ReportPeriod.from_params(params, today: Time.zone.today)
-
-      if @period.nil?
-        kind = ReportPeriod.kind_in(params)
-
-        return redirect_to tags_path(current_org, project, member_id: @member&.id), alert: t("controllers.unknown_#{kind}", kind => params[kind])
-      end
-
-      entries = authorized_scope(Entry.all).joins(:day).where(days: { project_id: project.id, date: @period.range })
-      entries = entries.where(member: @member) if @member
-
-      respond_to do |format|
-        format.html { @tag_times = TagTimes.new(entries) }
-        format.csv do
-          export = TagTimesExport.new(entries:, org: current_org, period: @period, project:, member: @member)
-
-          send_data export.to_csv, filename: export.filename, type: "text/csv"
-        end
-      end
+      tag_times_report(authorized_scope(Entry.all).joins(:day).where(days: { project_id: project.id }), project:)
     end
 
     def show

@@ -47,7 +47,8 @@ The project utilizes custom cookie-based signed session handling modeled after s
 The app supports multi-tenant organization boundaries and project selection:
 - Thread-safe globals are stored using ActiveSupport's `CurrentAttributes` in the [Current](file:///Users/andy/Dropbox/www/2025/done_today/app/models/current.rb) model.
 - Org and project are part of the path, nothing is selected in the session: `/:org_slug` (the org's projects),
-  `/:org_slug/settings`, `/:org_slug/members`, `/:org_slug/:project_slug` (the project page) and below it
+  `/:org_slug/settings`, `/:org_slug/members`, `/:org_slug/tags` (time per tag across all projects, org managers and owners only),
+  `/:org_slug/:project_slug` (the project page) and below it
   `days/2026-10-15(/edit)`, `weeks/2026-W42`, `tags?month=2026-10` (time per tag, `tags.csv?month=2026-10` as CSV), `tags/:tag`, `members/:id/entries`, `entries`.
   `Sluggable::RESERVED_SLUGS` keeps org and project slugs clear of the app's paths, one list for both levels.
 - Scoping concerns load the context from the path on each request:
