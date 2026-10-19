@@ -9,6 +9,7 @@
     <% if @member %>
       <%= link_to "everyone", tag_times_path(@project, @period), id: "everyone", method: :get, role: "button", class: "slim" %>
     <% end %>
+    <%= link_to "Export CSV", tag_times_path(@project, @period, member: @member, format: :csv), id: "export-csv", method: :get, role: "button", class: "slim" %>
   </div>
 
   <div class="right">

@@ -110,15 +110,23 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
   # /dev is routed in development only
   before { allow(DevConstraint).to receive(:matches?).and_return(true) }
 
+  # actions answering in another format too, each one a request of its own
+  def self.formats(controller, action)
+    { "orgs/tags#index" => %w[csv] }.fetch("#{controller}##{action}", [])
+  end
+
   app_routes.each do |verb, spec, controller, action|
-    it "#{verb} #{spec} (#{controller}##{action})" do
-      sign_in(signed_in_user(controller, action))
-      path = spec.gsub(/[:*](\w+)/) { path_value(Regexp.last_match(1), controller).to_s }
+    [ nil, *formats(controller, action) ].each do |format|
+      it "#{verb} #{spec}#{".#{format}" if format} (#{controller}##{action})" do
+        sign_in(signed_in_user(controller, action))
+        path = spec.gsub(/[:*](\w+)/) { path_value(Regexp.last_match(1), controller).to_s }
+        path += ".#{format}" if format
 
-      public_send(verb.downcase, path, params: request_params(controller, action), headers: { "HTTP_REFERER" => root_url })
+        public_send(verb.downcase, path, params: request_params(controller, action), headers: { "HTTP_REFERER" => root_url })
 
-      expect(response).not_to have_http_status(:not_found) unless action == "error_404"
-      expect(response).not_to have_http_status(:forbidden)
+        expect(response).not_to have_http_status(:not_found) unless action == "error_404"
+        expect(response).not_to have_http_status(:forbidden)
+      end
     end
   end
 end

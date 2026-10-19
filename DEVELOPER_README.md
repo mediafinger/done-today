@@ -48,7 +48,7 @@ The app supports multi-tenant organization boundaries and project selection:
 - Thread-safe globals are stored using ActiveSupport's `CurrentAttributes` in the [Current](file:///Users/andy/Dropbox/www/2025/done_today/app/models/current.rb) model.
 - Org and project are part of the path, nothing is selected in the session: `/:org_slug` (the org's projects),
   `/:org_slug/settings`, `/:org_slug/members`, `/:org_slug/:project_slug` (the project page) and below it
-  `days/2026-10-15(/edit)`, `weeks/2026-W42`, `tags?month=2026-10` (time per tag), `tags/:tag`, `members/:id/entries`, `entries`.
+  `days/2026-10-15(/edit)`, `weeks/2026-W42`, `tags?month=2026-10` (time per tag, `tags.csv?month=2026-10` as CSV), `tags/:tag`, `members/:id/entries`, `entries`.
   `Sluggable::RESERVED_SLUGS` keeps org and project slugs clear of the app's paths, one list for both levels.
 - Scoping concerns load the context from the path on each request:
   - [RequestContext](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/concerns/request_context.rb) (IP, request ID, user agent).
@@ -83,7 +83,7 @@ The app supports multi-tenant organization boundaries and project selection:
 - **Where classes live**:
   - `app/models`: Active Record models (`ApplicationRecord` subclasses), plus `Current` (`ActiveSupport::CurrentAttributes`).
   - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`, `OrgSetup`).
-  - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TagTimes`, `TimeValidation`, `DaysExport`, `MonthExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
+  - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TagTimes`, `TimeValidation`, `DaysExport`, `MonthExport`, `TagTimesExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "manager", "owner"]`), the project role of participants `project_role` (`["observer", "participant", "lead"]`). Both are ranked weakest first.
 

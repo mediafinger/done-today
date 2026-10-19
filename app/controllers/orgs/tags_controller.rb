@@ -9,7 +9,7 @@ module Orgs
     before_action { authorize! project, to: :show? }
 
     # Each tag's time in a period (ReportPeriod), from the durations on its lines (EntryLog#timed_tag).
-    #   `?member_id=` narrows it down to one member.
+    #   `?member_id=` narrows it down to one member. As CSV with `.csv` (TagTimesExport).
     def index
       @member = current_org.members.find(params[:member_id]) if params[:member_id].present?
       @period = ReportPeriod.from_params(params, today: Time.zone.today)
@@ -21,7 +21,16 @@ module Orgs
       end
 
       entries = authorized_scope(Entry.all).joins(:day).where(days: { project_id: project.id, date: @period.range })
-      @tag_times = TagTimes.new(@member ? entries.where(member: @member) : entries)
+      entries = entries.where(member: @member) if @member
+
+      respond_to do |format|
+        format.html { @tag_times = TagTimes.new(entries) }
+        format.csv do
+          export = TagTimesExport.new(entries:, org: current_org, period: @period, project:, member: @member)
+
+          send_data export.to_csv, filename: export.filename, type: "text/csv"
+        end
+      end
     end
 
     def show

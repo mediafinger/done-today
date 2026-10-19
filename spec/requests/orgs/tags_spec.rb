@@ -1,4 +1,5 @@
 require "rails_helper"
+require "csv"
 
 RSpec.describe "Orgs::Tags" do
   let(:org) { create(:org) }
@@ -291,6 +292,69 @@ RSpec.describe "Orgs::Tags" do
       get project_path(org, project)
 
       expect(Nokogiri::HTML(response.body).at_css(".project-views a[href='#{tags_path(org, project)}']").text).to eq("tag times")
+    end
+
+    describe "as CSV" do
+      before do
+        entry_on("2026-10-05", "#call for~40m")
+        entry_on("2026-10-06", "#call for~1h", by: colleague)
+        entry_on("2026-10-12", "#review for~30m")
+        entry_on("2026-11-02", "#call for~2h")
+      end
+
+      def export(**params)
+        get tags_path(org, project, format: :csv, **params)
+        CSV.parse(response.body, headers: true)
+      end
+
+      it "sends the tag times of the period, a line per tag and member" do
+        rows = export(month: "2026-10")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/csv")
+        expect(response.headers["Content-Disposition"])
+          .to include("#{org.name.parameterize}_#{project.name.parameterize}_tag-times_2026-10.csv")
+        expect(rows.map { it.to_h.values_at("project", "period", "tag", "member", "minutes") }).to eq([
+          [ project.name, "2026-10", "#call", "anna", "40" ],
+          [ project.name, "2026-10", "#call", "Bert", "60" ],
+          [ project.name, "2026-10", "#review", "anna", "30" ]
+        ])
+      end
+
+      it "sends a week" do
+        rows = export(week: "2026-W42")
+
+        expect(rows.map { it.to_h.values_at("period", "tag") }).to eq([ [ "2026-W42", "#review" ] ])
+      end
+
+      it "sends one participant's tag times, named after them" do
+        rows = export(month: "2026-10", member_id: colleague.id)
+
+        expect(response.headers["Content-Disposition"]).to include("_bert_tag-times_2026-10.csv")
+        expect(rows.map { it.to_h.values_at("tag", "member") }).to eq([ [ "#call", "Bert" ] ])
+      end
+
+      it "sends a period it cannot read back to the report of the current month" do
+        get tags_path(org, project, format: :csv, month: "2026-13")
+
+        expect(response).to redirect_to(tags_path(org, project))
+      end
+
+      it "doesn't know members of other orgs" do
+        get tags_path(org, project, format: :csv, member_id: create(:member).id)
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "is linked from the report, for the period and participant shown" do
+        everyone = read_tag_times(week: "2026-W42").at_css("#export-csv")["href"]
+        one = read_tag_times("2026-10", member_id: colleague.id).at_css("#export-csv")["href"]
+
+        expect([ everyone, one ]).to eq([
+          tags_path(org, project, week: "2026-W42", format: :csv),
+          tags_path(org, project, month: "2026-10", member_id: colleague.id, format: :csv)
+        ])
+      end
     end
   end
 end

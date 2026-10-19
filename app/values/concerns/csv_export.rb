@@ -11,7 +11,11 @@ module CsvExport
   private
 
   def hours(row)
-    (row.total_minutes.to_i / 60.0).round(2)
+    hours_of(row.total_minutes)
+  end
+
+  def hours_of(minutes)
+    (minutes.to_i / 60.0).round(2)
   end
 
   def tags(row)
