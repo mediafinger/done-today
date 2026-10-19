@@ -48,7 +48,7 @@ class SyntaxGuide
       parsed: { day_end_minutes: (17 * 60) + 30 }
     ),
     Example.new(
-      markup: "from@ to@", log: "Call with the client from@11:00 to@12:30",
+      markup: "from@ to@", log: "#Call with the client from@11:00 to@12:30",
       meaning: "A time range. It lasts 1h30m.",
       parsed: { from_minutes: 11 * 60, to_minutes: (12 * 60) + 30, duration_minutes: 90 }
     ),

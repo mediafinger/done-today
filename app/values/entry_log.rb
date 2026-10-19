@@ -189,6 +189,7 @@ class EntryLog
     @to_minutes = single(:to)
     @duration_minutes = resolve_duration
     check_open_range
+    check_tag_time
   end
 
   def times
@@ -244,6 +245,23 @@ class EntryLog
     return if to_minutes || times.any? { |kind, _minutes| kind == :for }
 
     add_issue(:open_range, on_past_day ? :warning : :info, "from@ has no to@ or for~ yet")
+  end
+
+  # A duration counts for a tag only when it is the line's one tag besides #break.
+  def check_tag_time
+    return unless duration_minutes
+
+    others = tags - [ BREAK_TAG ]
+    time = TimeSummary.format_minutes(duration_minutes)
+    named = others.map { "##{it}" }.join(" ")
+
+    if tags.include?(BREAK_TAG)
+      add_issue(:break_with_tag, :warning, "the #{time} #break is not counted for #{named}") if others.any?
+    elsif others.many?
+      add_issue(:ambiguous_tag_time, :warning, "#{time} has several tags (#{named}), it is counted for none of them")
+    elsif others.none?
+      add_issue(:untagged_duration, :info, "#{time} has no #tag, is one missing?")
+    end
   end
 
   def add_issue(code, severity, message)
