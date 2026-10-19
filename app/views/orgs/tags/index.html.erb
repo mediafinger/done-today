@@ -1,15 +1,19 @@
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
   <div class="left">
-    <h2> <%= @project.name %> tag times <%= @period.label %><%= ", #{@member.name}" if @member %> </h2>
+    <h2> <%= @project ? @project.name : current_org.name %> tag times <%= @period.label %><%= ", #{@member.name}" if @member %> </h2>
   </div>
 
   <div class="center">
-    <%= link_to "project", project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+    <% if @project %>
+      <%= link_to "project", project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+    <% end %>
     <% if @member %>
       <%= link_to "everyone", tag_times_path(@project, @period), id: "everyone", method: :get, role: "button", class: "slim" %>
     <% end %>
-    <%= link_to "Export CSV", tag_times_path(@project, @period, member: @member, format: :csv), id: "export-csv", method: :get, role: "button", class: "slim" %>
+    <% if @project %>
+      <%= link_to "Export CSV", tag_times_path(@project, @period, member: @member, format: :csv), id: "export-csv", method: :get, role: "button", class: "slim" %>
+    <% end %>
   </div>
 
   <div class="right">
@@ -43,12 +47,12 @@
         <tbody>
           <% if @member %>
             <tr>
-              <th scope="row"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
+              <th scope="row"><%= tag_times_tag(row.tag, @project) %></th>
               <td><%= format_minutes(row.minutes) %></td>
             </tr>
           <% else %>
             <tr>
-              <th scope="rowgroup" rowspan="<%= row.members.size + 1 %>"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
+              <th scope="rowgroup" rowspan="<%= row.members.size + 1 %>"><%= tag_times_tag(row.tag, @project) %></th>
               <td>Total</td>
               <td><strong><%= format_minutes(row.minutes) %></strong></td>
             </tr>

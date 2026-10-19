@@ -44,6 +44,8 @@ Rails.application.routes.draw do
   scope ":org_slug", module: :orgs, constraints: ->(request) { !Sluggable.reserved?(request.path_parameters[:org_slug]) } do
     get "/", to: "projects#index", as: :org
     get "settings", to: "settings#show", as: :org_settings
+    # every project's tag times, `tags` is never a project (Sluggable::RESERVED_SLUGS)
+    get "tags", to: "tag_times#index", as: :org_tags
 
     resources :members, only: %i[ index update ] do
       patch :deactivate, on: :member

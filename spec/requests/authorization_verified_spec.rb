@@ -80,7 +80,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/invitations#create" then { invitation: { email: "new@example.com", role: "member" } }
     when "orgs/guest_invitations#create" then { invitation: { email: "guest@example.com", project_role: "participant" } }
     when "orgs/projects#create", "orgs/projects#update" then { project: { name: "Renamed" } }
-    when "orgs/projects#export_csv", "orgs/tags#index" then { month: "2026-03" }
+    when "orgs/projects#export_csv", "orgs/tags#index", "orgs/tag_times#index" then { month: "2026-03" }
     when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }
     when "orgs/participants#create" then { participant: { member_id: create(:member, org:).id, role: "observer" } }
     when "orgs/participants#update" then { participant: { role: "owner" } }
