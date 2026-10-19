@@ -119,6 +119,14 @@ RSpec.describe EntryLog do
       expect(parse("for~1h30m").duration_minutes).to eq(90)
     end
 
+    it "reads two digits after whole hours as minutes" do
+      expect(parse("for~1h30").duration_minutes).to eq(90)
+      expect(parse("for~1h00").duration_minutes).to eq(60)
+      expect(parse("for~2h05").duration_minutes).to eq(125)
+      expect(parse("for~1h59").duration_minutes).to eq(119)
+      expect(parse("#call for~1h30.").segments.last(2)).to eq([ [ :time, :for, 90, "for~1h30" ], [ :text, "." ] ])
+    end
+
     it "reads decimal hours with a point or a comma" do
       expect(parse("#break for~2.5h").duration_minutes).to eq(150)
       expect(parse("#break for~2,5h").duration_minutes).to eq(150)
@@ -196,6 +204,14 @@ RSpec.describe EntryLog do
       expect(codes("for~90")).to eq([ :invalid_duration ]) # no unit
       expect(parse("for~1hh").segments).to eq([ [ :text, "for~1hh" ] ])
       expect(parse("for~1hh").duration_minutes).to be_nil
+    end
+
+    it "rejects unit-less minutes that are not two digits from 00 to 59" do
+      %w[for~1h5 for~1h60 for~1h75 for~1h300 for~2.5h30 for~1,5h30].each do |log|
+        expect(parse(log).duration_minutes).to be_nil, log
+        expect(codes(log)).to eq([ :invalid_duration ]), log
+        expect(parse(log).segments).to eq([ [ :text, log ] ]), log
+      end
     end
 
     it "reports a mistyped decimal duration whole, but leaves a trailing full stop as prose" do

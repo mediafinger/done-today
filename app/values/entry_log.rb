@@ -47,7 +47,8 @@ class EntryLog
   #   always the minutes, so the separator is optional.
   TIME     = /(?<kind>start|end|from|to)@(?<h>\d{1,2})[:.]?(?<m>\d{2})\b/i
   # Hours may carry a decimal point or comma (`for~2.5h`, `for~2,5h`); minutes may not.
-  DURATION = /for~(?=\d)(?:(?<h>\d+(?:[.,]\d+)?)h)?(?:(?<m>\d+)m)?(?![\p{Alnum}])/i
+  #   After whole hours, two digits from 00 to 59 are minutes without a unit: `for~1h30`.
+  DURATION = /for~(?=\d)(?:(?<h>\d+)h(?<m>[0-5]\d)|(?:(?<h>\d+(?:[.,]\d+)?)h)?(?:(?<m>\d+)m)?)(?![\p{Alnum}])/i
 
   # Fallbacks, tried only where the strict patterns fail. They recognise "this was
   # meant to be time markup" so the typo can be reported instead of silently ignored.
