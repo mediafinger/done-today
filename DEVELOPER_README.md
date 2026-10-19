@@ -83,7 +83,7 @@ The app supports multi-tenant organization boundaries and project selection:
 - **Where classes live**:
   - `app/models`: Active Record models (`ApplicationRecord` subclasses), plus `Current` (`ActiveSupport::CurrentAttributes`).
   - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`, `OrgSetup`).
-  - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TagTimes`, `TimeValidation`, `DaysExport`, `MonthExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
+  - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TagTimes`, `TimeValidation`, `DaysExport`, `MonthExport`, `TagTimesExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "manager", "owner"]`), the project role of participants `project_role` (`["observer", "participant", "lead"]`). Both are ranked weakest first.
 
