@@ -33,6 +33,16 @@ RSpec.describe Entry do
       )
     end
 
+    it "stores the tag the duration counts for, and drops it when the text no longer says" do
+      entry = create(:entry, log: "#Call with the client for~40m")
+
+      expect(entry.reload.timed_tag).to eq("call")
+
+      entry.update!(log: "#call #kickoff for~40m")
+
+      expect(entry.reload.timed_tag).to be_nil
+    end
+
     it "leaves the columns empty when the log has no markup" do
       entry = create(:entry, log: "just wrote some code")
 

@@ -4,7 +4,7 @@ class Entry < ApplicationRecord
   # The columns `EntryLog` fills in. Each one is named after the reader it comes
   # from, which is what lets `#parse_log` and `rake time_tracking:backfill` work
   # from this one list instead of two copies that can drift apart.
-  PARSED_COLUMNS = %w[tags day_start_minutes day_end_minutes from_minutes to_minutes duration_minutes].freeze
+  PARSED_COLUMNS = %w[tags day_start_minutes day_end_minutes from_minutes to_minutes duration_minutes timed_tag].freeze
 
   belongs_to :day
   belongs_to :org

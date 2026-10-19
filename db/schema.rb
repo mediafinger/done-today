@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_222000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -62,9 +62,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_222000) do
     t.uuid "org_id", null: false
     t.enum "status", default: "doing", null: false, enum_type: "entry_status"
     t.text "tags", default: [], null: false, array: true
+    t.string "timed_tag"
     t.integer "to_minutes"
     t.datetime "updated_at", null: false
     t.index ["day_id", "from_minutes"], name: "index_entries_on_day_id_and_from_minutes"
+    t.index ["day_id", "timed_tag"], name: "index_entries_on_day_id_and_timed_tag", where: "(timed_tag IS NOT NULL)"
     t.index ["member_id"], name: "index_entries_on_member_id"
     t.index ["org_id"], name: "index_entries_on_org_id"
     t.index ["tags"], name: "index_entries_on_tags", using: :gin

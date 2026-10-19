@@ -20,6 +20,16 @@ RSpec.describe "time_tracking:backfill" do
     )
   end
 
+  it "fills timed_tag and for~1h30 durations of entries saved before the parser knew them" do
+    entry = create(:entry, log: "#call for~1h30", updated_at: 3.days.ago)
+    entry.update_columns(timed_tag: nil, duration_minutes: nil)
+
+    expect { task.invoke }.to output(/Updated 1 of 1/).to_stdout
+
+    expect(entry.reload).to have_attributes(timed_tag: "call", duration_minutes: 90, log: "#call for~1h30")
+    expect(entry.updated_at).to be_within(1.second).of(3.days.ago)
+  end
+
   it "leaves updated_at alone, because nothing the user wrote has changed" do
     entry = create(:entry, log: "#review", updated_at: 3.days.ago)
 
