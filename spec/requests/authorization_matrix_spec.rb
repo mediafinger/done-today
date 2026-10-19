@@ -587,6 +587,13 @@ RSpec.describe "Authorization role matrix" do
     patch project_path(org, project), params: { project: { name: "Renamed by the matrix" } }
   end
 
+  row "PATCH /:org/:project (require times)", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
+    org_owner: :written
+  }, written: -> { project.reload.times_required? } do
+    patch project_path(org, project), params: { project: { times_required: "1" } }
+  end
+
   row "PATCH /:org/:project/archive", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
     org_owner: :written

@@ -84,15 +84,21 @@ module Orgs
       @project = current_project
     end
 
-    # renames the project, the slug stays so links keep working
+    # renames the project, the slug stays so links keep working, or changes its settings
     def update
       # a copy, so a refused name does not show up in the switcher
       @project = current_org.projects.find(current_project.id)
       old_name = @project.name
 
       if @project.update(project_params)
-        redirect_to edit_project_path(current_org, @project),
-          notice: t("controllers.projects.renamed", old_name:, name: @project.name)
+        notice =
+          if @project.saved_change_to_name?
+            t("controllers.projects.renamed", old_name:, name: @project.name)
+          else
+            t("controllers.projects.saved", name: @project.name)
+          end
+
+        redirect_to edit_project_path(current_org, @project), notice:
       else
         render :edit, status: :unprocessable_content
       end
@@ -181,7 +187,7 @@ module Orgs
     end
 
     def project_params
-      params.expect(project: [ :name ])
+      params.expect(project: [ :name, :times_required ])
     end
 
     # a project the member may read but not export is a 404 as well
