@@ -80,7 +80,7 @@ Rails.application.routes.draw do
         patch :grant, on: :member
         patch :decline, on: :member
       end
-      resources :tags, param: :tag, only: %i[ show ]
+      resources :tags, param: :tag, only: %i[ index show ]
       resources :weeks, param: :week, only: %i[ show ]
 
       resources :members, only: [] do

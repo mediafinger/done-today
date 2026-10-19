@@ -382,6 +382,12 @@ RSpec.describe "Authorization role matrix" do
     get edit_day_path(org, project, Time.zone.today)
   end
 
+  row "GET /:org/:project/tags", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_lead: :ok, org_owner: :ok
+  } do
+    get tags_path(org, project, month: "2026-10")
+  end
+
   row "GET /:org/:project/tags/:tag", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :ok, participant: :ok, project_lead: :ok, org_owner: :ok
   } do
