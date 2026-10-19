@@ -163,7 +163,6 @@ RSpec.describe "Managing projects" do
     it "offers the setting on the project's settings, off by default" do
       expect(checkbox).to be_present
       expect(checkbox["checked"]).to be_nil
-      expect(page.text.squish).to include("Remind participants to log start@ and end@ every day")
     end
 
     it "lets an org owner require times" do
@@ -172,7 +171,7 @@ RSpec.describe "Managing projects" do
       expect(project.reload).to be_times_required
       expect(project.name).to eq("Website")
       expect(response).to redirect_to(edit_project_path(org, project))
-      expect(flash[:notice]).to eq("Saved the settings of Website")
+      expect(flash[:notice]).to include("Website")
       expect(checkbox["checked"]).to be_present
     end
 

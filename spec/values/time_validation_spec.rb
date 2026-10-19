@@ -26,20 +26,20 @@ RSpec.describe TimeValidation do
 
   describe "missing time information" do
     it "is fine for a project that does not require times" do
-      expect(messages(entry("wrote some code"), entry("and some more"))).to be_empty
+      expect(described_class.new([ entry("wrote some code"), entry("and some more") ]).issues).to be_empty
     end
 
     context "when the project requires times" do
-      def messages(*entries)
-        described_class.new(entries.flatten, times_required: true).issues.map(&:message)
+      def codes(*entries)
+        described_class.new(entries.flatten, times_required: true).issues.map(&:code)
       end
 
       it "reports a day whose entries carry no markup at all" do
-        expect(messages(entry("wrote some code"), entry("and some more"))).to eq([ "no time information given" ])
+        expect(codes(entry("wrote some code"), entry("and some more"))).to eq(%i[no_times])
       end
 
       it "stays quiet about it when the markup simply did not parse" do
-        expect(messages(entry("start@10:75 kickoff"))).to eq([ "start@10:75 is not a valid time, it is kept as text" ])
+        expect(codes(entry("start@10:75 kickoff"))).to eq(%i[invalid_time])
       end
 
       it "reports it per member, not per entry" do

@@ -9,7 +9,7 @@
 
     <ul>
       <% issues.each do |issue| %>
-        <li class="nude">
+        <li class="nude" data-code="<%= issue.code %>">
           <span class="issue-member"><%= issue.member.name %></span>
           <%= issue.message %>
         </li>

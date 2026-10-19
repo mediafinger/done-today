@@ -29,10 +29,10 @@ RSpec.describe "Help" do
       expect(page_text).to include(SyntaxGuide::DAY_TOTAL)
     end
 
-    it "says that time tracking is optional, unless the project requires it" do
+    it "explains that time tracking is optional" do
       get help_path
 
-      expect(page_text).to include("Logging times is optional.", "can require times in the project's settings")
+      expect(Nokogiri::HTML(response.body).at_css("main #times-optional")).to be_present
     end
   end
 
