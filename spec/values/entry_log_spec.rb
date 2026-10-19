@@ -144,6 +144,33 @@ RSpec.describe EntryLog do
     end
   end
 
+  describe "#timed_tag" do
+    it "is the tag on the same line as the duration" do
+      expect(parse("#call for~40m").timed_tag).to eq("call")
+      expect(parse("from@10:00 to@11:00 #KickOffMeeting").timed_tag).to eq("kickoffmeeting")
+      expect(parse("#review #Review for~1h").timed_tag).to eq("review")
+    end
+
+    it "is nil without a duration" do
+      expect(parse("#call with the client").timed_tag).to be_nil
+      expect(parse("#call from@10:00").timed_tag).to be_nil
+      expect(parse("#call for~0m").timed_tag).to be_nil
+    end
+
+    it "is nil when several tags share the duration" do
+      expect(parse("for~1h30 #presenting #kickoff #PR123").timed_tag).to be_nil
+    end
+
+    it "is nil on a #break line, as #break marks the day and is no reporting tag" do
+      expect(parse("#break for~30m").timed_tag).to be_nil
+      expect(parse("#break #lunch for~30m").timed_tag).to be_nil
+    end
+
+    it "is nil when the duration has no tag" do
+      expect(parse("Call with the client for~30m").timed_tag).to be_nil
+    end
+  end
+
   describe "issues" do
     def codes(text, **) = parse(text, **).issues.map(&:code)
 

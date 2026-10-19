@@ -61,6 +61,9 @@ class EntryLog
 
   TIME_KINDS = { "start" => :start, "end" => :end, "from" => :from, "to" => :to }.freeze
 
+  # Marks a break of the working day, never a tag that times are reported for.
+  BREAK_TAG = "break"
+
   attr_reader :text, :segments, :issues,
               :day_start_minutes, :day_end_minutes, :from_minutes, :to_minutes, :duration_minutes
 
@@ -77,6 +80,14 @@ class EntryLog
 
   def tags
     @tags ||= segments.filter_map { |type, name, _raw| name.downcase if type == :tag }.uniq
+  end
+
+  # The tag this line's duration counts for in reports: the only tag on a line with a
+  #   duration. Never part of the day total, which is start@, end@ and #break alone.
+  def timed_tag
+    return nil unless duration_minutes && tags.exclude?(BREAK_TAG)
+
+    tags.first if tags.one?
   end
 
   # True when the log carries markup only -- `start@09:00`, or `#break for~30m` --

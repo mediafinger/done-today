@@ -9,7 +9,7 @@
 #   summary.total_minutes              # => 480
 #
 class TimeSummary
-  BREAK_TAG = "break"
+  BREAK_TAG = EntryLog::BREAK_TAG
 
   attr_reader :entries
 
