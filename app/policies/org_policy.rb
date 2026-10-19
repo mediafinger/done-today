@@ -4,7 +4,7 @@ class OrgPolicy < ApplicationPolicy
   pre_check :deny_foreign_org
 
   # every project's tag times, everyone's
-  def tag_times?
+  def read_tag_times_report?
     org_manager?
   end
 

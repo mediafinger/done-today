@@ -6,7 +6,7 @@ RSpec.describe OrgPolicy do
   let(:member) { create(:member, :owner, org:) }
   let(:context) { { member: } }
 
-  describe_rule :tag_times? do
+  describe_rule :read_tag_times_report? do
     succeed "for an owner"
 
     succeed "for a manager" do

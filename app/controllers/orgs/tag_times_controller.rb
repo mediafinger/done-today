@@ -6,7 +6,7 @@ module Orgs
   class TagTimesController < AppOrgBaseController
     include TagTimesReport
 
-    before_action { authorize! current_org, to: :tag_times? }
+    before_action { authorize! current_org, to: :read_tag_times_report? }
 
     def index
       tag_times_report(authorized_scope(current_org.entries))
