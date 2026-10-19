@@ -222,23 +222,33 @@ RSpec.describe "Orgs::Projects" do
         .to eq(edit_day_path(org, project, "2026-09-21", unlocked: "1"))
     end
 
-    it "reports a day without any time markup" do
+    it "does not list a day without any time markup, times are optional" do
       entry_on("2026-09-21", "wrote some code")
 
-      expect(validate.at_css(".period").text.squish).to include("no time information given")
+      expect(validate.at_css("#all-days-add-up")).to be_present
+    end
+
+    it "reports a day without any time markup when the project requires times" do
+      project.update!(times_required: true)
+      entry_on("2026-09-21", "wrote some code")
+
+      period = validate.at_css(".period")
+
+      expect(period.at_css("h3").text.squish).to eq("2026-09-21")
+      expect(period.css("li").map { it["data-code"] }).to eq(%w[no_times])
     end
 
     it "says so when every day adds up" do
       entry_on("2026-09-21", "start@09:00 end@17:00 a sound day")
 
-      expect(validate.text).to include("Every day with entries adds up.")
+      expect(validate.at_css("#all-days-add-up")).to be_present
     end
 
     it "leaves out the days of other projects" do
       other = create(:participant, project: create(:project, org:), member:).project
       create(:entry, day: create(:day, project: other, date: Date.new(2026, 9, 21)), member:, log: "start@09:00 elsewhere")
 
-      expect(validate.text).to include("Every day with entries adds up.")
+      expect(validate.at_css("#all-days-add-up")).to be_present
     end
   end
 

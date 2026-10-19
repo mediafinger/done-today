@@ -164,4 +164,15 @@ RSpec.describe Project do
       expect { other.destroy! }.to change(described_class, :count).by(-1).and change(Participant, :count).by(-1)
     end
   end
+
+  # time tracking is optional, a project opts in
+  describe "times_required" do
+    it "is off for a new project" do
+      expect(create(:project)).not_to be_times_required
+    end
+
+    it "is either on or off" do
+      expect(build(:project, times_required: nil)).not_to be_valid
+    end
+  end
 end

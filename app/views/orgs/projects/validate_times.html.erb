@@ -23,7 +23,7 @@
 
       <ul>
         <% issues.each do |issue| %>
-          <li class="nude left-spacer">
+          <li class="nude left-spacer" data-code="<%= issue.code %>">
             <span class="issue-member"><%= issue.member.name %></span>
             <%= issue.message %>
           </li>
@@ -32,5 +32,5 @@
     </div>
   <% end %>
 <% else %>
-  <p>Every day with entries adds up.</p>
+  <p id="all-days-add-up">Every day with entries adds up.</p>
 <% end %>

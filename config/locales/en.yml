@@ -79,6 +79,7 @@ en:
       archived: "Archived %{name}, its entries stay readable"
       created: "Created %{name}"
       renamed: "Renamed %{old_name} to %{name}"
+      saved: "Saved the settings of %{name}"
       unarchived: "Unarchived %{name}"
     participants:
       added: "Added %{name} as %{role}"

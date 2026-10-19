@@ -154,6 +154,56 @@ RSpec.describe "Managing projects" do
     end
   end
 
+  describe "requiring times" do
+    def checkbox
+      get edit_project_path(org, project)
+      page.at_css("input[type=checkbox][name='project[times_required]']")
+    end
+
+    it "offers the setting on the project's settings, off by default" do
+      expect(checkbox).to be_present
+      expect(checkbox["checked"]).to be_nil
+    end
+
+    it "lets an org owner require times" do
+      patch project_path(org, project), params: { project: { times_required: "1" } }
+
+      expect(project.reload).to be_times_required
+      expect(project.name).to eq("Website")
+      expect(response).to redirect_to(edit_project_path(org, project))
+      expect(flash[:notice]).to include("Website")
+      expect(checkbox["checked"]).to be_present
+    end
+
+    it "lets a project lead require times and drop it again" do
+      sign_in(create(:participant, :lead, project:).member.user)
+
+      patch project_path(org, project), params: { project: { times_required: "1" } }
+      expect(project.reload).to be_times_required
+
+      patch project_path(org, project), params: { project: { times_required: "0" } }
+      expect(project.reload).not_to be_times_required
+    end
+
+    it "refuses a participant" do
+      sign_in(participant.member.user)
+
+      patch project_path(org, project), params: { project: { times_required: "1" } }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(project.reload).not_to be_times_required
+    end
+
+    it "refuses an observer" do
+      sign_in(create(:participant, :observer, project:).member.user)
+
+      patch project_path(org, project), params: { project: { times_required: "1" } }
+
+      expect(response).to have_http_status(:forbidden)
+      expect(project.reload).not_to be_times_required
+    end
+  end
+
   describe "PATCH /:org/:project/archive" do
     let!(:entry) { create(:entry, day: create(:day, project:), member: participant.member, log: "Shipped it") }
 

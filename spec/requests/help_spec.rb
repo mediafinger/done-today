@@ -28,6 +28,12 @@ RSpec.describe "Help" do
       expect(page_text).to include(*logs)
       expect(page_text).to include(SyntaxGuide::DAY_TOTAL)
     end
+
+    it "explains that time tracking is optional" do
+      get help_path
+
+      expect(Nokogiri::HTML(response.body).at_css("main #times-optional")).to be_present
+    end
   end
 
   describe "the navigation guide" do

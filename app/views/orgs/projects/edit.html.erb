@@ -9,6 +9,22 @@
 </section>
 
 <section>
+  <h3>Time tracking</h3>
+
+  <p>Logging times is optional. A project that requires them reports every day without any time as an issue.</p>
+
+  <%= form_with model: @project, url: project_path(current_org, @project) do |form| %>
+    <label>
+      <%= form.check_box :times_required %>
+      Require times
+    </label>
+    <small>Remind participants to log <code>start@</code> and <code>end@</code> every day.</small>
+
+    <%= form.submit "Save", class: "slim" %>
+  <% end %>
+</section>
+
+<section>
   <h3>Archive</h3>
 
   <% if @project.archived? %>

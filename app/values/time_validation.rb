@@ -1,6 +1,6 @@
 # Checks a day's entries for time markup that cannot add up: syntax the parser had
 # to give up on, a start@ without its end@, a total no day can hold, time that is
-# still todo.
+# still todo. A day without any time markup only counts when the project requires times.
 #
 # The parser already reports what it found wrong inside a single log (EntryLog#issues);
 # this adds what only becomes visible with the whole day in view. Every member of the
@@ -18,8 +18,9 @@ class TimeValidation
   #   up with no readable time at all
   UNREADABLE = %i[invalid_time invalid_duration].freeze
 
-  def initialize(entries)
+  def initialize(entries, times_required: false)
     @entries = entries.to_a
+    @times_required = times_required
   end
 
   def issues
@@ -28,7 +29,7 @@ class TimeValidation
 
   private
 
-  attr_reader :entries
+  attr_reader :entries, :times_required
 
   def by_member
     entries.group_by(&:member).sort_by { |member, _entries| member.name.downcase }
@@ -70,6 +71,8 @@ class TimeValidation
     timed = member_entries.select { |entry| timed?(entry) }
 
     if timed.empty?
+      return [] unless times_required
+
       # markup that did not parse is already reported; saying "no time information"
       #   on top of it would only name the same mistake twice
       return [] if member_entries.any? { |entry| entry.parsed.issues.any? { |issue| UNREADABLE.include?(issue.code) } }
