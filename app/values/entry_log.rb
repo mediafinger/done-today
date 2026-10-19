@@ -151,10 +151,14 @@ class EntryLog
 
   # Fractional hours are rounded to whole minutes: `for~0.33h` => 20. A Rational
   #   rather than a Float, so `for~2.5h` is exactly 150 without float noise.
+  #   Next to hours, minutes stop at 59: `for~2h15m`, not `for~1h75m`.
   def duration_token(scanner, raw)
     hours = scanner[:h].to_s.tr(",", ".").to_r
+    minutes = scanner[:m].to_i
 
-    [ :time, :for, (hours * 60).round + scanner[:m].to_i, raw ]
+    return invalid_duration(raw) if scanner[:h] && minutes > MAX_MINUTE
+
+    [ :time, :for, (hours * 60).round + minutes, raw ]
   end
 
   def invalid_time(raw)

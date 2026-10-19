@@ -103,7 +103,7 @@ class SyntaxGuide
     ),
     Example.new(
       markup: nil, log: "Planning for~1h75",
-      meaning: "An hour has no 75 minutes. Write for~2h15, or for~1h75m if you mean it.",
+      meaning: "An hour has no 75 minutes, with or without the m. Write for~2h15, for~2h15m or for~135m.",
       parsed: { duration_minutes: nil, issues: %i[invalid_duration] }
     ),
     Example.new(

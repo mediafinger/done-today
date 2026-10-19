@@ -214,6 +214,20 @@ RSpec.describe EntryLog do
       end
     end
 
+    it "rejects more than 59 minutes after hours, with or without the unit" do
+      %w[for~1h60m for~1h75m for~2.5h60m].each do |log|
+        expect(parse(log).duration_minutes).to be_nil, log
+        expect(codes(log)).to eq([ :invalid_duration ]), log
+        expect(parse(log).segments).to eq([ [ :text, log ] ]), log
+      end
+    end
+
+    it "still reads minutes alone beyond 59, and single-digit minutes with their unit" do
+      expect(parse("for~135m").duration_minutes).to eq(135)
+      expect(parse("for~2h15m").duration_minutes).to eq(135)
+      expect(parse("for~1h5m").duration_minutes).to eq(65)
+    end
+
     it "reports a mistyped decimal duration whole, but leaves a trailing full stop as prose" do
       expect(codes("for~1.5m")).to eq([ :invalid_duration ]) # minutes take no decimals
       expect(parse("for~2.5hh").issues.map(&:message)).to eq([ "for~2.5hh is not a valid duration, it is kept as text" ])
