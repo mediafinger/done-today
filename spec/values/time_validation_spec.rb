@@ -25,19 +25,29 @@ RSpec.describe TimeValidation do
   end
 
   describe "missing time information" do
-    it "reports a day whose entries carry no markup at all" do
-      expect(messages(entry("wrote some code"), entry("and some more"))).to eq([ "no time information given" ])
+    it "is fine for a project that does not require times" do
+      expect(messages(entry("wrote some code"), entry("and some more"))).to be_empty
     end
 
-    it "stays quiet about it when the markup simply did not parse" do
-      expect(messages(entry("start@10:75 kickoff"))).to eq([ "start@10:75 is not a valid time, it is kept as text" ])
-    end
+    context "when the project requires times" do
+      def messages(*entries)
+        described_class.new(entries.flatten, times_required: true).issues.map(&:message)
+      end
 
-    it "reports it per member, not per entry" do
-      bert = create(:member, org: day.org, name: "Bert")
-      issues = described_class.new([ entry("wrote code"), entry("start@09:00 end@17:00", by: bert) ]).issues
+      it "reports a day whose entries carry no markup at all" do
+        expect(messages(entry("wrote some code"), entry("and some more"))).to eq([ "no time information given" ])
+      end
 
-      expect(issues.map { [ it.member.name, it.code ] }).to eq([ [ "Anna", :no_times ] ])
+      it "stays quiet about it when the markup simply did not parse" do
+        expect(messages(entry("start@10:75 kickoff"))).to eq([ "start@10:75 is not a valid time, it is kept as text" ])
+      end
+
+      it "reports it per member, not per entry" do
+        bert = create(:member, org: day.org, name: "Bert")
+        issues = described_class.new([ entry("wrote code"), entry("start@09:00 end@17:00", by: bert) ], times_required: true).issues
+
+        expect(issues.map { [ it.member.name, it.code ] }).to eq([ [ "Anna", :no_times ] ])
+      end
     end
   end
 
@@ -197,7 +207,7 @@ RSpec.describe TimeValidation do
       issue = described_class.new([ open_start ]).issues.first
 
       expect(issue).to have_attributes(code: :missing_end, entry: open_start, member:)
-      expect(described_class.new([ entry("wrote code") ]).issues.first.entry).to be_nil
+      expect(described_class.new([ entry("wrote code") ], times_required: true).issues.first.entry).to be_nil
     end
   end
 end

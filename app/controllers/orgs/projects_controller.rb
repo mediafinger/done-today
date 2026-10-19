@@ -159,7 +159,7 @@ module Orgs
           .includes(entries: :member)
           .order(date: :desc)
           .filter_map do |day|
-            issues = TimeValidation.new(day.entries).issues
+            issues = TimeValidation.new(day.entries, times_required: @project.times_required?).issues
             [ day, issues ] if issues.any?
           end
     end

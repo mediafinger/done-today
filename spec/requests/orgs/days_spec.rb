@@ -197,6 +197,19 @@ RSpec.describe "Orgs::Days" do
       expect(page.at_css("#time-issues")).to be_nil
     end
 
+    it "accepts a day without times, as they are optional" do
+      create(:entry, day:, member:, log: "wrote some code")
+
+      expect(validate_day.at_css("#validation-ok").text.squish).to eq("Everything ok")
+    end
+
+    it "asks for times when the project requires them" do
+      project.update!(times_required: true)
+      create(:entry, day:, member:, log: "wrote some code")
+
+      expect(validate_day.at_css("#time-issues").text).to include("no time information given")
+    end
+
     it "checks only this member's own entries" do
       colleague = create(:participant, project:).member
       create(:entry, day:, member:, log: "start@09:00 end@17:00 a sound day")

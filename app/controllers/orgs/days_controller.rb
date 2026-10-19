@@ -66,7 +66,7 @@ module Orgs
       own_entries = @day.entries.where(member: current_member).includes(:member, day: :project).to_a
 
       @asked_to_validate = params[:validate].present?
-      @issues = TimeValidation.new(own_entries).issues
+      @issues = TimeValidation.new(own_entries, times_required: project.times_required?).issues
       @validated_minutes = TimeSummary.new(own_entries).total_minutes
     end
   end
