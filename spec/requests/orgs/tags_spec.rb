@@ -122,8 +122,8 @@ RSpec.describe "Orgs::Tags" do
       create(:entry, day:, member: by, log:)
     end
 
-    def read_tag_times(month = nil)
-      get tags_path(org, project, month:)
+    def read_tag_times(month = nil, **period)
+      get tags_path(org, project, month:, **period)
       Nokogiri::HTML(response.body)
     end
 
@@ -193,6 +193,98 @@ RSpec.describe "Orgs::Tags" do
 
       expect(page.at_css("#tag-times")).to be_nil
       expect(page.at_css("main").text.squish).to include("No tag times in 2026-10.")
+    end
+
+    it "sums the tag times of a week, Monday to Sunday" do
+      entry_on("2026-10-11", "#call for~1h")
+      entry_on("2026-10-12", "#call for~2h")
+      entry_on("2026-10-18", "#call for~3h")
+      entry_on("2026-10-19", "#call for~4h")
+
+      page = read_tag_times(week: "2026-W42")
+
+      expect(page.at_css(".spacing-grid h2").text).to include("2026-W42")
+      expect(table(page)).to eq([ [ [ "#call", "Total", "5h" ], [ "anna", "5h" ] ] ])
+    end
+
+    it "sums the tag times of a year" do
+      entry_on("2025-12-31", "#call for~1h")
+      entry_on("2026-01-01", "#call for~2h")
+      entry_on("2026-12-31", "#call for~3h")
+
+      page = read_tag_times(year: "2026")
+
+      expect(page.at_css(".spacing-grid h2").text).to include("2026")
+      expect(table(page)).to eq([ [ [ "#call", "Total", "5h" ], [ "anna", "5h" ] ] ])
+    end
+
+    it "links the periods of the same kind before and after" do
+      page = read_tag_times(week: "2026-W01")
+
+      expect(page.css(".spacing-grid .right a").map { it["href"] }).to eq([
+        tags_path(org, project, week: "2025-W52"),
+        tags_path(org, project, week: "2026-W02")
+      ])
+    end
+
+    it "switches between week, month and year around the period shown, marking the current kind" do
+      page = read_tag_times("2026-03")
+      links = page.css("#period-kinds a")
+
+      expect(links.map { it["href"] }).to eq([
+        tags_path(org, project, week: "2026-W09"),
+        tags_path(org, project, month: "2026-03"),
+        tags_path(org, project, year: "2026")
+      ])
+      expect(links.map { it["aria-current"] }).to eq([ nil, "page", nil ])
+    end
+
+    it "sends a week or a year it cannot read back to the current month" do
+      [ { week: "2026-W99" }, { year: "26" } ].each do |period|
+        get tags_path(org, project, **period)
+
+        expect(response).to redirect_to(tags_path(org, project))
+        expect(flash[:alert]).to include(period.values.first)
+      end
+    end
+
+    context "with one participant" do
+      before do
+        entry_on("2026-10-05", "#call for~40m")
+        entry_on("2026-10-05", "#review for~30m")
+        entry_on("2026-10-06", "#call for~1h", by: colleague)
+        entry_on("2026-10-07", "#retro for~1h", by: colleague)
+      end
+
+      it "sums only that participant's tag times, by tag" do
+        page = read_tag_times("2026-10", member_id: colleague.id)
+
+        expect(page.at_css(".spacing-grid h2").text).to include(colleague.name)
+        expect(table(page)).to eq([ [ [ "#call", "1h" ] ], [ [ "#retro", "1h" ] ] ])
+      end
+
+      it "is linked from each participant's name in the report of everyone" do
+        links = read_tag_times("2026-10").css("#tag-times tbody td a")
+
+        expect(links.map { [ it.text, it["href"] ] }.uniq).to contain_exactly(
+          [ "anna", tags_path(org, project, month: "2026-10", member_id: member.id) ],
+          [ "Bert", tags_path(org, project, month: "2026-10", member_id: colleague.id) ]
+        )
+      end
+
+      it "keeps the participant when switching periods, and links back to everyone" do
+        page = read_tag_times("2026-03", member_id: colleague.id)
+        hrefs = page.css(".spacing-grid .right a, #period-kinds a").map { it["href"] }
+
+        expect(hrefs).to all(include("member_id=#{colleague.id}"))
+        expect(page.at_css("#everyone")["href"]).to eq(tags_path(org, project, month: "2026-03"))
+      end
+
+      it "doesn't know members of other orgs" do
+        get tags_path(org, project, member_id: create(:member).id)
+
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     it "is linked from the project page" do

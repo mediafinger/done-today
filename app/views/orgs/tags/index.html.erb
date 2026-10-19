@@ -1,18 +1,29 @@
 <div class="spacing-grid" style="margin-bottom: 0.5rem;">
 
   <div class="left">
-    <h2> <%= @project.name %> tag times <%= @month.strftime("%Y-%m") %> </h2>
+    <h2> <%= @project.name %> tag times <%= @period.label %><%= ", #{@member.name}" if @member %> </h2>
   </div>
 
   <div class="center">
     <%= link_to "project", project_path(current_org, @project), method: :get, role: "button", class: "slim" %>
+    <% if @member %>
+      <%= link_to "everyone", tag_times_path(@project, @period), id: "everyone", method: :get, role: "button", class: "slim" %>
+    <% end %>
   </div>
 
   <div class="right">
-    <%= link_to "⬅️", tags_path(current_org, @project, month: @month.prev_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
-    <%= link_to "➡️", tags_path(current_org, @project, month: @month.next_month.strftime("%Y-%m")), method: :get, role: "button", class: "slim" %>
+    <%= link_to "⬅️", tag_times_path(@project, @period.previous, member: @member), method: :get, role: "button", class: "slim" %>
+    <%= link_to "➡️", tag_times_path(@project, @period.following, member: @member), method: :get, role: "button", class: "slim" %>
   </div>
 
+</div>
+
+<div id="period-kinds" class="project-views">
+  <% ReportPeriod::KINDS.each do |kind| %>
+    <% current = kind == @period.kind %>
+    <%= link_to kind, tag_times_path(@project, @period.as(kind, today: Time.zone.today), member: @member), method: :get, role: "button",
+          class: "slim #{'btn-inactive' unless current}", aria: { current: ("page" if current) } %>
+  <% end %>
 </div>
 
 <% if @tag_times.rows.any? %>
@@ -21,27 +32,36 @@
       <thead>
         <tr>
           <th scope="col">Tag</th>
-          <th scope="col">Who</th>
+          <% unless @member %>
+            <th scope="col">Who</th>
+          <% end %>
           <th scope="col">Time</th>
         </tr>
       </thead>
       <% @tag_times.rows.each do |row| %>
         <tbody>
-          <tr>
-            <th scope="rowgroup" rowspan="<%= row.members.size + 1 %>"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
-            <td>Total</td>
-            <td><strong><%= format_minutes(row.minutes) %></strong></td>
-          </tr>
-          <% row.members.each do |member, minutes| %>
+          <% if @member %>
             <tr>
-              <td><%= member.name %></td>
-              <td><%= format_minutes(minutes) %></td>
+              <th scope="row"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
+              <td><%= format_minutes(row.minutes) %></td>
             </tr>
+          <% else %>
+            <tr>
+              <th scope="rowgroup" rowspan="<%= row.members.size + 1 %>"><%= link_to "##{row.tag}", tag_path(current_org, @project, row.tag) %></th>
+              <td>Total</td>
+              <td><strong><%= format_minutes(row.minutes) %></strong></td>
+            </tr>
+            <% row.members.each do |member, minutes| %>
+              <tr>
+                <td><%= link_to member.name, tag_times_path(@project, @period, member:) %></td>
+                <td><%= format_minutes(minutes) %></td>
+              </tr>
+            <% end %>
           <% end %>
         </tbody>
       <% end %>
     </table>
   </div>
 <% else %>
-  <p>No tag times in <%= @month.strftime("%Y-%m") %>. A duration counts for the one #tag on its line, like <code>#call for~40m</code>.</p>
+  <p>No tag times in <%= @period.label %>. A duration counts for the one #tag on its line, like <code>#call for~40m</code>.</p>
 <% end %>
