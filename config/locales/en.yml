@@ -45,6 +45,11 @@ en:
           attributes:
             unconfirmed_email:
               same_as_email: "is your current email"
+        connection:
+          attributes:
+            grants:
+              blank: "pick at least one org or project"
+          expiry: "pick one of the offered expiries"
         entry:
           day_locked: "%{date} is locked, unlock the day to change it"
         access_request:
@@ -63,6 +68,9 @@ en:
       declined: "Declined the request of %{name}"
       rate_limited: "Too many requests, try again later"
       requested: "Asked to join %{project}"
+    access_tokens:
+      revoked: "Revoked %{name}"
+      revoked_all: "Revoked %{count} tokens and apps"
     invitations:
       already_invited: "%{email} is already invited"
       invalid: "That invitation link is invalid or has expired, ask for a new one"

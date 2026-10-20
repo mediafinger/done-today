@@ -1,0 +1,15 @@
+<%# what a connection was granted, struck through where it has no effect any more %>
+<ul>
+  <% connection.grants.sort_by { [ it.org.name, it.project&.name.to_s ] }.each do |grant| %>
+    <% effect = grant.effective_access %>
+    <% label = grant.project ? "#{grant.org.name} / #{grant.project.name}" : "#{grant.org.name}, all projects" %>
+    <li>
+      <% if effect %>
+        <%= label %>: <%= effect == :write ? "read and write" : "read" %>
+        <% if effect.to_s != grant.access %><small>(write granted, your role reads only)</small><% end %>
+      <% else %>
+        <s><%= label %>: <%= grant.access %></s> <small>no effect</small>
+      <% end %>
+    </li>
+  <% end %>
+</ul>

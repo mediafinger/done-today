@@ -82,6 +82,10 @@ RSpec.describe "Authorization role matrix" do
     @colleagues_session ||= colleague.user.sessions.create!(user_agent: "Matrix", ip_address: "127.0.0.1")
   end
 
+  def colleagues_connection
+    @colleagues_connection ||= create(:connection, user: colleague.user)
+  end
+
   def pending_invitation(role: "member")
     org.invitations.find_or_create_by!(email: "pending@example.com") { it.assign_attributes(role:, sent_at: 2.days.ago) }
   end
@@ -305,6 +309,24 @@ RSpec.describe "Authorization role matrix" do
 
   row "DELETE /user/sessions/destroy_others", { anonymous: :to_sign_in, no_org: :found, member: :found } do
     delete destroy_others_user_sessions_path
+  end
+
+  row "GET /user/access_tokens", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get user_access_tokens_path
+  end
+
+  row "POST /user/access_tokens", { anonymous: :to_sign_in, no_org: :unprocessable_content, member: :created } do
+    post user_access_tokens_path, params: { connection: { name: "Matrix" }, expires_in_days: "30", grants: { orgs: { org.id => "read" } } }
+  end
+
+  row "DELETE /user/access_tokens/:id of another account", {
+    anonymous: :to_sign_in, no_org: :not_found, member: :not_found
+  }, written: -> { colleagues_connection.reload.revoked? } do
+    delete user_access_token_path(colleagues_connection)
+  end
+
+  row "DELETE /user/access_tokens/destroy_all", { anonymous: :to_sign_in, no_org: :found, member: :found } do
+    delete destroy_all_user_access_tokens_path
   end
 
   row "PATCH /user/display_mode", { anonymous: :to_sign_in, no_org: :found, member: :found } do
