@@ -39,6 +39,10 @@ RSpec.describe Entries::Create do
     expect(result.entry.errors).to include(:log)
   end
 
+  it "creates no day for an invalid entry" do
+    expect { create_entry(log: "") }.not_to change(Day, :count)
+  end
+
   context "with a past day" do
     let(:date) { Time.zone.yesterday }
 

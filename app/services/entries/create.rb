@@ -8,11 +8,18 @@ module Entries
       day = project.days.find_or_initialize_by(org: project.org, date:)
       entry = Entry.new(org: project.org, member:, day:, log:, status: status || "todo")
 
-      # a failing history takes the new day along
-      saved = Entries.open_day?(entry, unlocked:) &&
-        Entry.transaction { day.save! && entry.create_with_history }
+      saved = Entries.open_day?(entry, unlocked:) && save(day, entry)
 
       Result.new(entry:, saved:)
     end
+
+    # an invalid entry or a failing history takes the new day along
+    def self.save(day, entry)
+      Entry.transaction do
+        day.save!
+        entry.create_with_history || raise(ActiveRecord::Rollback)
+      end.present?
+    end
+    private_class_method :save
   end
 end
