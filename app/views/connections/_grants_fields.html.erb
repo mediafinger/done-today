@@ -1,0 +1,20 @@
+<%# memberships: { member => readable projects }, chosen: the submitted grants params %>
+<% options = [ [ "no access", "" ], [ "read", "read" ], [ "read and write", "write" ] ] %>
+
+<% memberships.each do |member, projects| %>
+  <fieldset>
+    <legend><%= member.org.name %></legend>
+
+    <label>
+      All projects, also ones you join later
+      <%= select_tag "grants[orgs][#{member.org_id}]", options_for_select(options, chosen&.dig(:orgs, member.org_id)) %>
+    </label>
+
+    <% projects.each do |project| %>
+      <label>
+        <%= project.name %>
+        <%= select_tag "grants[projects][#{project.id}]", options_for_select(options, chosen&.dig(:projects, project.id)) %>
+      </label>
+    <% end %>
+  </fieldset>
+<% end %>

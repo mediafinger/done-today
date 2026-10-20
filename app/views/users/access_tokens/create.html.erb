@@ -1,0 +1,11 @@
+<h2>Access token created</h2>
+
+<article>
+  <p>Copy <strong><%= @connection.name %></strong> now, it is shown only once:</p>
+
+  <pre><code id="access-token-secret"><%= @secret %></code></pre>
+
+  <%= render "connections/grants", connection: @connection %>
+
+  <footer><%= link_to "Done", user_access_tokens_path %></footer>
+</article>

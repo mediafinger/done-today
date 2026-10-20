@@ -29,6 +29,10 @@ Rails.application.routes.draw do
       resources :sessions, only: %i[ index destroy ], controller: "user_sessions" do
         delete :destroy_others, on: :collection
       end
+      # for the MCP server, revoke_all also takes the connected apps along
+      resources :access_tokens, only: %i[ index create destroy ] do
+        delete :destroy_all, on: :collection
+      end
       resource :display_mode, only: %i[ update ]
       resource :time_zone, only: %i[ update ]
     end

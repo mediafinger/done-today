@@ -163,6 +163,19 @@ RSpec.describe Connection do
     end
   end
 
+  describe ".revoke_all!" do
+    it "revokes the connections of the relation and their tokens, no others" do
+      connection.create_access_token!(expires_in: 1.day)
+      other = create(:connection)
+
+      user.connections.revoke_all!
+
+      expect(connection.reload).to be_revoked
+      expect(connection.access_tokens.sole).to be_revoked
+      expect(other.reload).not_to be_revoked
+    end
+  end
+
   describe "#revoke!" do
     it "revokes the connection and its tokens" do
       connection.create_access_token!(expires_in: 1.day)
