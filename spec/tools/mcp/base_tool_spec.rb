@@ -25,6 +25,10 @@ RSpec.describe Mcp::BaseTool do
     when "list_entries" then slugs
     when "get_day" then slugs.merge(date: Date.current.iso8601)
     when "get_summary", "get_time_issues", "export_entries" then slugs.merge(month: "2026-03")
+    when "create_entry" then slugs.merge(log: "Wrote a spec")
+    when "update_entry"
+      entry = create(:entry, day: create(:day, project:), member:)
+      { id: entry.id, updated_at: entry.updated_at.iso8601(6), status: "done" }
     end
   end
 

@@ -90,6 +90,13 @@ module Mcp
       }.compact
     end
 
+    # what a write answers: the entry, and the markup EntryLog couldn't make sense of
+    def saved_data(result)
+      raise Error, result.entry.errors.full_messages.to_sentence unless result.saved
+
+      { entry: entry_data(result.entry), issues: result.entry.parsed.issues.map { it.to_h.slice(:code, :severity, :message) } }
+    end
+
     def issue_data(issue)
       { date: issue.entry&.day&.date&.iso8601, code: issue.code, message: issue.message, entry_id: issue.entry&.id }.compact
     end

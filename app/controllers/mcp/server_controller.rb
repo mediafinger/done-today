@@ -4,7 +4,8 @@ module Mcp
   #   the cookie session; Mcp::TokenVerifier puts its connection into Current.
   #
   class ServerController < ActionController::API
-    TOOLS = [ ListProjectsTool, ListEntriesTool, GetDayTool, GetSummaryTool, GetTimeIssuesTool, ExportEntriesTool ].freeze
+    TOOLS = [ ListProjectsTool, ListEntriesTool, GetDayTool, GetSummaryTool, GetTimeIssuesTool, ExportEntriesTool,
+      CreateEntryTool, UpdateEntryTool ].freeze
 
     # the body belongs to the transport, unparsed
     wrap_parameters false
@@ -35,13 +36,17 @@ module Mcp
     end
 
     def server
-      MCP::Server.new(
+      server = MCP::Server.new(
         name: "done",
         title: AppConf.done_name,
         version: "1",
-        instructions: "Reads and writes your own entries in done. Call list_projects first for the org and project slugs.",
-        tools: TOOLS
+        instructions: "Reads and writes your own entries in done. Call list_projects first for the org and project slugs. " \
+          "Read #{Schema::SYNTAX_URI} before writing markup.",
+        tools: TOOLS,
+        resources: [ SyntaxResource.resource ]
       )
+      server.resources_read_handler { |params| [ { uri: params[:uri], mimeType: "text/markdown", text: SyntaxResource.text } ] }
+      server
     end
   end
 end
