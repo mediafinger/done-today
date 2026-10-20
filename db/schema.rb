@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -38,6 +38,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
     t.index ["org_id"], name: "index_access_requests_on_org_id"
     t.index ["project_id", "member_id"], name: "index_access_requests_on_project_id_and_member_id_pending", unique: true, where: "(status = 'pending'::access_request_status)"
     t.index ["project_id"], name: "index_access_requests_on_project_id"
+  end
+
+  create_table "connection_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "access", null: false
+    t.uuid "connection_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "org_id", null: false
+    t.uuid "project_id"
+    t.datetime "updated_at", null: false
+    t.index ["connection_id", "org_id"], name: "index_connection_grants_on_connection_id_and_org_id", unique: true, where: "(project_id IS NULL)"
+    t.index ["connection_id", "project_id"], name: "index_connection_grants_on_connection_id_and_project_id", unique: true, where: "(project_id IS NOT NULL)"
+    t.index ["org_id"], name: "index_connection_grants_on_org_id"
+    t.index ["project_id"], name: "index_connection_grants_on_project_id"
+    t.check_constraint "access::text = ANY (ARRAY['read'::character varying, 'write'::character varying]::text[])", name: "connection_grants_access"
+  end
+
+  create_table "connections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.uuid "oauth_application_id"
+    t.datetime "revoked_at"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["oauth_application_id"], name: "index_connections_on_oauth_application_id"
+    t.index ["user_id"], name: "index_connections_on_user_id"
   end
 
   create_table "days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -101,6 +127,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
     t.uuid "user_id", null: false
     t.index ["org_id", "user_id"], name: "index_members_on_org_id_and_user_id", unique: true
     t.index ["user_id"], name: "index_members_on_user_id"
+  end
+
+  create_table "oauth_access_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "application_id", null: false
+    t.string "code_challenge"
+    t.string "code_challenge_method"
+    t.uuid "connection_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "expires_in", null: false
+    t.text "redirect_uri", null: false
+    t.uuid "resource_owner_id", null: false
+    t.datetime "revoked_at"
+    t.string "scopes", default: "", null: false
+    t.string "token", null: false
+    t.index ["application_id"], name: "index_oauth_access_grants_on_application_id"
+    t.index ["connection_id"], name: "index_oauth_access_grants_on_connection_id"
+    t.index ["resource_owner_id"], name: "index_oauth_access_grants_on_resource_owner_id"
+    t.index ["token"], name: "index_oauth_access_grants_on_token", unique: true
+  end
+
+  create_table "oauth_access_tokens", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "application_id"
+    t.uuid "connection_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "expires_in"
+    t.string "previous_refresh_token", default: "", null: false
+    t.string "refresh_token"
+    t.uuid "resource_owner_id", null: false
+    t.datetime "revoked_at"
+    t.string "scopes"
+    t.string "token", null: false
+    t.index ["application_id"], name: "index_oauth_access_tokens_on_application_id"
+    t.index ["connection_id"], name: "index_oauth_access_tokens_on_connection_id"
+    t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
+    t.index ["resource_owner_id"], name: "index_oauth_access_tokens_on_resource_owner_id"
+    t.index ["token"], name: "index_oauth_access_tokens_on_token", unique: true
+  end
+
+  create_table "oauth_applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "confidential", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "redirect_uri", null: false
+    t.string "scopes", default: "", null: false
+    t.string "secret"
+    t.string "uid", null: false
+    t.datetime "updated_at", null: false
+    t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
 
   create_table "orgs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -183,6 +257,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
   add_foreign_key "access_requests", "members", column: "decided_by_id"
   add_foreign_key "access_requests", "orgs"
   add_foreign_key "access_requests", "projects"
+  add_foreign_key "connection_grants", "connections"
+  add_foreign_key "connection_grants", "orgs"
+  add_foreign_key "connection_grants", "projects"
+  add_foreign_key "connections", "oauth_applications"
+  add_foreign_key "connections", "users"
   add_foreign_key "days", "orgs"
   add_foreign_key "days", "projects"
   add_foreign_key "entries", "days"
@@ -193,6 +272,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_223000) do
   add_foreign_key "invitations", "projects"
   add_foreign_key "members", "orgs"
   add_foreign_key "members", "users"
+  add_foreign_key "oauth_access_grants", "connections"
+  add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
+  add_foreign_key "oauth_access_tokens", "connections"
+  add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
   add_foreign_key "participants", "members"
   add_foreign_key "participants", "orgs"
   add_foreign_key "participants", "projects"

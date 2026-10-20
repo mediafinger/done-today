@@ -72,6 +72,12 @@ ActiveRecordDoctor.configure do
 
   ]
 
+  # Doorkeeper's schema: grants and tokens are written once, then only revoked
+  detector :table_without_timestamps, ignore_tables: %w[
+    oauth_access_grants
+    oauth_access_tokens
+  ]
+
   detector :undefined_table_references, ignore_models: %w[
 
   ]
