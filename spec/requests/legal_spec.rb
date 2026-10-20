@@ -82,6 +82,12 @@ RSpec.describe "Legal pages" do
       expect(response.body).not_to include("nicht konfiguriert")
     end
 
+    it "covers the access tokens for AI clients" do
+      get privacy_path
+
+      expect(Nokogiri::HTML(response.body).at_css("#mcp")).to be_present
+    end
+
     it "lists the cookies the app sets" do
       get privacy_path
 
