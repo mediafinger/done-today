@@ -8,11 +8,13 @@ class RecordHistoryService
 
   class << self
     # synchronous on purpose: runs inside the record's transaction, so a failed write rolls the change back
-    def call(record:, event:, org: Current.org, user: Current.user, done_by_admin: Current.admin_flag.present?)
+    def call(record:, event:, org: Current.org, user: Current.user, done_by_admin: Current.admin_flag.present?,
+      connection: Current.connection)
       raise MissingContextError, "no org in scope, pass `org:` explicitly" if org.blank?
       raise MissingContextError, "no user in scope, pass `user:` explicitly" if user.blank?
 
       RecordHistory.create!(
+        connection_id: connection&.id,
         done_by_admin:,
         event:,
         org:,

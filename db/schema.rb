@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_210000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -51,7 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_210000) do
     t.index ["connection_id", "project_id"], name: "index_connection_grants_on_connection_id_and_project_id", unique: true, where: "(project_id IS NOT NULL)"
     t.index ["org_id"], name: "index_connection_grants_on_org_id"
     t.index ["project_id"], name: "index_connection_grants_on_project_id"
-    t.check_constraint "access::text = ANY (ARRAY['read'::character varying, 'write'::character varying]::text[])", name: "connection_grants_access"
+    t.check_constraint "access::text = ANY (ARRAY['read'::character varying::text, 'write'::character varying::text])", name: "connection_grants_access"
   end
 
   create_table "connections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -211,6 +211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_210000) do
   end
 
   create_table "record_histories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "connection_id"
     t.datetime "created_at", null: false
     t.boolean "done_by_admin", default: false, null: false
     t.string "event", null: false
@@ -220,6 +221,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_210000) do
     t.string "record_type", null: false
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
+    t.index ["connection_id"], name: "index_record_histories_on_connection_id"
     t.index ["done_by_admin", "user_id", "record_type"], name: "idx_on_done_by_admin_user_id_record_type_a6550ac183"
     t.index ["event", "record_type", "org_id"], name: "index_record_histories_on_event_and_record_type_and_org_id"
     t.index ["event", "record_type", "user_id"], name: "index_record_histories_on_event_and_record_type_and_user_id"

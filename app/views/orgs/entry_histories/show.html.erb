@@ -18,7 +18,7 @@
       <% @histories.each do |history| %>
         <tr>
           <td><%= history.created_at.strftime("%Y-%m-%d %H:%M") %></td>
-          <td><%= @actors[history.user_id]&.name || "unknown" %></td>
+          <td><%= @actors[history.user_id]&.name || "unknown" %><% if history.via_mcp? %> <small>via MCP</small><% end %></td>
           <td><%= history.event %></td>
           <td>
             <%# the derived columns follow from the log %>
