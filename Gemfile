@@ -5,10 +5,8 @@ ruby file: ".ruby-version"
 gem "rails", "~> 8.1.4"
 
 gem "action_policy", "~> 0.7" # authorization: policies, scopes, verify_authorized [https://actionpolicy.evilmartians.io]
-gem "active_storage_validations", "~> 3.0" # To validate uploaded files # TODO: update to 2.x
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
-gem "faker", "~> 3.4"
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "json", "< 3.0"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
@@ -23,11 +21,9 @@ gem "solid_cable"
 gem "solid_cache"
 gem "solid_queue"
 gem "stimulus-rails" # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
+gem "strong_migrations" # ensure safe migrations, split destructive or dangerous migrations into multiple steps
 gem "thruster", require: false # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma
 gem "turbo-rails" # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
 
 group :development, :test do
   gem "active_record_doctor", "~> 2.0", require: false
@@ -35,6 +31,7 @@ group :development, :test do
   gem "bundler-audit", "~> 0.9"
   gem "factory_bot-awesome_linter", "~> 1.0"
   gem "factory_bot_rails", "~> 6.2"
+  gem "faker", "~> 3.4"
   gem "rspec-rails", "~> 8.0"
   gem "rubocop-rails-omakase", require: false # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-capybara"
@@ -51,7 +48,7 @@ group :test do
 end
 
 group :development do
-  gem "fix-db-schema-conflicts" # to keep the schema.rb file sorted alphabetically without strong_migrations
+  gem "fix-db-schema-conflicts" # to keep the schema.rb file sorted alphabetically
   gem "letter_opener_web", "~> 3.0" # Preview sent mail at /dev/letter_opener instead of sending
   gem "web-console" # Use console on exceptions pages [https://github.com/rails/web-console]
 end
