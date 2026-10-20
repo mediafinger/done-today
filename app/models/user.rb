@@ -18,6 +18,7 @@ class User < ApplicationRecord
   # members carry the entries: archive them instead (the DB FK refuses as well)
   has_many :memberships, class_name: "Member", inverse_of: :user, dependent: :restrict_with_exception
   has_many :orgs, through: :memberships
+  has_many :connections, inverse_of: :user, dependent: :destroy # MCP access, see Connection
   has_many :sessions, dependent: :destroy
 
   has_one_attached :profile_picture
