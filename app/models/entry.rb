@@ -12,6 +12,10 @@ class Entry < ApplicationRecord
 
   has_one :project, through: :day
 
+  # EntryLog stores tags downcased: `Handover` and `#handover` find #handover. One place
+  #   for the array query, which the SQLite switch (#107) has to replace.
+  scope :tagged, ->(tag) { where("entries.tags @> ARRAY[?]::text[]", tag.to_s.delete_prefix("#").downcase) }
+
   before_validation :set_org
   before_validation :parse_log, if: :log_changed?
 

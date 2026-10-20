@@ -11,6 +11,15 @@ RSpec.describe Entry do
     end
   end
 
+  describe ".tagged" do
+    it "finds the entries with a tag, however it is written" do
+      tagged = create(:entry, log: "Handed over #handover")
+      create(:entry, log: "Handed over, untagged")
+
+      expect(described_class.tagged("#Handover")).to contain_exactly(tagged)
+    end
+  end
+
   describe "#set_org" do
     it "copies the org from the day when none is given" do
       day = create(:day)
