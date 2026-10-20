@@ -4,7 +4,7 @@ module Mcp
     description "The done projects this token reaches, with your role and the access it gives (read or write). " \
       "Other tools take the org and project slugs from here."
     input_schema(properties: {})
-    annotations(read_only_hint: true, destructive_hint: false, idempotent_hint: true, open_world_hint: false)
+    annotations(**Schema::READ_ONLY)
 
     def run
       projects = authorized_scope(Project.all, with: ProjectPolicy).includes(:org).sort_by { [ it.org.name, it.name ] }
