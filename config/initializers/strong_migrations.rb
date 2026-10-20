@@ -1,8 +1,12 @@
 # Mark existing migrations as safe
 StrongMigrations.start_after = 20261020200508
 
+# Disable index concurrency checks which SQLite does not support
+# StrongMigrations.disable_check(:add_index)
+
 # Set timeouts for migrations
-# If you use PgBouncer in transaction mode, delete these lines and set timeouts on the database user
+# If you use PgBouncer in transaction mode, set timeouts on the database user instead
+# If you use SQLite, set those to nil
 StrongMigrations.lock_timeout = 10.seconds
 StrongMigrations.statement_timeout = 1.hour
 
