@@ -59,6 +59,22 @@ RSpec.describe RecordHistoryService do
       expect(history.user_id).to eq(user.id)
     end
 
+    it "notes the connection of an MCP call" do
+      Current.connection = create(:connection, user:)
+
+      history = described_class.call(record: create(:entry), event: :created, org:, user:)
+
+      expect(history.connection_id).to eq(Current.connection.id)
+      expect(history).to be_via_mcp
+    end
+
+    it "notes no connection for the UI" do
+      history = described_class.call(record: create(:entry), event: :created, org:, user:)
+
+      expect(history.connection_id).to be_nil
+      expect(history).not_to be_via_mcp
+    end
+
     it "raises a clear error when there is no org in scope" do
       expect { described_class.call(record: create(:entry), event: :created, org: nil, user:) }
         .to raise_error(described_class::MissingContextError, /no org in scope/)

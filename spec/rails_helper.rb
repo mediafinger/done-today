@@ -79,4 +79,7 @@ RSpec.configure do |config|
 
   # `create(:user)` instead of `FactoryBot.create(:user)`
   config.include FactoryBot::Syntax::Methods
+
+  # requests reset it themselves, models and services set it by hand
+  config.after { Current.reset }
 end

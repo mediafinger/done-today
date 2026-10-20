@@ -27,6 +27,18 @@ RSpec.describe "Orgs::EntryHistories" do
       expect(rows.last).to include(lead.member.name, "updated", "status", "doing", "done")
     end
 
+    it "marks a change made through the MCP server" do
+      user = author.member.user
+      Current.set(org:, user:, connection: create(:connection, user:)) do
+        Entries::Update.call(entry:, attributes: { log: "Logged by Claude" })
+      end
+      sign_in(lead.member.user)
+
+      get entry_history_path(org, project, entry)
+
+      expect(Nokogiri::HTML(response.body).css("tbody tr").sole.text).to include("via MCP")
+    end
+
     it "names a deactivated member as well" do
       edit_as(author, log: "Wrote more code")
       author.member.archive!

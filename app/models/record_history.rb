@@ -31,6 +31,11 @@ class RecordHistory < ApplicationRecord
   validates :record_id, presence: true
   validates :user_id, presence: true
 
+  # made through the MCP server, not the UI
+  def via_mcp?
+    connection_id.present?
+  end
+
   def readonly?
     persisted?
   end
