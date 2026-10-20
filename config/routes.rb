@@ -39,7 +39,7 @@ Rails.application.routes.draw do
   end
 
   # the MCP server for AI clients, a bearer token instead of the session (#108)
-  match "mcp", to: "mcp/server#handle", via: %i[ get post delete ]
+  match "mcp", to: "mcp/server#handle", via: %i[ get post delete ], as: :mcp
 
   # the user's settings, /:org_slug/settings adds those of an org
   get "settings", to: "orgs/settings#show"

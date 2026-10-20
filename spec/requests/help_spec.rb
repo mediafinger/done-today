@@ -29,6 +29,14 @@ RSpec.describe "Help" do
       expect(page_text).to include(SyntaxGuide::DAY_TOTAL)
     end
 
+    it "explains how to connect an AI client" do
+      get help_path
+
+      section = Nokogiri::HTML(response.body).at_css("main #ai-clients")
+      expect(section.at_css("a[href='#{user_access_tokens_path}']")).to be_present
+      expect(section.text).to include("http://www.example.com/mcp", "claude mcp add")
+    end
+
     it "explains that time tracking is optional" do
       get help_path
 
