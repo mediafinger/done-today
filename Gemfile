@@ -7,6 +7,7 @@ gem "rails", "~> 8.1.4"
 gem "action_policy", "~> 0.7" # authorization: policies, scopes, verify_authorized [https://actionpolicy.evilmartians.io]
 gem "bcrypt", "~> 3.1.7" # Use Active Model has_secure_password
 gem "csv", "~> 3.3" # no longer a default gem since Ruby 3.4, needed for the CSV exports
+gem "doorkeeper", "~> 5.9" # OAuth 2 provider, also stores the personal access tokens of the MCP server [https://github.com/doorkeeper-gem/doorkeeper]
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "json", "< 3.0"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]

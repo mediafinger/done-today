@@ -103,6 +103,8 @@ source /opt/homebrew/share/chruby/chruby.sh && chruby $(cat .ruby-version 2>/dev
 4. **Domain Hierarchy**:
    Keep domain models aligned with the content hierarchy:
 
+5. **Migrations**: while on PostgreSQL, add every index with `algorithm: :concurrently` and `disable_ddl_transaction!`, also on new tables (create their references with `index: false`).
+
 ## UI, Stylesheets, Assets
 
  This Rails app uses Propshaft - there is no need to precompile assets for development.
