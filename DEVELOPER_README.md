@@ -84,6 +84,7 @@ The app supports multi-tenant organization boundaries and project selection:
 - **Where classes live**:
   - `app/models`: Active Record models (`ApplicationRecord` subclasses), plus `Current` (`ActiveSupport::CurrentAttributes`).
   - `app/services`: classes with a `.call(...)`, not instantiated by their callers (`RecordHistoryService`, `LandingService`, `OrgSetup`).
+  - `app/tools/mcp`: the MCP server's tools (`Mcp::…Tool < Mcp::BaseTool`), see section 8.
   - `app/values`: read-only objects built from their input, then read (`EntryLog`, `TimeSummary`, `PeriodSummary`, `TagTimes`, `TimeValidation`, `DaysExport`, `MonthExport`, `TagTimesExport`, and the `SyntaxGuide` examples). No persistence, no `.call`. Specs live in `spec/values`.
 - **UUIDs**: The primary database uses `gen_random_uuid()` from PostgreSQL's `pgcrypto` extension for all primary/foreign keys (except the auto-incrementing `sessions` table).
 - **PostgreSQL Enums**: The task status utilizes a custom PostgreSQL enum type `entry_status` (`["todo", "doing", "done"]`), the user's display preference `display_mode` (`["system", "light", "dark"]`), the org role of members and invitations `org_role` (`["guest", "member", "manager", "owner"]`), the project role of participants `project_role` (`["observer", "participant", "lead"]`). Both are ranked weakest first.
@@ -100,6 +101,23 @@ For auditing operations within organizations, we implement a lightweight event-l
 - **No Node.js build step**: JavaScript is managed using [importmap.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/importmap.rb) and executed using native ES modules.
 
 ---
+
+### 8. MCP Server & Access Tokens
+AI clients read and write a user's **own entries** at `/mcp` (#108); users connect them as described on `/help#ai-clients`.
+- **Tokens**: a [Connection](file:///Users/andy/Dropbox/www/2025/done_today/app/models/connection.rb) is one personal access token
+  (`/user/access_tokens`), or later one authorization of an OAuth app (#109). Its `ConnectionGrant`s name orgs or projects with `read` or `write`.
+  The secrets are Doorkeeper access tokens (`oauth_access_tokens`, SHA-256 digests only, prefix `done_pat_` / `done_oat_`); personal ones have no application.
+- **Access** is computed on every call, never stored: `Connection#access_for(project)` caps the strongest grant by the user's current
+  participation (`ProjectPolicy::READ_ROLES`, writing as `ProjectPolicy#create_entry?`). A lost membership or participation ends access at once.
+- **Endpoint**: [Mcp::ServerController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/mcp/server_controller.rb) follows the
+  mcp gem's Rails controller pattern (stateless, JSON responses, a server per request). `Mcp::TokenVerifier` checks the bearer token and sets
+  `Current.connection` / `Current.user`; the SDK answers 401 with the `WWW-Authenticate` challenge. Rate limit per token.
+- **Tools** (`Mcp::ServerController::TOOLS`) authorize with `Mcp::ProjectPolicy` and `Mcp::EntryPolicy` (context `connection`, own entries only),
+  write through `Entries::Create` / `Entries::Update`, and raise when they neither `authorize!` nor `authorized_scope` (`Mcp::BaseTool`).
+  `spec/tools/mcp/base_tool_spec.rb` runs every tool, so a new one needs its sample arguments there. The history notes the connection (`record_histories.connection_id`).
+- **Try it locally**: create a token on `/user/access_tokens`, then
+  `curl -s http://localhost:3333/mcp -H "Authorization: Bearer done_pat_…" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" --data '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`,
+  or the MCP Inspector (`npx @modelcontextprotocol/inspector`, Streamable HTTP).
 
 ## 🛠️ Development & Deployment
 
