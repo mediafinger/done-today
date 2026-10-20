@@ -40,6 +40,17 @@ class Connection < ApplicationRecord
     capped(granted.include?("write") ? "write" : granted.first, project)
   end
 
+  # the projects access_for gives access to, as a relation
+  def readable_projects
+    return Project.none if revoked?
+
+    participated = Participant.where(member: user.memberships.active, role: ProjectPolicy::READ_ROLES).select(:project_id)
+    granted = Project.where(org_id: grants.where(project_id: nil).select(:org_id))
+      .or(Project.where(id: grants.where.not(project_id: nil).select(:project_id)))
+
+    Project.where(id: participated).and(granted)
+  end
+
   # what `access` gives in the project right now: reading takes a participation, writing
   #   a role that may log in an active project (ProjectPolicy#create_entry?)
   #
