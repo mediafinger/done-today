@@ -14,6 +14,13 @@ class ConnectionGrant < ApplicationRecord
 
   scope :covering, ->(project) { where(org_id: project.org_id, project_id: [ nil, project.id ]) }
 
+  # :write, :read or nil: what the grant gives right now, in the best of the projects it covers
+  def effective_access
+    projects = project ? [ project ] : org.projects.where(id: Participant.where(member: connection.user.memberships).select(:project_id))
+
+    projects.filter_map { connection.capped(access, it) }.max
+  end
+
   private
 
   def project_of_the_org
