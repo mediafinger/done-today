@@ -53,7 +53,8 @@ RSpec.describe "OAuth client registration" do
     "a custom scheme" => "cursor://oauth/callback",
     "a fragment" => "https://ai.example/callback#done",
     "a relative path" => "/callback",
-    "a script" => "javascript:alert(1)"
+    "a script" => "javascript:alert(1)",
+    "the out-of-band URN" => "urn:ietf:wg:oauth:2.0:oob"
   }.each do |reason, uri|
     it "refuses a redirect URI with #{reason}" do
       expect { register(redirect_uris: [ uri ]) }.not_to change(Doorkeeper::Application, :count)

@@ -18,7 +18,7 @@ module Oauth
       end
 
       application = Doorkeeper::Application.new(name:, redirect_uri: redirect_uris.join("\n"), scopes: scopes.join(" "), confidential: false)
-      unless redirect_uris.any? && redirect_uris.none?(/\s/) && application.save
+      unless redirect_uris.any? && redirect_uris.all? { web_url?(it) } && application.save
         return refuse(:invalid_redirect_uri, "HTTPS, or http on localhost, without a fragment")
       end
 
@@ -58,6 +58,13 @@ module Oauth
     end
 
     def redirect_uris = strings(:redirect_uris)
+
+    # Doorkeeper's validator lets the out-of-band URN through, and splits on whitespace
+    def web_url?(uri)
+      uri.match?(/\A\S+\z/) && URI.parse(uri).is_a?(URI::HTTP)
+    rescue URI::InvalidURIError
+      false
+    end
 
     def scopes
       @scopes ||= params[:scope].present? ? params[:scope].to_s.split : TokenAuth::SCOPES
