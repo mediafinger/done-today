@@ -1,5 +1,7 @@
-<%# memberships: { member => readable projects }, chosen: the submitted grants params %>
-<% options = [ [ "no access", "" ], [ "read", "read" ], [ "read and write", "write" ] ] %>
+<%# memberships: { member => readable projects }, chosen: the submitted grants params,
+    accesses: what may be granted at most %>
+<% accesses = local_assigns.fetch(:accesses, TokenAuth::ConnectionGrant::ACCESS) %>
+<% options = [ [ "no access", "" ], [ "read", "read" ], [ "read and write", "write" ] ].select { it.last.blank? || accesses.include?(it.last) } %>
 
 <% memberships.each do |member, projects| %>
   <fieldset>
