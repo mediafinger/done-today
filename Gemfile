@@ -11,6 +11,7 @@ gem "doorkeeper", "~> 5.9" # OAuth 2 provider, also stores the personal access t
 gem "importmap-rails" # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "json", "< 3.0"
 gem "kamal", require: false # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
+gem "mcp", "~> 1.8" # the MCP server at /mcp, for AI clients [https://github.com/modelcontextprotocol/ruby-sdk]
 gem "mission_control-jobs", "~> 1.0" # dashboard for SolidQueue jobs
 gem "pg", "~> 1.1" # Use postgresql as the database for Active Record
 gem "propshaft" # The modern asset pipeline for Rails [https://github.com/rails/propshaft]

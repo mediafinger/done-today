@@ -116,6 +116,33 @@ RSpec.describe Connection do
     end
   end
 
+  describe "#readable_projects" do
+    it "holds the projects access_for gives access to" do
+      member = create(:member, org:, user:)
+      projects = create_list(:project, 4, org:)
+      create(:participant, project: projects[0], member:)
+      create(:participant, :observer, project: projects[1], member:)
+      create(:participant, project: projects[2], member:)
+      grant("read", project: projects[0])
+      grant("write", project: projects[1])
+      create(:connection_grant, connection:, org: create(:org), access: "write")
+
+      expect(connection.readable_projects).to match_array(Project.all.select { connection.access_for(it) })
+      expect(connection.readable_projects).to contain_exactly(projects[0], projects[1])
+    end
+
+    it "holds every participated project of an org grant, none once revoked" do
+      member = create(:member, org:, user:)
+      create(:participant, project:, member:)
+      grant("read")
+
+      expect(connection.readable_projects).to contain_exactly(project)
+
+      connection.revoke!
+      expect(connection.readable_projects).to be_empty
+    end
+  end
+
   describe ".authenticate" do
     let!(:secret) { connection.create_access_token!(expires_in: 1.day) }
 

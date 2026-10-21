@@ -15,7 +15,7 @@ module Sluggable
     *%w[assets cable favicon icon manifest rails robots service-worker],
     *%w[recede_historical_location refresh_historical_location resume_historical_location],
     # planned areas and pages
-    *%w[admin api blog contact dev faq jobs site support],
+    *%w[admin api blog contact dev faq jobs mcp oauth site support],
     # former paths, so old bookmarks never open an org
     *%w[dark_mode days display_mode entries light_mode open orgs preferences sessions system_mode tags users weeks]
   ].freeze
