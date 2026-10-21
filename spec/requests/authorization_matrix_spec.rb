@@ -334,6 +334,15 @@ RSpec.describe "Authorization role matrix" do
     delete destroy_all_user_access_tokens_path
   end
 
+  # the OAuth consent page: the account's own orgs and projects, nothing depends on roles
+  row "GET /oauth/authorize", { anonymous: :to_sign_in, no_org: :ok, member: :ok } do
+    get oauth_authorization_path, params: oauth_authorize_params(oauth_app)
+  end
+
+  row "POST /oauth/authorize", { anonymous: :to_sign_in, no_org: :unprocessable_content, member: :found } do
+    post oauth_authorization_path, params: oauth_authorize_params(oauth_app).merge(grants: { orgs: { org.id => "read" } })
+  end
+
   row "PATCH /user/display_mode", { anonymous: :to_sign_in, no_org: :found, member: :found } do
     patch user_display_mode_path, params: { user: { display_mode: "dark" } }, headers: { "HTTP_REFERER" => root_url }
   end
