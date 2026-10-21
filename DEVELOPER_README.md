@@ -105,7 +105,7 @@ For auditing operations within organizations, we implement a lightweight event-l
 ### 8. MCP Server & Access Tokens
 AI clients read and write a user's **own entries** at `/mcp` (#108); users connect them as described on `/help#ai-clients`.
 - **Tokens**: a [TokenAuth::Connection](file:///Users/andy/Dropbox/www/2025/done_today/app/models/token_auth/connection.rb) is one personal access token
-  (`/user/access_tokens`), or later one authorization of an OAuth app (#109). Its `TokenAuth::ConnectionGrant`s name orgs or projects with `read` or `write`.
+  (`/user/access_tokens`), or one user's authorization of an OAuth app (#109), listed there as "Connected apps". Its `TokenAuth::ConnectionGrant`s name orgs or projects with `read` or `write`.
   Tables `token_auth_connections`, `token_auth_connection_grants`; the foreign key stays `connection_id` everywhere.
   The secrets are Doorkeeper access tokens (`oauth_access_tokens`, SHA-256 digests only, prefix `done_pat_` / `done_oat_`); personal ones have no application.
 - **Access** is computed on every call, never stored: `TokenAuth::Connection#access_for(project)` caps the strongest grant by the user's current
@@ -116,6 +116,13 @@ AI clients read and write a user's **own entries** at `/mcp` (#108); users conne
 - **Tools** (`Mcp::ServerController::TOOLS`) authorize with `Mcp::ProjectPolicy` and `Mcp::EntryPolicy` (context `connection`, own entries only),
   write through `Entries::Create` / `Entries::Update`, and raise when they neither `authorize!` nor `authorized_scope` (`Mcp::BaseTool`).
   `spec/tools/mcp/base_tool_spec.rb` runs every tool, so a new one needs its sample arguments there. The history notes the connection (`record_histories.connection_id`).
+- **OAuth for hosted apps** (#109): done is the authorization server for `/mcp` (Doorkeeper at `/oauth`, `config/initializers/doorkeeper.rb`).
+  Discovery: `/.well-known/oauth-protected-resource/mcp` (RFC 9728) and `/.well-known/oauth-authorization-server` (RFC 8414),
+  `Oauth::MetadataController`; `/mcp`'s 401 points at the first. Apps register themselves (`POST /oauth/register`, RFC 7591, public
+  clients, https or loopback redirects); `Oauth::AuthorizationsController` is the consent page, approving creates the connection and its
+  grants, and Doorkeeper carries `connection_id` to every token. `Oauth::TokensController` refuses a refresh for a revoked connection,
+  one without access, or after 30 days. `TokenAuth::CleanupJob` (hourly) deletes never-authorized apps and revokes apps unused for 90 days.
+  The issuer is `AppConf.done_url`; `spec/requests/oauth/end_to_end_spec.rb` walks the whole flow.
 - **Try it locally**: create a token on `/user/access_tokens`, then
   `curl -s http://localhost:3333/mcp -H "Authorization: Bearer done_pat_…" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" --data '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'`,
   or the MCP Inspector (`npx @modelcontextprotocol/inspector`, Streamable HTTP).

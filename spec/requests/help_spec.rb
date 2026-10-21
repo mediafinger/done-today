@@ -37,6 +37,14 @@ RSpec.describe "Help" do
       expect(section.text).to include("http://www.example.com/mcp", "claude mcp add")
     end
 
+    it "explains how to connect a hosted AI app over OAuth" do
+      get help_path
+
+      section = Nokogiri::HTML(response.body).at_css("main #hosted-ai-apps")
+      expect(section.text).to include("http://www.example.com/mcp")
+      expect(section.at_css("a[href='#{user_access_tokens_path}']")).to be_present
+    end
+
     it "explains that time tracking is optional" do
       get help_path
 
