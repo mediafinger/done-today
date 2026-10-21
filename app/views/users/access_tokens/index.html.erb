@@ -37,6 +37,34 @@
   </footer>
 </article>
 
+<article id="connected-apps">
+  <header><h3>Connected apps</h3></header>
+
+  <p>Hosted AI apps like claude.ai or ChatGPT you connected over OAuth. Changing what one reaches means disconnecting and connecting it again.</p>
+
+  <% if connected_apps.any? %>
+    <table>
+      <thead>
+        <tr><th>App</th><th>Returns to</th><th>Access</th><th>Connected</th><th>Last used</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% connected_apps.each do |token_auth_connection| %>
+          <tr id="<%= dom_id(token_auth_connection) %>">
+            <td><%= token_auth_connection.name %></td>
+            <td><%= token_auth_connection.oauth_application.redirect_uri.split.map { URI.parse(it).host }.uniq.to_sentence %></td>
+            <td><%= render "token_auth/connections/grants", token_auth_connection: %></td>
+            <td><%= l(token_auth_connection.created_at, format: :short) %></td>
+            <td><%= token_auth_connection.last_used_at ? l(token_auth_connection.last_used_at, format: :short) : "never" %></td>
+            <td><%= button_to "Disconnect", user_access_token_path(token_auth_connection), method: :delete, class: "secondary" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No connected apps.</p>
+  <% end %>
+</article>
+
 <article>
   <header><h3>New access token</h3></header>
 
