@@ -27,4 +27,8 @@ Doorkeeper.configure do
 
   # no other client may read about tokens
   allow_token_introspection false
+
+  # redirect URIs: https, or http on the loopback for desktop clients; no other scheme
+  force_ssl_in_redirect_uri { |uri| !TokenAuth.loopback?(uri.host) }
+  forbid_redirect_uri { |uri| %w[http https].exclude?(uri.scheme) }
 end

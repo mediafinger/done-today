@@ -13,6 +13,9 @@ module TokenAuth
   # the MCP server, as clients name it in RFC 8707's resource parameter
   def self.resource = "#{issuer}/mcp"
 
+  # desktop clients receive the authorization code on their own machine, over http
+  def self.loopback?(host) = %w[localhost 127.0.0.1 [::1] ::1].include?(host)
+
   # RFC 9728, also the target of /mcp's 401 challenge
   def self.protected_resource_metadata
     @protected_resource_metadata ||= MCP::Server::OAuth::ProtectedResourceMetadata.new(

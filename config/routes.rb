@@ -49,6 +49,8 @@ Rails.application.routes.draw do
   use_doorkeeper do
     skip_controllers :authorizations, :applications, :authorized_applications, :token_info
   end
+  # RFC 7591, apps register themselves
+  post "oauth/register", to: "oauth/registrations#create", as: :oauth_registration
 
   # the user's settings, /:org_slug/settings adds those of an org
   get "settings", to: "orgs/settings#show"
