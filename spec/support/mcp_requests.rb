@@ -24,10 +24,10 @@ module McpRequests
 
   # a personal access token of the user, with the grants given as { org or project => access }
   def personal_token(user, grants)
-    connection = create(:connection, user:)
+    connection = create(:token_auth_connection, user:)
     grants.each do |target, access|
       org, project = target.is_a?(Project) ? [ target.org, target ] : [ target, nil ]
-      create(:connection_grant, connection:, org:, project:, access:)
+      create(:token_auth_connection_grant, connection:, org:, project:, access:)
     end
     connection.create_access_token!(expires_in: 1.day)
   end

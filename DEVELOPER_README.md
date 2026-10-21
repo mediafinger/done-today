@@ -104,10 +104,11 @@ For auditing operations within organizations, we implement a lightweight event-l
 
 ### 8. MCP Server & Access Tokens
 AI clients read and write a user's **own entries** at `/mcp` (#108); users connect them as described on `/help#ai-clients`.
-- **Tokens**: a [Connection](file:///Users/andy/Dropbox/www/2025/done_today/app/models/connection.rb) is one personal access token
-  (`/user/access_tokens`), or later one authorization of an OAuth app (#109). Its `ConnectionGrant`s name orgs or projects with `read` or `write`.
+- **Tokens**: a [TokenAuth::Connection](file:///Users/andy/Dropbox/www/2025/done_today/app/models/token_auth/connection.rb) is one personal access token
+  (`/user/access_tokens`), or later one authorization of an OAuth app (#109). Its `TokenAuth::ConnectionGrant`s name orgs or projects with `read` or `write`.
+  Tables `token_auth_connections`, `token_auth_connection_grants`; the foreign key stays `connection_id` everywhere.
   The secrets are Doorkeeper access tokens (`oauth_access_tokens`, SHA-256 digests only, prefix `done_pat_` / `done_oat_`); personal ones have no application.
-- **Access** is computed on every call, never stored: `Connection#access_for(project)` caps the strongest grant by the user's current
+- **Access** is computed on every call, never stored: `TokenAuth::Connection#access_for(project)` caps the strongest grant by the user's current
   participation (`ProjectPolicy::READ_ROLES`, writing as `ProjectPolicy#create_entry?`). A lost membership or participation ends access at once.
 - **Endpoint**: [Mcp::ServerController](file:///Users/andy/Dropbox/www/2025/done_today/app/controllers/mcp/server_controller.rb) follows the
   mcp gem's Rails controller pattern (stateless, JSON responses, a server per request). `Mcp::TokenVerifier` checks the bearer token and sets

@@ -6,20 +6,20 @@
 </p>
 
 <article id="access-tokens">
-  <% if personal_connections.any? %>
+  <% if personal_token_auth_connections.any? %>
     <table>
       <thead>
         <tr><th>Name</th><th>Access</th><th>Expires</th><th>Last used</th><th></th></tr>
       </thead>
       <tbody>
-        <% personal_connections.each do |connection| %>
-          <% token = connection.access_tokens.max_by(&:created_at) %>
-          <tr id="<%= dom_id(connection) %>">
-            <td><%= connection.name %></td>
-            <td><%= render "connections/grants", connection: %></td>
+        <% personal_token_auth_connections.each do |token_auth_connection| %>
+          <% token = token_auth_connection.access_tokens.max_by(&:created_at) %>
+          <tr id="<%= dom_id(token_auth_connection) %>">
+            <td><%= token_auth_connection.name %></td>
+            <td><%= render "token_auth/connections/grants", token_auth_connection: %></td>
             <td><%= token.expired? ? "expired" : l(token.expires_at, format: :short) %></td>
-            <td><%= connection.last_used_at ? l(connection.last_used_at, format: :short) : "never" %></td>
-            <td><%= button_to "Revoke", user_access_token_path(connection), method: :delete, class: "secondary" %></td>
+            <td><%= token_auth_connection.last_used_at ? l(token_auth_connection.last_used_at, format: :short) : "never" %></td>
+            <td><%= button_to "Revoke", user_access_token_path(token_auth_connection), method: :delete, class: "secondary" %></td>
           </tr>
         <% end %>
       </tbody>
@@ -30,7 +30,7 @@
 
   <footer class="grid">
     <%= link_to "Back", edit_user_path %>
-    <% if current_user.connections.active.exists? %>
+    <% if current_user.token_auth_connections.active.exists? %>
       <%= button_to "Revoke all", destroy_all_user_access_tokens_path, method: :delete,
             form: { data: { turbo_confirm: "Revoke all access tokens and connected apps?" } } %>
     <% end %>
@@ -41,9 +41,9 @@
   <header><h3>New access token</h3></header>
 
   <%# a full page load: the secret is shown on the response instead of a redirect %>
-  <%= form_with model: @connection, url: user_access_tokens_path, id: "new-access-token", data: { turbo: false } do |form| %>
-    <% if @connection.errors.any? %>
-      <p role="alert"><%= @connection.errors.full_messages.to_sentence %></p>
+  <%= form_with model: @token_auth_connection, url: user_access_tokens_path, id: "new-access-token", data: { turbo: false } do |form| %>
+    <% if @token_auth_connection.errors.any? %>
+      <p role="alert"><%= @token_auth_connection.errors.full_messages.to_sentence %></p>
     <% end %>
 
     <%= form.label :name, "Name, e.g. where you use it" %>
@@ -51,9 +51,9 @@
 
     <%= label_tag :expires_in_days, "Expires in" %>
     <%= select_tag :expires_in_days,
-          options_for_select(Connection::PERSONAL_EXPIRY_DAYS.map { [ pluralize(it, "day"), it ] }, @expires_in_days || 90) %>
+          options_for_select(TokenAuth::Connection::PERSONAL_EXPIRY_DAYS.map { [ pluralize(it, "day"), it ] }, @expires_in_days || 90) %>
 
-    <%= render "connections/grants_fields", memberships: grantable_memberships, chosen: params[:grants] %>
+    <%= render "token_auth/connections/grants_fields", memberships: grantable_memberships, chosen: params[:grants] %>
 
     <%= form.submit "Create token" %>
   <% end %>

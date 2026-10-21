@@ -1,6 +1,6 @@
 class Current < ActiveSupport::CurrentAttributes
   attribute :admin_flag
-  attribute :connection # the MCP connection of the request, see Connection
+  attribute :connection # the MCP connection of the request, see TokenAuth::Connection
   attribute :ip_address
   attribute :member
   attribute :member_id

@@ -25,7 +25,7 @@ RSpec.describe "Mcp write tools" do
       entry = Entry.find(data.dig("entry", "id"))
       expect(entry).to have_attributes(member:, log: "#review the checkout PR", status: "todo", tags: [ "review" ])
       expect(entry.day.date).to eq(Time.zone.today)
-      expect(RecordHistory.find_by!(record_id: entry.id).connection_id).to eq(member.user.connections.sole.id)
+      expect(RecordHistory.find_by!(record_id: entry.id).connection_id).to eq(member.user.token_auth_connections.sole.id)
     end
 
     it "reports the markup it couldn't read, and saves the entry all the same" do

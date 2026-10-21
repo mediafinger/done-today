@@ -60,7 +60,7 @@ RSpec.describe RecordHistoryService do
     end
 
     it "notes the connection of an MCP call" do
-      Current.connection = create(:connection, user:)
+      Current.connection = create(:token_auth_connection, user:)
 
       history = described_class.call(record: create(:entry), event: :created, org:, user:)
 

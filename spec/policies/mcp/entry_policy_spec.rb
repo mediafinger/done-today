@@ -4,9 +4,9 @@ RSpec.describe Mcp::EntryPolicy do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:lead) { create(:participant, :lead, project:, member: create(:member, :owner, org:)).member }
-  let(:connection) { create(:connection, user: lead.user) }
+  let(:connection) { create(:token_auth_connection, user: lead.user) }
 
-  before { create(:connection_grant, :write, connection:, org:) }
+  before { create(:token_auth_connection_grant, :write, connection:, org:) }
 
   def scope = described_class.new(nil, connection:).apply_scope(Entry.all, type: :active_record_relation)
 
