@@ -72,6 +72,12 @@ RSpec.describe "Users::AccessTokens" do
       expect(connection.access_tokens.sole.expires_in).to eq(90.days.to_i)
     end
 
+    it "shows how to add the token to Claude Code" do
+      create_token
+
+      expect(page.text).to include("claude mcp add", "/mcp", page.at_css("#access-token-secret").text.strip)
+    end
+
     it "keeps the page with the secret out of caches" do
       create_token
 

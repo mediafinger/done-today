@@ -5,6 +5,11 @@
 
   <pre><code id="access-token-secret"><%= @secret %></code></pre>
 
+  <p>To use it in Claude Code, for all your projects:</p>
+  <pre><code>claude mcp add --transport http --scope user done <%= mcp_url %> \
+  --header "Authorization: Bearer <%= @secret %>"</code></pre>
+  <p>More in the <%= link_to "help", help_path(anchor: "ai-clients") %>.</p>
+
   <%= render "connections/grants", connection: @connection %>
 
   <footer><%= link_to "Done", user_access_tokens_path %></footer>

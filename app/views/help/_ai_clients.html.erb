@@ -1,0 +1,54 @@
+<section id="ai-clients">
+  <h2>AI clients</h2>
+
+  <p>
+    AI clients like Claude Code read and write <b>your own entries</b> through done's MCP server at
+    <code><%= mcp_url %></code>.
+  </p>
+
+  <h3>1. Create an access token</h3>
+  <p>
+    Open <%= link_to "Account → Access tokens", user_access_tokens_path %>. Name the token after where you use it,
+    e.g. "Claude Code laptop", pick the orgs or projects it may reach, each with <b>read</b> or <b>read and write</b>,
+    and an expiry. Copy the token (<code>done_pat_…</code>): it is shown only once.
+  </p>
+  <p>
+    A token reaches only your own entries, in projects you take part in, and only as long as you do. It has no access
+    to settings, members or other people's entries.
+  </p>
+
+  <h3>2. Add done to Claude Code</h3>
+  <p>For all your projects:</p>
+  <pre><code>claude mcp add --transport http --scope user done <%= mcp_url %> \
+  --header "Authorization: Bearer done_pat_…"</code></pre>
+  <p>Or for one repository, without the token in the file, in <code>.mcp.json</code>:</p>
+  <pre><code>{
+  "mcpServers": {
+    "done": {
+      "type": "http",
+      "url": "<%= mcp_url %>",
+      "headers": { "Authorization": "Bearer ${DONE_TOKEN}" }
+    }
+  }
+}</code></pre>
+  <p>Set <code>DONE_TOKEN</code> in your shell. <code>/mcp</code> in Claude Code shows whether done is connected, and its tools.</p>
+
+  <h3>3. Use it</h3>
+  <ul>
+    <li>"Which done projects can you see?"</li>
+    <li>"Log in acme/website for today: <code>start@9:00 Reviewed the checkout PR #review for~1h30m</code>"</li>
+    <li>"Mark my entry about the checkout PR as done."</li>
+    <li>"What did I log last week in acme/website, and are there any time issues?"</li>
+    <li>"Export my hours for September in acme/website as CSV."</li>
+  </ul>
+  <p>
+    Claude Code asks before each write unless you allow the tool. Past days stay locked unless you say to change them
+    ("yes, change yesterday").
+  </p>
+
+  <h3>4. Revoke</h3>
+  <p>
+    <b>Account → Access tokens → Revoke</b>: the next call fails. Remove the server from Claude Code with
+    <code>claude mcp remove done</code>.
+  </p>
+</section>
