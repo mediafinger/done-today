@@ -10,35 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
-  create_enum "access_request_status", ["pending", "granted", "declined"]
   create_enum "display_mode", ["system", "light", "dark"]
   create_enum "entry_status", ["todo", "doing", "done"]
   create_enum "org_role", ["guest", "member", "manager", "owner"]
+  create_enum "participation_request_status", ["pending", "granted", "declined"]
   create_enum "project_role", ["observer", "participant", "lead"]
-
-  create_table "access_requests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "decided_at"
-    t.uuid "decided_by_id"
-    t.uuid "member_id", null: false
-    t.text "message"
-    t.uuid "org_id", null: false
-    t.uuid "project_id", null: false
-    t.enum "status", default: "pending", null: false, enum_type: "access_request_status"
-    t.datetime "updated_at", null: false
-    t.index ["decided_by_id"], name: "index_access_requests_on_decided_by_id"
-    t.index ["member_id"], name: "index_access_requests_on_member_id"
-    t.index ["org_id"], name: "index_access_requests_on_org_id"
-    t.index ["project_id", "member_id"], name: "index_access_requests_on_project_id_and_member_id_pending", unique: true, where: "(status = 'pending'::access_request_status)"
-    t.index ["project_id"], name: "index_access_requests_on_project_id"
-  end
 
   create_table "connection_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "access", null: false
@@ -198,6 +181,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_220000) do
     t.index ["project_id", "member_id"], name: "index_participants_on_project_id_and_member_id", unique: true
   end
 
+  create_table "participation_requests", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "decided_at"
+    t.uuid "decided_by_id"
+    t.uuid "member_id", null: false
+    t.text "message"
+    t.uuid "org_id", null: false
+    t.uuid "project_id", null: false
+    t.enum "status", default: "pending", null: false, enum_type: "participation_request_status"
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_participation_requests_on_decided_by_id"
+    t.index ["member_id"], name: "index_participation_requests_on_member_id"
+    t.index ["org_id"], name: "index_participation_requests_on_org_id"
+    t.index ["project_id", "member_id"], name: "index_participation_requests_on_project_and_member_pending", unique: true, where: "(status = 'pending'::participation_request_status)"
+    t.index ["project_id"], name: "index_participation_requests_on_project_id"
+  end
+
   create_table "projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "archived_at"
     t.datetime "created_at", null: false
@@ -255,10 +255,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_220000) do
     t.index ["last_project_id"], name: "index_users_on_last_project_id"
   end
 
-  add_foreign_key "access_requests", "members"
-  add_foreign_key "access_requests", "members", column: "decided_by_id"
-  add_foreign_key "access_requests", "orgs"
-  add_foreign_key "access_requests", "projects"
   add_foreign_key "connection_grants", "connections"
   add_foreign_key "connection_grants", "orgs"
   add_foreign_key "connection_grants", "projects"
@@ -283,6 +279,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_220000) do
   add_foreign_key "participants", "members"
   add_foreign_key "participants", "orgs"
   add_foreign_key "participants", "projects"
+  add_foreign_key "participation_requests", "members"
+  add_foreign_key "participation_requests", "members", column: "decided_by_id"
+  add_foreign_key "participation_requests", "orgs"
+  add_foreign_key "participation_requests", "projects"
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
   add_foreign_key "sessions", "users"

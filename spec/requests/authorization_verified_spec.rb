@@ -59,7 +59,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     in [ "id", "orgs/entries" ] then entry.id
     in [ "id", "users/user_sessions" ] then me.user.sessions.last.id
     in [ "id", "users/access_tokens" ] then create(:connection, user: me.user).id
-    in [ "id", "orgs/access_requests" ] then create(:access_request, project:, member: requester).id
+    in [ "id", "orgs/participation_requests" ] then create(:participation_request, project:, member: requester).id
     in [ "id", "orgs/participants" ] then colleague.participations.find_by!(project:).id
     end
   end
@@ -86,15 +86,15 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/projects#export_days_csv" then { month: "2026-03", member_id: colleague.id }
     when "orgs/participants#create" then { participant: { member_id: create(:member, org:).id, role: "observer" } }
     when "orgs/participants#update" then { participant: { role: "owner" } }
-    when "orgs/access_requests#create" then { access_request: { message: "Please" } }
-    when "orgs/access_requests#grant" then { access_request: { role: "observer" } }
+    when "orgs/participation_requests#create" then { participation_request: { message: "Please" } }
+    when "orgs/participation_requests#grant" then { participation_request: { role: "observer" } }
     else {}
     end
   end
 
   def signed_in_user(controller, action)
     return create(:user, :admin) if controller.start_with?("admins/")
-    return requester.user if "#{controller}##{action}" == "orgs/access_requests#create"
+    return requester.user if "#{controller}##{action}" == "orgs/participation_requests#create"
 
     me.user
   end

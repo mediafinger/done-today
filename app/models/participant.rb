@@ -26,7 +26,7 @@ class Participant < ApplicationRecord
 
   before_validation :set_org
 
-  after_create :grant_pending_access_request
+  after_create :grant_pending_participation_request
   after_destroy :archive_guest_without_project, unless: :destroyed_by_association
 
   validates :member, uniqueness: { scope: :project_id } # mirrors the unique DB index
@@ -47,8 +47,8 @@ class Participant < ApplicationRecord
   end
 
   # added through the form or an invitation, the member asking to join is answered
-  def grant_pending_access_request
-    AccessRequest.pending.where(project:, member:).update_all(status: "granted", decided_at: Time.current, updated_at: Time.current)
+  def grant_pending_participation_request
+    ParticipationRequest.pending.where(project:, member:).update_all(status: "granted", decided_at: Time.current, updated_at: Time.current)
   end
 
   def member_of_the_projects_org

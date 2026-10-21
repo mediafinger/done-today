@@ -1,13 +1,13 @@
 require "rails_helper"
 
-RSpec.describe AccessRequestsMailer do
+RSpec.describe ParticipationRequestsMailer do
   let(:org) { create(:org, name: "Acme") }
   let(:project) { create(:project, org:, name: "Website") }
   let(:lead) { create(:participant, :lead, project:, member: create(:member, org:, name: "Pat", user: create(:user, email: "pat@example.com"))).member }
-  let(:access_request) { create(:access_request, project:, member: create(:member, org:, name: "Carl"), message: "Need the invoices") }
+  let(:participation_request) { create(:participation_request, project:, member: create(:member, org:, name: "Carl"), message: "Need the invoices") }
 
   describe "#requested" do
-    subject(:mail) { described_class.requested(access_request, lead) }
+    subject(:mail) { described_class.requested(participation_request, lead) }
 
     it "goes to the lead" do
       expect(mail.to).to eq([ "pat@example.com" ])

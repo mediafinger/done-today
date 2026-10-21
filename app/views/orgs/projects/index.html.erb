@@ -9,12 +9,12 @@
             <%= link_to project.name, project_path(current_org, project), method: :get, role: "button", class: "slim" %>
           <% else %>
             <%= project.name %> <small>(<%= join_project_hint(project) %>)</small>
-            <% if (access_request = @access_requests[project.id]) %>
-              <small>asked to join on <%= access_request.created_at.to_date %></small>
+            <% if (participation_request = @participation_requests[project.id]) %>
+              <small>asked to join on <%= participation_request.created_at.to_date %></small>
             <% elsif allowed_to?(:request_access?, project) %>
               <details>
                 <summary>Ask to join</summary>
-                <%= form_with model: AccessRequest.new, url: access_requests_path(current_org, project), namespace: dom_id(project) do |form| %>
+                <%= form_with model: ParticipationRequest.new, url: participation_requests_path(current_org, project), namespace: dom_id(project) do |form| %>
                   <fieldset role="group">
                     <%= form.text_field :message, maxlength: 500, placeholder: "Message to the project leads (optional)", aria: { label: "Message" } %>
                     <%= form.submit "Ask to join", class: "slim" %>

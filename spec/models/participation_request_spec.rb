@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe AccessRequest do
+RSpec.describe ParticipationRequest do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:member) { create(:member, org:) }
@@ -11,10 +11,10 @@ RSpec.describe AccessRequest do
   end
 
   it "is pending, in the project's org" do
-    access_request = request_access
+    participation_request = request_access
 
-    expect(access_request).to be_pending
-    expect(access_request.org).to eq(org)
+    expect(participation_request).to be_pending
+    expect(participation_request.org).to eq(org)
   end
 
   it "allows one pending request per member and project" do
@@ -46,44 +46,44 @@ RSpec.describe AccessRequest do
 
   describe "#grant!" do
     it "adds the member with the role and records the decision" do
-      access_request = request_access
+      participation_request = request_access
 
-      participant = access_request.grant!(by: lead, role: "observer")
+      participant = participation_request.grant!(by: lead, role: "observer")
 
       expect(participant).to be_persisted
       expect(participant.role).to eq("observer")
-      expect(access_request.reload).to have_attributes(status: "granted", decided_by: lead)
-      expect(access_request.decided_at).to be_present
+      expect(participation_request.reload).to have_attributes(status: "granted", decided_by: lead)
+      expect(participation_request.decided_at).to be_present
     end
 
     it "changes nothing when the role does not fit" do
-      access_request = request_access
+      participation_request = request_access
 
-      participant = access_request.grant!(by: lead, role: "admin")
+      participant = participation_request.grant!(by: lead, role: "admin")
 
       expect(participant).not_to be_persisted
-      expect(access_request.reload).to be_pending
+      expect(participation_request.reload).to be_pending
     end
   end
 
   describe "#decline!" do
     it "records the decision and adds nobody" do
-      access_request = request_access
+      participation_request = request_access
 
-      access_request.decline!(by: lead)
+      participation_request.decline!(by: lead)
 
-      expect(access_request.reload).to have_attributes(status: "declined", decided_by: lead)
+      expect(participation_request.reload).to have_attributes(status: "declined", decided_by: lead)
       expect(project.participants.where(member:)).to be_empty
     end
   end
 
   # added through the participants form or an invitation, the request is answered
   it "is granted when the member joins the project otherwise" do
-    access_request = request_access
+    participation_request = request_access
 
     create(:participant, project:, member:)
 
-    expect(access_request.reload).to be_granted
+    expect(participation_request.reload).to be_granted
   end
 
   describe "#recipients" do

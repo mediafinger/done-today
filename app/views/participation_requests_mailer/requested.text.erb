@@ -1,0 +1,8 @@
+<%= @participation_request.member.name %> asks to join <%= @participation_request.project.name %> in <%= @participation_request.org.name %> on Done today.
+<% if @participation_request.message %>
+
+<%= @participation_request.message %>
+<% end %>
+
+Grant or decline the request with the project's participants:
+<%= @url %>

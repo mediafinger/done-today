@@ -105,8 +105,8 @@ RSpec.describe "Authorization role matrix" do
   end
 
   # of a member who is none of the personas
-  def pending_access_request
-    @pending_access_request ||= create(:access_request, project:, member: create(:member, org:))
+  def pending_participation_request
+    @pending_participation_request ||= create(:participation_request, project:, member: create(:member, org:))
   end
 
   def link_to_project?
@@ -745,35 +745,35 @@ RSpec.describe "Authorization role matrix" do
   end
 
   # internals ask to join a project they cannot read, guests only know their own projects
-  row "POST /:org/:project/access_requests", {
+  row "POST /:org/:project/participation_requests", {
     **locked_out, outsider: :not_found, member: :written, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
     org_owner: :forbidden, outside_guest: :not_found
-  }, written: -> { project.access_requests.exists? } do
-    post access_requests_path(org, project), params: { access_request: { message: "Please" } }
+  }, written: -> { project.participation_requests.exists? } do
+    post participation_requests_path(org, project), params: { participation_request: { message: "Please" } }
   end
 
-  row "POST /:org/:project/access_requests with P archived", {
+  row "POST /:org/:project/participation_requests with P archived", {
     **locked_out, outsider: :not_found, member: :forbidden, observer: :forbidden, participant: :forbidden, project_lead: :forbidden,
     org_owner: :forbidden, outside_guest: :not_found
-  }, written: -> { project.access_requests.exists? } do
+  }, written: -> { project.participation_requests.exists? } do
     project.archive!
 
-    post access_requests_path(org, project)
+    post participation_requests_path(org, project)
   end
 
   # those who manage P decide, as they add participants
-  row "PATCH /:org/:project/access_requests/:id/grant", {
+  row "PATCH /:org/:project/participation_requests/:id/grant", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
     org_owner: :written
-  }, written: -> { project.participants.exists?(member: pending_access_request.member) } do
-    patch grant_access_request_path(org, project, pending_access_request), params: { access_request: { role: "observer" } }
+  }, written: -> { project.participants.exists?(member: pending_participation_request.member) } do
+    patch grant_participation_request_path(org, project, pending_participation_request), params: { participation_request: { role: "observer" } }
   end
 
-  row "PATCH /:org/:project/access_requests/:id/decline", {
+  row "PATCH /:org/:project/participation_requests/:id/decline", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
     org_owner: :written
-  }, written: -> { pending_access_request.reload.declined? } do
-    patch decline_access_request_path(org, project, pending_access_request)
+  }, written: -> { pending_participation_request.reload.declined? } do
+    patch decline_participation_request_path(org, project, pending_participation_request)
   end
 
   # an archived project is read-only for everybody, listed only for those who manage it
