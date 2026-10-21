@@ -20,6 +20,13 @@ RSpec.describe "Mcp::Server" do
       expect(response.headers["WWW-Authenticate"]).to start_with("Bearer")
     end
 
+    it "points the challenge at the protected resource metadata, for OAuth clients" do
+      mcp("tools/list", token: nil)
+
+      expect(response.headers["WWW-Authenticate"])
+        .to include(%(resource_metadata="#{AppConf.done_url}/.well-known/oauth-protected-resource/mcp"))
+    end
+
     it "refuses an unknown token" do
       mcp("tools/list", token: "done_pat_unknown")
 

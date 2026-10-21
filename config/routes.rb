@@ -41,6 +41,15 @@ Rails.application.routes.draw do
   # the MCP server for AI clients, a bearer token instead of the session (#108)
   match "mcp", to: "mcp/server#handle", via: %i[ get post delete ], as: :mcp
 
+  # OAuth for hosted AI apps (#109): the discovery documents, and Doorkeeper at /oauth
+  scope ".well-known", module: :oauth do
+    get "oauth-protected-resource/mcp", to: "metadata#protected_resource", as: :oauth_protected_resource_metadata
+    get "oauth-authorization-server", to: "metadata#authorization_server", as: :oauth_authorization_server_metadata
+  end
+  use_doorkeeper do
+    skip_controllers :authorizations, :applications, :authorized_applications, :token_info
+  end
+
   # the user's settings, /:org_slug/settings adds those of an org
   get "settings", to: "orgs/settings#show"
 

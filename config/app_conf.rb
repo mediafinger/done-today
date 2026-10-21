@@ -90,6 +90,8 @@ class AppConf
   register :done_host, default: "done.test", required: production_env?
   register :done_name, default: "done"
   register :done_port, default: environment == "test" ? 3334 : 3333
+  # the origin OAuth clients see, the issuer and the MCP resource are built on it (#109)
+  register :done_url, default: production_env? ? "https://#{done_host}" : "http://localhost:#{done_port}"
   register :done_version, default: env_and_version
   # entry dates are local dates, so "today" has to be resolved in a zone:
   #   the user's own (User#time_zone), this one without a user
