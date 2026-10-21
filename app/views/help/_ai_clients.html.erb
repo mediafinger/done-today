@@ -51,4 +51,30 @@
     <b>Account → Access tokens → Revoke</b>: the next call fails. Remove the server from Claude Code with
     <code>claude mcp remove done</code>.
   </p>
+
+  <section id="hosted-ai-apps">
+    <h3>Hosted AI apps: claude.ai, ChatGPT</h3>
+    <p>
+      Apps that run in the cloud connect without a token you copy: you approve them in done.
+    </p>
+    <ul>
+      <li>
+        <b>claude.ai or Claude Desktop:</b> Settings → Connectors → Add custom connector, URL <code><%= mcp_url %></code>,
+        then <b>Connect</b>.
+      </li>
+      <li>
+        <b>ChatGPT</b>, with developer mode on: Settings → Connectors (Apps) → Create, URL <code><%= mcp_url %></code>,
+        authentication <b>OAuth</b>, then <b>Connect</b>.
+      </li>
+    </ul>
+    <p>
+      The app sends you to done. Sign in, pick the orgs or projects it may reach, each with read or read and write,
+      and approve. The menu names in the apps change often; the URL and the approval in done stay the same.
+    </p>
+    <p>
+      The app gets only what you approved: your own entries in those projects, as long as you take part in them.
+      <%= link_to "Account → Access tokens and connected apps", user_access_tokens_path %> lists it; <b>Disconnect</b>
+      ends its access. An app unused for 90 days is disconnected on its own.
+    </p>
+  </section>
 </section>

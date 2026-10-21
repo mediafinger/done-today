@@ -86,6 +86,7 @@ RSpec.describe "Legal pages" do
       get privacy_path
 
       expect(Nokogiri::HTML(response.body).at_css("#mcp")).to be_present
+      expect(Nokogiri::HTML(response.body).at_css("#mcp-oauth")).to be_present
     end
 
     it "lists the cookies the app sets" do
