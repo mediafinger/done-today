@@ -39,6 +39,10 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     me.user.tap { it.update!(unconfirmed_email: "changing@example.com") }
   end
 
+  def oauth_client
+    @oauth_client ||= oauth_app
+  end
+
   def path_value(name, controller)
     case [ name, controller ]
     in [ "org_slug", _ ] then org.slug
@@ -88,6 +92,8 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     when "orgs/participants#update" then { participant: { role: "owner" } }
     when "orgs/participation_requests#create" then { participation_request: { message: "Please" } }
     when "orgs/participation_requests#grant" then { participation_request: { role: "observer" } }
+    when "oauth/authorizations#new", "oauth/authorizations#destroy" then oauth_authorize_params(oauth_client)
+    when "oauth/authorizations#create" then oauth_authorize_params(oauth_client).merge(grants: { orgs: { org.id => "read" } })
     else {}
     end
   end

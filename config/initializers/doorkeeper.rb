@@ -4,6 +4,10 @@
 Doorkeeper.configure do
   orm :active_record
 
+  # the consent page is a page of the app: its layout, its sign-in with return_to
+  base_controller "ApplicationController"
+  resource_owner_authenticator { current_user }
+
   # only SHA-256 digests are stored, the secret is shown once
   hash_token_secrets
   hash_application_secrets

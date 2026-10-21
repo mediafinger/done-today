@@ -1,0 +1,47 @@
+<% redirect_host = URI.parse(@pre_auth.redirect_uri).host %>
+<% fields = { client_id: @pre_auth.client.uid, redirect_uri: @pre_auth.redirect_uri, state: @pre_auth.state,
+              response_type: @pre_auth.response_type, response_mode: @pre_auth.response_mode, scope: @pre_auth.scope,
+              code_challenge: @pre_auth.code_challenge, code_challenge_method: @pre_auth.code_challenge_method,
+              resource: params[:resource] } %>
+
+<h2>Connect an AI app</h2>
+
+<article id="oauth-consent">
+  <p>
+    <strong><%= oauth_application.name %></strong> wants to reach your entries in done.
+    After you approve, you return to <strong><%= redirect_host %></strong>.
+  </p>
+  <p>
+    <small>
+      The app registered itself <%= time_ago_in_words(oauth_application.created_at) %> ago and named itself.
+      Approve only if you started this from that app.
+    </small>
+  </p>
+  <p>
+    It reaches only your own entries, in the orgs and projects you pick, and only as long as you take part in them.
+    <% if grantable_accesses == %w[read] %>It asked to read only.<% end %>
+  </p>
+
+  <%= form_with url: oauth_authorization_path, method: :post, id: "oauth-approve", data: { turbo: false } do %>
+    <% if @token_auth_connection&.errors&.any? %>
+      <p role="alert"><%= @token_auth_connection.errors.full_messages.to_sentence %></p>
+    <% end %>
+
+    <% fields.compact_blank.each do |name, value| %>
+      <%= hidden_field_tag name, value, id: nil %>
+    <% end %>
+
+    <%= render "token_auth/connections/grants_fields", memberships: grantable_memberships, chosen: params[:grants], accesses: grantable_accesses %>
+
+    <footer class="grid">
+      <%= submit_tag "Approve" %>
+      <%= button_tag "Deny", type: "submit", form: "oauth-deny", class: "secondary" %>
+    </footer>
+  <% end %>
+
+  <%= form_with url: oauth_authorization_path, method: :delete, id: "oauth-deny", data: { turbo: false } do %>
+    <% fields.compact_blank.each do |name, value| %>
+      <%= hidden_field_tag name, value, id: nil %>
+    <% end %>
+  <% end %>
+</article>

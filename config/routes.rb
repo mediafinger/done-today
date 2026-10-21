@@ -47,7 +47,8 @@ Rails.application.routes.draw do
     get "oauth-authorization-server", to: "metadata#authorization_server", as: :oauth_authorization_server_metadata
   end
   use_doorkeeper do
-    skip_controllers :authorizations, :applications, :authorized_applications, :token_info
+    controllers authorizations: "oauth/authorizations"
+    skip_controllers :applications, :authorized_applications, :token_info
   end
   # RFC 7591, apps register themselves
   post "oauth/register", to: "oauth/registrations#create", as: :oauth_registration
