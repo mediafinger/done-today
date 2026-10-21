@@ -80,6 +80,15 @@ RSpec.describe MonthExport do
       expect(rows.map { it["hours"] }).to eq([ "1.0" ])
     end
 
+    it "keeps to one member when given one" do
+      entry("2026-09-02", "start@09:00 end@17:00", by: bert)
+      entry("2026-09-01", "start@09:00 end@12:30")
+
+      csv = CSV.parse(described_class.new(project:, month:, member: anna).to_csv, headers: true)
+
+      expect(csv.map { it["member"] }).to eq(%w[anna])
+    end
+
     it "is only the headers for a month without entries" do
       expect(rows).to be_empty
     end
@@ -89,6 +98,11 @@ RSpec.describe MonthExport do
     it "names org, project and month, and ends on done for a month that is over" do
       expect(described_class.new(project:, month: Date.new(2026, 8, 1)).filename)
         .to eq("codurance-ag_2026-v1_2026_08_done.csv")
+    end
+
+    it "names the member when kept to one" do
+      expect(described_class.new(project:, month: Date.new(2026, 8, 1), member: anna).filename)
+        .to eq("codurance-ag_2026-v1_anna_2026_08_done.csv")
     end
 
     it "ends on doing while the month is running" do

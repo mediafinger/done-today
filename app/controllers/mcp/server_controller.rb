@@ -4,7 +4,7 @@ module Mcp
   #   the cookie session; Mcp::TokenVerifier puts its connection into Current.
   #
   class ServerController < ActionController::API
-    TOOLS = [ ListProjectsTool, ListEntriesTool, GetDayTool, GetSummaryTool, GetTimeIssuesTool ].freeze
+    TOOLS = [ ListProjectsTool, ListEntriesTool, GetDayTool, GetSummaryTool, GetTimeIssuesTool, ExportEntriesTool ].freeze
 
     # the body belongs to the transport, unparsed
     wrap_parameters false

@@ -24,7 +24,7 @@ RSpec.describe Mcp::BaseTool do
     when "list_projects" then {}
     when "list_entries" then slugs
     when "get_day" then slugs.merge(date: Date.current.iso8601)
-    when "get_summary", "get_time_issues" then slugs.merge(month: "2026-03")
+    when "get_summary", "get_time_issues", "export_entries" then slugs.merge(month: "2026-03")
     end
   end
 

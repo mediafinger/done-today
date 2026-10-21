@@ -1,7 +1,7 @@
 require "csv"
 
 # The CSV of one month of a project: one line per member who added entries, with
-# the hours they logged and the tags they used most.
+# the hours they logged and the tags they used most. Given a member, only theirs.
 #
 #   export = MonthExport.new(project:, month: Date.new(2026, 9, 1))
 #   export.filename # => "org-1_2026-v1_2026_09_done.csv"
@@ -11,12 +11,13 @@ class MonthExport
 
   HEADERS = %w[org project member month hours tags].freeze
 
-  attr_reader :project, :month
+  attr_reader :project, :month, :member
 
   # `month` is any date within the month, kept as its first day.
-  def initialize(project:, month:)
+  def initialize(project:, month:, member: nil)
     @project = project
     @month = month.beginning_of_month
+    @member = member
   end
 
   def to_csv
@@ -33,7 +34,7 @@ class MonthExport
   #   a month cannot be mistaken for the finished one.
   #
   def filename
-    [ slug(project.org.name), slug(project.name), month.strftime("%Y_%m"), status ].join("_") + ".csv"
+    [ slug(project.org.name), slug(project.name), (slug(member.name) if member), month.strftime("%Y_%m"), status ].compact.join("_") + ".csv"
   end
 
   def status
@@ -51,6 +52,8 @@ class MonthExport
   end
 
   def entries
-    project.entries.includes(:member, :day).where(days: { date: month..month.end_of_month }).references(:days)
+    entries = project.entries.includes(:member, :day).where(days: { date: month..month.end_of_month }).references(:days)
+
+    member ? entries.where(member:) : entries
   end
 end
