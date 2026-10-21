@@ -17,9 +17,14 @@ RSpec.describe Mcp::BaseTool do
     Current.user = member.user
   end
 
+  def slugs = { org: org.slug, project: project.slug }
+
   def arguments(tool)
     case tool.tool_name
     when "list_projects" then {}
+    when "list_entries" then slugs
+    when "get_day" then slugs.merge(date: Date.current.iso8601)
+    when "get_summary", "get_time_issues" then slugs.merge(month: "2026-03")
     end
   end
 

@@ -49,5 +49,49 @@ module Mcp
     def current_connection
       Current.connection
     end
+
+    # A project the connection reads, by its slugs. Sets Current.org and Current.member
+    #   for what the tool writes, like OrgScope does for the pages.
+    #
+    def find_project(org, project)
+      found = authorized_scope(Project.all, with: ProjectPolicy).joins(:org).find_by!(orgs: { slug: org }, slug: project)
+
+      Current.org = found.org
+      Current.member = Current.user.memberships.active.find_by!(org: found.org)
+      found
+    end
+
+    def own_entries(project)
+      authorized_scope(Entry.all, with: EntryPolicy).joins(:day).where(days: { project_id: project.id })
+    end
+
+    def date(value, name)
+      Date.iso8601(value.to_s)
+    rescue Date::Error
+      raise Error, "#{name} must be a date like 2026-03-31"
+    end
+
+    # a week, month or year as the reports take them (ReportPeriod), the current month by default
+    def report_period(arguments)
+      ReportPeriod.from_params(arguments, today: Time.zone.today) or
+        raise Error, "give one of week (2026-W12), month (2026-03) or year (2026)"
+    end
+
+    def clock(minutes)
+      TimeSummary.format_clock(minutes) if minutes
+    end
+
+    def entry_data(entry)
+      {
+        id: entry.id, date: entry.day.date.iso8601, status: entry.status, log: entry.log, tags: entry.tags,
+        timed_tag: entry.timed_tag, day_start: clock(entry.day_start_minutes), day_end: clock(entry.day_end_minutes),
+        from: clock(entry.from_minutes), to: clock(entry.to_minutes), duration_minutes: entry.duration_minutes,
+        updated_at: entry.updated_at.iso8601(6)
+      }.compact
+    end
+
+    def issue_data(issue)
+      { date: issue.entry&.day&.date&.iso8601, code: issue.code, message: issue.message, entry_id: issue.entry&.id }.compact
+    end
   end
 end

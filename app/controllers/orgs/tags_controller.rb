@@ -15,12 +15,11 @@ module Orgs
     end
 
     def show
-      # EntryLog stores tags downcased, so `Handover` and `%23handover` find `#handover`
       @tag = params[:tag].delete_prefix("#").downcase
 
       @entries =
         readable_entries
-          .where("entries.tags @> ARRAY[?]::text[]", @tag)
+          .tagged(@tag)
           .order(Day.arel_table[:date].desc, created_at: :desc)
     end
   end
