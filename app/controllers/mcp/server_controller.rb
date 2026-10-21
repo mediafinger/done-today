@@ -31,6 +31,8 @@ module Mcp
         enable_json_response: true,
         serve_subscriptions_listen: false,
         token_verifier: TokenVerifier.new,
+        # the 401 challenge points OAuth clients at /.well-known/oauth-protected-resource/mcp
+        resource_metadata: TokenAuth.protected_resource_metadata,
         allowed_hosts: [ AppConf.done_host ]
       )
     end

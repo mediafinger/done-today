@@ -12,7 +12,7 @@ module Sluggable
     # pages
     *%w[datenschutz help impressum invitations members passwords projects session settings up user],
     # framework paths and files in public/ (error pages are covered by NUMBERED)
-    *%w[assets cable favicon icon manifest rails robots service-worker],
+    *%w[.well-known assets cable favicon icon manifest rails robots service-worker],
     *%w[recede_historical_location refresh_historical_location resume_historical_location],
     # planned areas and pages
     *%w[admin api blog contact dev faq jobs mcp oauth site support],
