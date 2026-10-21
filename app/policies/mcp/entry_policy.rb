@@ -13,5 +13,10 @@ module Mcp
         .where(member_id: connection.user.memberships.active.select(:id))
         .where(day_id: Day.where(project_id: connection.readable_projects.select(:id)).select(:id))
     end
+
+    # an own entry, in a project the connection writes
+    def update?
+      connection.user.memberships.active.exists?(id: record.member_id) && connection.access_for(record.project) == :write
+    end
   end
 end
