@@ -29,7 +29,7 @@ RSpec.describe "Orgs::EntryHistories" do
 
     it "marks a change made through the MCP server" do
       user = author.member.user
-      Current.set(org:, user:, connection: create(:connection, user:)) do
+      Current.set(org:, user:, connection: create(:token_auth_connection, user:)) do
         Entries::Update.call(entry:, attributes: { log: "Logged by Claude" })
       end
       sign_in(lead.member.user)

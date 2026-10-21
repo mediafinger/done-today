@@ -1,15 +1,15 @@
 require "rails_helper"
 
-RSpec.describe Connection do
+RSpec.describe TokenAuth::Connection do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:user) { create(:user) }
-  let(:connection) { create(:connection, user:) }
+  let(:connection) { create(:token_auth_connection, user:) }
 
   def grant(access = "read", project: nil, org: self.org)
-    create(:connection_grant, connection:, org:, project:, access:)
+    create(:token_auth_connection_grant, connection:, org:, project:, access:)
   end
 
   describe "#access_for" do
@@ -125,7 +125,7 @@ RSpec.describe Connection do
       create(:participant, project: projects[2], member:)
       grant("read", project: projects[0])
       grant("write", project: projects[1])
-      create(:connection_grant, connection:, org: create(:org), access: "write")
+      create(:token_auth_connection_grant, connection:, org: create(:org), access: "write")
 
       expect(connection.readable_projects).to match_array(Project.all.select { connection.access_for(it) })
       expect(connection.readable_projects).to contain_exactly(projects[0], projects[1])
@@ -193,9 +193,9 @@ RSpec.describe Connection do
   describe ".revoke_all!" do
     it "revokes the connections of the relation and their tokens, no others" do
       connection.create_access_token!(expires_in: 1.day)
-      other = create(:connection)
+      other = create(:token_auth_connection)
 
-      user.connections.revoke_all!
+      user.token_auth_connections.revoke_all!
 
       expect(connection.reload).to be_revoked
       expect(connection.access_tokens.sole).to be_revoked

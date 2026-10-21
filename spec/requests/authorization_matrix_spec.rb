@@ -88,7 +88,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   def colleagues_connection
-    @colleagues_connection ||= create(:connection, user: colleague.user)
+    @colleagues_connection ||= create(:token_auth_connection, user: colleague.user)
   end
 
   def pending_invitation(role: "member")
@@ -321,7 +321,7 @@ RSpec.describe "Authorization role matrix" do
   end
 
   row "POST /user/access_tokens", { anonymous: :to_sign_in, no_org: :unprocessable_content, member: :created } do
-    post user_access_tokens_path, params: { connection: { name: "Matrix" }, expires_in_days: "30", grants: { orgs: { org.id => "read" } } }
+    post user_access_tokens_path, params: { token_auth_connection: { name: "Matrix" }, expires_in_days: "30", grants: { orgs: { org.id => "read" } } }
   end
 
   row "DELETE /user/access_tokens/:id of another account", {

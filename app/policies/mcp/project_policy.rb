@@ -1,6 +1,6 @@
 module Mcp
   # Projects through an MCP connection: readable where it gives any access, writable
-  #   where it gives :write (Connection#access_for). Asked for one Connection, no Member.
+  #   where it gives :write (TokenAuth::Connection#access_for). Asked for one connection, no Member.
   #
   class ProjectPolicy < ActionPolicy::Base
     authorization_targets.delete(:user)

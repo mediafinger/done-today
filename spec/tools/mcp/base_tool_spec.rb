@@ -8,11 +8,11 @@ RSpec.describe Mcp::BaseTool do
   let(:org) { create(:org) }
   let(:project) { create(:project, org:) }
   let(:member) { create(:member, org:) }
-  let(:connection) { create(:connection, user: member.user) }
+  let(:connection) { create(:token_auth_connection, user: member.user) }
 
   before do
     create(:participant, project:, member:)
-    create(:connection_grant, connection:, org:, access: "write")
+    create(:token_auth_connection_grant, connection:, org:, access: "write")
     Current.connection = connection
     Current.user = member.user
   end

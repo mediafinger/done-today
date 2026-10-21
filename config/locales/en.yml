@@ -45,15 +45,15 @@ en:
           attributes:
             unconfirmed_email:
               same_as_email: "is your current email"
-        connection:
-          attributes:
-            grants:
-              blank: "pick at least one org or project"
-          expiry: "pick one of the offered expiries"
         entry:
           day_locked: "%{date} is locked, unlock the day to change it"
         participation_request:
           already_requested: "You already asked to join %{project}"
+        token_auth/connection:
+          attributes:
+            grants:
+              blank: "pick at least one org or project"
+          expiry: "pick one of the offered expiries"
         invitation:
           already_a_member: "%{email} is already a member"
           already_participates: "%{email} already participates in %{project}"

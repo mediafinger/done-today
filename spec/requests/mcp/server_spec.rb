@@ -29,7 +29,7 @@ RSpec.describe "Mcp::Server" do
 
     it "refuses a revoked token" do
       secret
-      user.connections.revoke_all!
+      user.token_auth_connections.revoke_all!
 
       mcp("tools/list")
 
@@ -47,7 +47,7 @@ RSpec.describe "Mcp::Server" do
     it "notes the token's use" do
       mcp("tools/list")
 
-      expect(user.connections.sole.last_used_at).to be_present
+      expect(user.token_auth_connections.sole.last_used_at).to be_present
     end
   end
 

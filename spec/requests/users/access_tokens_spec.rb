@@ -14,8 +14,8 @@ RSpec.describe "Users::AccessTokens" do
   def page = Nokogiri::HTML(response.body)
 
   def personal_token(name: "Laptop", **grant)
-    create(:connection, user:, name:).tap do |connection|
-      create(:connection_grant, connection:, org:, **grant)
+    create(:token_auth_connection, user:, name:).tap do |connection|
+      create(:token_auth_connection_grant, connection:, org:, **grant)
       connection.create_access_token!(expires_in: 30.days)
     end
   end
@@ -24,7 +24,7 @@ RSpec.describe "Users::AccessTokens" do
     it "lists the user's active tokens with their grants" do
       personal_token(name: "Laptop", access: "write")
       personal_token(name: "Old one").revoke!
-      create(:connection, user: create(:user), name: "Stranger's")
+      create(:token_auth_connection, user: create(:user), name: "Stranger's")
 
       get user_access_tokens_path
 
@@ -58,15 +58,15 @@ RSpec.describe "Users::AccessTokens" do
 
   describe "POST /user/access_tokens" do
     def create_token(grants: { projects: { project.id => "write" } }, expires_in_days: "90")
-      post user_access_tokens_path, params: { connection: { name: "Claude Code" }, expires_in_days:, grants: }
+      post user_access_tokens_path, params: { token_auth_connection: { name: "Claude Code" }, expires_in_days:, grants: }
     end
 
     it "creates the token and shows its secret once" do
-      expect { create_token }.to change(Connection, :count).by(1)
+      expect { create_token }.to change(TokenAuth::Connection, :count).by(1)
 
       expect(response).to have_http_status(:created)
       secret = page.at_css("#access-token-secret").text.strip
-      connection = Connection.authenticate(secret)
+      connection = TokenAuth::Connection.authenticate(secret)
       expect(connection).to have_attributes(user:, name: "Claude Code", oauth_application_id: nil)
       expect(connection.grants).to contain_exactly(have_attributes(org_id: org.id, project_id: project.id, access: "write"))
       expect(connection.access_tokens.sole.expires_in).to eq(90.days.to_i)
@@ -87,7 +87,7 @@ RSpec.describe "Users::AccessTokens" do
     it "grants an org" do
       create_token(grants: { orgs: { org.id => "read" } })
 
-      expect(Connection.last.grants).to contain_exactly(have_attributes(org_id: org.id, project_id: nil, access: "read"))
+      expect(TokenAuth::Connection.last.grants).to contain_exactly(have_attributes(org_id: org.id, project_id: nil, access: "read"))
     end
 
     it "drops orgs and projects the user doesn't take part in" do
@@ -95,17 +95,17 @@ RSpec.describe "Users::AccessTokens" do
 
       create_token(grants: { orgs: { foreign.org_id => "write" }, projects: { project.id => "read", foreign.id => "write" } })
 
-      expect(Connection.last.grants).to contain_exactly(have_attributes(project_id: project.id))
+      expect(TokenAuth::Connection.last.grants).to contain_exactly(have_attributes(project_id: project.id))
     end
 
     it "refuses a token without a grant" do
-      expect { create_token(grants: { projects: { project.id => "" } }) }.not_to change(Connection, :count)
+      expect { create_token(grants: { projects: { project.id => "" } }) }.not_to change(TokenAuth::Connection, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "refuses an expiry that isn't offered" do
-      expect { create_token(expires_in_days: "3650") }.not_to change(Connection, :count)
+      expect { create_token(expires_in_days: "3650") }.not_to change(TokenAuth::Connection, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
     end
@@ -122,7 +122,7 @@ RSpec.describe "Users::AccessTokens" do
     end
 
     it "can't revoke another user's token" do
-      connection = create(:connection)
+      connection = create(:token_auth_connection)
 
       delete user_access_token_path(connection)
 
@@ -134,7 +134,7 @@ RSpec.describe "Users::AccessTokens" do
   describe "DELETE /user/access_tokens/destroy_all" do
     it "revokes all of the user's connections and their tokens" do
       tokens = [ personal_token, personal_token ]
-      stranger = create(:connection)
+      stranger = create(:token_auth_connection)
 
       delete destroy_all_user_access_tokens_path
 

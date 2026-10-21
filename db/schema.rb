@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -22,32 +22,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
   create_enum "org_role", ["guest", "member", "manager", "owner"]
   create_enum "participation_request_status", ["pending", "granted", "declined"]
   create_enum "project_role", ["observer", "participant", "lead"]
-
-  create_table "connection_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "access", null: false
-    t.uuid "connection_id", null: false
-    t.datetime "created_at", null: false
-    t.uuid "org_id", null: false
-    t.uuid "project_id"
-    t.datetime "updated_at", null: false
-    t.index ["connection_id", "org_id"], name: "index_connection_grants_on_connection_id_and_org_id", unique: true, where: "(project_id IS NULL)"
-    t.index ["connection_id", "project_id"], name: "index_connection_grants_on_connection_id_and_project_id", unique: true, where: "(project_id IS NOT NULL)"
-    t.index ["org_id"], name: "index_connection_grants_on_org_id"
-    t.index ["project_id"], name: "index_connection_grants_on_project_id"
-    t.check_constraint "access::text = ANY (ARRAY['read'::character varying::text, 'write'::character varying::text])", name: "connection_grants_access"
-  end
-
-  create_table "connections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "last_used_at"
-    t.string "name", null: false
-    t.uuid "oauth_application_id"
-    t.datetime "revoked_at"
-    t.datetime "updated_at", null: false
-    t.uuid "user_id", null: false
-    t.index ["oauth_application_id"], name: "index_connections_on_oauth_application_id"
-    t.index ["user_id"], name: "index_connections_on_user_id"
-  end
 
   create_table "days", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -237,6 +211,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "token_auth_connection_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "access", null: false
+    t.uuid "connection_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "org_id", null: false
+    t.uuid "project_id"
+    t.datetime "updated_at", null: false
+    t.index ["connection_id", "org_id"], name: "index_token_auth_connection_grants_on_connection_id_and_org_id", unique: true, where: "(project_id IS NULL)"
+    t.index ["connection_id", "project_id"], name: "index_token_auth_connection_grants_on_connection_and_project", unique: true, where: "(project_id IS NOT NULL)"
+    t.index ["org_id"], name: "index_token_auth_connection_grants_on_org_id"
+    t.index ["project_id"], name: "index_token_auth_connection_grants_on_project_id"
+    t.check_constraint "access::text = ANY (ARRAY['read'::character varying::text, 'write'::character varying::text])", name: "token_auth_connection_grants_access"
+  end
+
+  create_table "token_auth_connections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.uuid "oauth_application_id"
+    t.datetime "revoked_at"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["oauth_application_id"], name: "index_token_auth_connections_on_oauth_application_id"
+    t.index ["user_id"], name: "index_token_auth_connections_on_user_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.boolean "admin", default: false
     t.text "bio"
@@ -255,11 +255,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
     t.index ["last_project_id"], name: "index_users_on_last_project_id"
   end
 
-  add_foreign_key "connection_grants", "connections"
-  add_foreign_key "connection_grants", "orgs"
-  add_foreign_key "connection_grants", "projects"
-  add_foreign_key "connections", "oauth_applications"
-  add_foreign_key "connections", "users"
   add_foreign_key "days", "orgs"
   add_foreign_key "days", "projects"
   add_foreign_key "entries", "days"
@@ -270,11 +265,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
   add_foreign_key "invitations", "projects"
   add_foreign_key "members", "orgs"
   add_foreign_key "members", "users"
-  add_foreign_key "oauth_access_grants", "connections"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_access_grants", "token_auth_connections", column: "connection_id"
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
-  add_foreign_key "oauth_access_tokens", "connections"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_access_tokens", "token_auth_connections", column: "connection_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
   add_foreign_key "participants", "members"
   add_foreign_key "participants", "orgs"
@@ -286,6 +281,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_090000) do
   add_foreign_key "projects", "orgs"
   add_foreign_key "record_histories", "orgs"
   add_foreign_key "sessions", "users"
+  add_foreign_key "token_auth_connection_grants", "orgs"
+  add_foreign_key "token_auth_connection_grants", "projects"
+  add_foreign_key "token_auth_connection_grants", "token_auth_connections", column: "connection_id"
+  add_foreign_key "token_auth_connections", "oauth_applications"
+  add_foreign_key "token_auth_connections", "users"
   add_foreign_key "users", "orgs", column: "last_org_id", on_delete: :nullify
   add_foreign_key "users", "projects", column: "last_project_id", on_delete: :nullify
 end

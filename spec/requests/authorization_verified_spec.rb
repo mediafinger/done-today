@@ -58,7 +58,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
     in [ "id", "orgs/guest_invitations" ] then guest_invitation.id
     in [ "id", "orgs/entries" ] then entry.id
     in [ "id", "users/user_sessions" ] then me.user.sessions.last.id
-    in [ "id", "users/access_tokens" ] then create(:connection, user: me.user).id
+    in [ "id", "users/access_tokens" ] then create(:token_auth_connection, user: me.user).id
     in [ "id", "orgs/participation_requests" ] then create(:participation_request, project:, member: requester).id
     in [ "id", "orgs/participants" ] then colleague.participations.find_by!(project:).id
     end
@@ -75,7 +75,7 @@ RSpec.describe "Every action is authorized or skips it explicitly" do
       { user: { password: "a brand new password", password_confirmation: "a brand new password", password_challenge: "correct horse battery staple" } }
     when "users/display_modes#update" then { user: { display_mode: "dark" } }
     when "users/time_zones#update" then { user: { time_zone: "America/New_York" } }
-    when "users/access_tokens#create" then { connection: { name: "Verified" }, expires_in_days: "30", grants: { orgs: { org.id => "read" } } }
+    when "users/access_tokens#create" then { token_auth_connection: { name: "Verified" }, expires_in_days: "30", grants: { orgs: { org.id => "read" } } }
     when "orgs/entries#create" then { entry: { date: Time.zone.today.iso8601, log: "Logged" } }
     when "orgs/entries#update" then { entry: { log: "Changed" } }
     when "orgs/members#update" then { member: { role: "owner" } }

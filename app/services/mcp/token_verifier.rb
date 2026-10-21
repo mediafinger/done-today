@@ -4,7 +4,7 @@ module Mcp
   #
   class TokenVerifier
     def verify(token)
-      connection = Connection.authenticate(token)
+      connection = TokenAuth::Connection.authenticate(token)
       raise MCP::Server::OAuth::InvalidTokenError, "unknown, expired or revoked token" unless connection
 
       Current.connection = connection

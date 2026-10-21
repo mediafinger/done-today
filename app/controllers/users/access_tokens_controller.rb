@@ -1,6 +1,6 @@
 module Users
   # The signed-in user's personal access tokens for the MCP server (#108). Each one is
-  #   a Connection with its grants; the secret is shown once, on create.
+  #   a TokenAuth::Connection with its grants; the secret is shown once, on create.
   #
   class AccessTokensController < ApplicationController
     # the signed-in user's own account
@@ -8,13 +8,13 @@ module Users
     skip_verify_authorized_scoped
 
     def index
-      @connection = current_user.connections.build
+      @token_auth_connection = current_user.token_auth_connections.build
     end
 
     # a full page, not Turbo: it shows the secret instead of redirecting
     def create
-      @connection = current_user.connections.build(name: params.dig(:connection, :name))
-      grant_params.each { @connection.grants.build(it) }
+      @token_auth_connection = current_user.token_auth_connections.build(name: params.dig(:token_auth_connection, :name))
+      grant_params.each { @token_auth_connection.grants.build(it) }
       @expires_in_days = params[:expires_in_days].to_i
 
       if issuable? && (@secret = save_with_token)
@@ -26,26 +26,26 @@ module Users
     end
 
     def destroy
-      connection = current_user.connections.personal.find(params[:id])
-      connection.revoke!
+      token_auth_connection = current_user.token_auth_connections.personal.find(params[:id])
+      token_auth_connection.revoke!
 
-      redirect_to user_access_tokens_path, notice: t("controllers.access_tokens.revoked", name: connection.name)
+      redirect_to user_access_tokens_path, notice: t("controllers.access_tokens.revoked", name: token_auth_connection.name)
     end
 
     # personal tokens and connected apps alike
     def destroy_all
-      count = current_user.connections.revoke_all!
+      count = current_user.token_auth_connections.revoke_all!
 
       redirect_to user_access_tokens_path, notice: t("controllers.access_tokens.revoked_all", count:)
     end
 
     private
 
-    helper_method def personal_connections
-      current_user.connections.personal.active.includes(:access_tokens, grants: %i[ org project ]).order(created_at: :desc)
+    helper_method def personal_token_auth_connections
+      current_user.token_auth_connections.personal.active.includes(:access_tokens, grants: %i[ org project ]).order(created_at: :desc)
     end
 
-    # the orgs and projects the user may grant, see connections/_grants_fields
+    # the orgs and projects the user may grant, see token_auth/connections/_grants_fields
     helper_method def grantable_memberships
       @grantable_memberships ||= current_user.memberships.active.includes(:org, participations: :project)
         .sort_by { it.org.name }
@@ -68,20 +68,20 @@ module Users
     end
 
     def chosen(accesses)
-      accesses.to_h.select { |_id, access| ConnectionGrant::ACCESS.include?(access) }
+      accesses.to_h.select { |_id, access| TokenAuth::ConnectionGrant::ACCESS.include?(access) }
     end
 
     def issuable?
-      @connection.validate
-      @connection.errors.add(:grants, :blank) if @connection.grants.empty?
-      @connection.errors.add(:base, :expiry) unless Connection::PERSONAL_EXPIRY_DAYS.include?(@expires_in_days)
-      @connection.errors.empty?
+      @token_auth_connection.validate
+      @token_auth_connection.errors.add(:grants, :blank) if @token_auth_connection.grants.empty?
+      @token_auth_connection.errors.add(:base, :expiry) unless TokenAuth::Connection::PERSONAL_EXPIRY_DAYS.include?(@expires_in_days)
+      @token_auth_connection.errors.empty?
     end
 
     def save_with_token
-      Connection.transaction do
-        @connection.save!
-        @connection.create_access_token!(expires_in: @expires_in_days.days)
+      TokenAuth::Connection.transaction do
+        @token_auth_connection.save!
+        @token_auth_connection.create_access_token!(expires_in: @expires_in_days.days)
       end
     end
   end
