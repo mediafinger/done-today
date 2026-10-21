@@ -16,6 +16,7 @@ module Oauth
         authorization_endpoint: url("/oauth/authorize"), # the consent page follows with #109
         token_endpoint: url(oauth_token_path),
         revocation_endpoint: url(oauth_revoke_path),
+        registration_endpoint: url(oauth_registration_path),
         response_types_supported: %w[code],
         grant_types_supported: %w[authorization_code refresh_token],
         code_challenge_methods_supported: %w[S256],

@@ -8,3 +8,12 @@
 #     command: "SoftDeletedRecord.due.delete_all"
 #     priority: 2
 #     schedule: at 5am every day
+
+# OAuth apps nobody authorized, connected apps unused for 90 days (#109)
+development: &recurring
+  token_auth_cleanup:
+    class: TokenAuth::CleanupJob
+    schedule: every hour
+
+production:
+  <<: *recurring
