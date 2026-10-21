@@ -175,6 +175,33 @@ RSpec.describe TokenAuth::Connection do
 
       expect(described_class.authenticate(secret)).to be_nil
     end
+
+    it "ends the refresh token a refreshed token replaced, on its first use" do
+      previous = connection.access_tokens.create!(resource_owner_id: user.id, expires_in: 3600, use_refresh_token: true)
+      refreshed = connection.access_tokens.create!(resource_owner_id: user.id, expires_in: 3600, previous_refresh_token: previous.refresh_token)
+
+      described_class.authenticate(refreshed.plaintext_token)
+
+      expect(previous.reload).to be_revoked
+    end
+  end
+
+  describe "#refreshable?" do
+    it "is while a grant gives access, and the connection isn't revoked" do
+      create(:participant, project:, member: create(:member, org:, user:))
+      grant
+
+      expect(connection).to be_refreshable
+
+      connection.update!(revoked_at: Time.current)
+      expect(connection).not_to be_refreshable
+    end
+
+    it "isn't once no grant has effect" do
+      grant
+
+      expect(connection).not_to be_refreshable
+    end
   end
 
   describe "#create_access_token!" do

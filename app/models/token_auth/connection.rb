@@ -28,6 +28,8 @@ module TokenAuth
       token = Doorkeeper::AccessToken.by_token(secret)
       return unless token&.accessible?
 
+      # the first use of a refreshed token ends the refresh token it replaced
+      token.revoke_previous_refresh_token!
       active.find_by(id: token.connection_id)&.tap(&:used!)
     end
 
@@ -39,6 +41,11 @@ module TokenAuth
 
       granted = grants.covering(project).pluck(:access)
       capped(granted.include?("write") ? "write" : granted.first, project)
+    end
+
+    # a refresh keeps an OAuth app connected only while a grant gives access (#109)
+    def refreshable?
+      !revoked? && readable_projects.exists?
     end
 
     # the projects access_for gives access to, as a relation
