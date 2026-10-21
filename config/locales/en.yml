@@ -52,7 +52,7 @@ en:
           expiry: "pick one of the offered expiries"
         entry:
           day_locked: "%{date} is locked, unlock the day to change it"
-        access_request:
+        participation_request:
           already_requested: "You already asked to join %{project}"
         invitation:
           already_a_member: "%{email} is already a member"
@@ -64,7 +64,7 @@ en:
         participant:
           guest_lead: "lead is not a project role for guests"
   controllers:
-    access_requests:
+    participation_requests:
       declined: "Declined the request of %{name}"
       rate_limited: "Too many requests, try again later"
       requested: "Asked to join %{project}"

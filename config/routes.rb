@@ -85,7 +85,7 @@ Rails.application.routes.draw do
         patch :resend, on: :member
       end
       # members who do not take part ask to join, those who manage the project decide
-      resources :access_requests, only: %i[ create ] do
+      resources :participation_requests, only: %i[ create ] do
         patch :grant, on: :member
         patch :decline, on: :member
       end

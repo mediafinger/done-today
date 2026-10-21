@@ -4,12 +4,12 @@
 #
 #   Who may ask and decide is decided in ProjectPolicy.
 #
-class AccessRequest < ApplicationRecord
+class ParticipationRequest < ApplicationRecord
   STATUSES = %w[pending granted declined].freeze
 
   belongs_to :org
-  belongs_to :project, inverse_of: :access_requests
-  belongs_to :member, inverse_of: :access_requests
+  belongs_to :project, inverse_of: :participation_requests
+  belongs_to :member, inverse_of: :participation_requests
   belongs_to :decided_by, class_name: "Member", optional: true
 
   enum :status, STATUSES.index_with(&:itself), validate: true
