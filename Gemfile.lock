@@ -424,6 +424,8 @@ GEM
       railties (>= 6.0.0)
     strong_migrations (2.8.0)
       activerecord (>= 7.2)
+    test-prof (1.6.4)
+      logger
     thor (1.5.0)
     thruster (0.1.27)
     thruster (0.1.27-aarch64-linux)
@@ -505,6 +507,7 @@ DEPENDENCIES
   solid_queue
   stimulus-rails
   strong_migrations
+  test-prof (~> 1.4)
   thruster
   turbo-rails
   web-console

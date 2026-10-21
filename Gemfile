@@ -47,6 +47,7 @@ end
 group :test do
   gem "capybara", "~> 3.40"
   gem "cuprite", "~> 0.19" # drives Chrome through CDP, no chromedriver or Selenium needed
+  gem "test-prof", "~> 1.4" # let_it_be: records created once per example group
 end
 
 group :development do

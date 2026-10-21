@@ -29,12 +29,13 @@ require "rails_helper"
 #   :to_sign_in          redirected to the sign-in page (nothing written)
 #
 RSpec.describe "Authorization role matrix" do
-  let(:org) { create(:org) }
-  let(:project) { create(:project, org:) }
+  # created once for all examples; refind/reload hands each example a fresh copy
+  let_it_be(:org, refind: true) { create(:org) }
+  let_it_be(:project, refind: true) { create(:project, org:) }
   let(:colleagues_entry) { create(:entry, day: create(:day, project:), member: create(:participant, project:).member) }
   let(:own_entry) { create(:entry, day: create(:day, project:), member: me) }
 
-  let(:personas) do
+  let_it_be(:persona_records) do
     {
       outsider: create(:member),
       member: create(:member, org:),
@@ -48,6 +49,10 @@ RSpec.describe "Authorization role matrix" do
       # after org_owner, so the org keeps an owner
       archived: create(:participant, :lead, project:, member: create(:member, :owner, org:)).member.tap(&:archive!)
     }
+  end
+
+  def personas
+    @personas ||= persona_records.transform_values(&:reload)
   end
 
   # the personas without access to any org: they are locked out of every page below /:org

@@ -13,6 +13,7 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require "rspec/rails"
 require "action_policy/rspec"
 require "action_policy/rspec/dsl"
+require "test_prof/recipes/rspec/let_it_be"
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
