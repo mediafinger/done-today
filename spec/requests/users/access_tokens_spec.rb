@@ -131,6 +131,46 @@ RSpec.describe "Users::AccessTokens" do
     end
   end
 
+  describe "connected apps" do
+    let(:client) { Doorkeeper::Application.create!(name: "AI app", redirect_uri: "https://ai.example/callback", confidential: false) }
+
+    def connected_app(**attributes)
+      create(:token_auth_connection, user:, oauth_application: client, name: client.name, **attributes).tap do |connection|
+        create(:token_auth_connection_grant, connection:, org:, project:)
+        connection.access_tokens.create!(resource_owner_id: user.id, application: client, expires_in: 3600, use_refresh_token: true)
+      end
+    end
+
+    it "lists them apart from the tokens, with the redirect host and grants" do
+      personal_token(name: "Laptop")
+      connected_app(last_used_at: 1.hour.ago)
+      connected_app.revoke!
+
+      get user_access_tokens_path
+
+      rows = page.css("#connected-apps tbody tr")
+      expect(rows.size).to eq(1)
+      expect(rows.text).to include("AI app", "ai.example", project.name)
+      expect(page.css("#access-tokens tbody tr").text).not_to include("AI app")
+    end
+
+    it "says when there are none" do
+      get user_access_tokens_path
+
+      expect(page.at_css("#connected-apps tbody")).to be_nil
+    end
+
+    it "disconnects one, with its tokens" do
+      connection = connected_app
+
+      delete user_access_token_path(connection)
+
+      expect(response).to redirect_to(user_access_tokens_path)
+      expect(connection.reload).to be_revoked
+      expect(connection.access_tokens.sole).to be_revoked
+    end
+  end
+
   describe "DELETE /user/access_tokens/destroy_all" do
     it "revokes all of the user's connections and their tokens" do
       tokens = [ personal_token, personal_token ]
@@ -145,9 +185,9 @@ RSpec.describe "Users::AccessTokens" do
     end
   end
 
-  it "is linked from the account page" do
+  it "is linked from the account page, for tokens and apps" do
     get edit_user_path
 
-    expect(page.at_css("a[href='#{user_access_tokens_path}']")).to be_present
+    expect(page.at_css("a[href='#{user_access_tokens_path}']").text).to match(/apps/i)
   end
 end

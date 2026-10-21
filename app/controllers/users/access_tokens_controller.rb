@@ -1,6 +1,7 @@
 module Users
-  # The signed-in user's personal access tokens for the MCP server (#108). Each one is
-  #   a TokenAuth::Connection with its grants; the secret is shown once, on create.
+  # The signed-in user's personal access tokens for the MCP server (#108), and the AI apps
+  #   connected over OAuth (#109). Each one is a TokenAuth::Connection with its grants;
+  #   a token's secret is shown once, on create.
   #
   class AccessTokensController < ApplicationController
     include ConnectionGrantsForm
@@ -27,11 +28,13 @@ module Users
       end
     end
 
+    # a personal access token, or a connected app's authorization
     def destroy
-      token_auth_connection = current_user.token_auth_connections.personal.find(params[:id])
+      token_auth_connection = current_user.token_auth_connections.find(params[:id])
       token_auth_connection.revoke!
 
-      redirect_to user_access_tokens_path, notice: t("controllers.access_tokens.revoked", name: token_auth_connection.name)
+      notice = token_auth_connection.oauth_application ? "disconnected" : "revoked"
+      redirect_to user_access_tokens_path, notice: t("controllers.access_tokens.#{notice}", name: token_auth_connection.name)
     end
 
     # personal tokens and connected apps alike
@@ -42,6 +45,11 @@ module Users
     end
 
     private
+
+    helper_method def connected_apps
+      current_user.token_auth_connections.active.where.not(oauth_application_id: nil)
+        .includes(:oauth_application, grants: %i[ org project ]).order(created_at: :desc)
+    end
 
     helper_method def personal_token_auth_connections
       current_user.token_auth_connections.personal.active.includes(:access_tokens, grants: %i[ org project ]).order(created_at: :desc)

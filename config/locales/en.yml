@@ -69,6 +69,7 @@ en:
       rate_limited: "Too many requests, try again later"
       requested: "Asked to join %{project}"
     access_tokens:
+      disconnected: "Disconnected %{name}"
       revoked: "Revoked %{name}"
       revoked_all: "Revoked %{count} tokens and apps"
     invitations:
