@@ -508,5 +508,5 @@ measurably slow.
 
 Phases 0–1 and 2 are independent and could run in parallel; everything from 3 onward is a chain.
 
-Run `rake ci` after each phase (needs `chruby ruby-4.0.7` first), and `bin/rubocop -a` before
+Run `rake ci` after each phase (needs `chruby ruby-4.0.9` first), and `bin/rubocop -a` before
 committing — `rake ci` includes rubocop and will fail the build on style.

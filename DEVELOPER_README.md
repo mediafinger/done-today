@@ -6,7 +6,7 @@ Welcome to the **Done Today** codebase! This document serves as an introduction 
 
 ## 🚀 Technology Stack Overview
 
-- **Ruby 4.0.7**: Managed via `chruby` (see [chruby](https://github.com/postmodern/chruby)).
+- **Ruby 4.0.9**: Managed via `chruby` (see [chruby](https://github.com/postmodern/chruby)).
 - **Rails 8.1**: Leveraging modern defaults.
 - **PostgreSQL**: Serving as the relational database engine.
 - **Solid Stack**: Using PostgreSQL-backed engines for caching, background jobs, and WebSockets (replaces Redis/Memcached).
@@ -123,9 +123,9 @@ AI clients read and write a user's **own entries** at `/mcp` (#108); users conne
 ## 🛠️ Development & Deployment
 
 ### Local Development Setup
-1. **Ruby**: Ensure you have selected Ruby 4.0.7:
+1. **Ruby**: Ensure you have selected Ruby 4.0.9:
    ```bash
-   chruby ruby-4.0.7
+   chruby ruby-4.0.9
    ```
 2. **Database Setup**: Start your local PostgreSQL server and configure [app_conf.local.rb](file:///Users/andy/Dropbox/www/2025/done_today/config/app_conf.local.rb) with credentials if they differ from the defaults. Then run:
    ```bash
