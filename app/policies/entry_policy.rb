@@ -1,5 +1,5 @@
-# A participant edits their own entries, a project lead everybody's. Nobody edits
-#   the entries of an archived project.
+# A participant edits and deletes their own entries, a project lead everybody's. Nobody
+#   edits the entries of an archived project.
 #
 class EntryPolicy < ApplicationPolicy
   relation_scope do |relation|
@@ -25,6 +25,9 @@ class EntryPolicy < ApplicationPolicy
 
     role == "lead" || (role == "participant" && record.member_id == member.id)
   end
+
+  # emptying an entry is an edit, deleting it ends that edit
+  alias_rule :destroy?, to: :update?
 
   def history?
     allowed_to?(:entry_history?, record.day.project)

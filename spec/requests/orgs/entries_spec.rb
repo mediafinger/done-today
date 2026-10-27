@@ -174,6 +174,41 @@ RSpec.describe "Orgs::Entries" do
     end
   end
 
+  describe "DELETE /entries/:id" do
+    let!(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
+
+    it "deletes the entry and keeps the day" do
+      expect { delete entry_path(org, project, entry) }.to change(Entry, :count).by(-1)
+
+      expect(Day.exists?(entry.day_id)).to be(true)
+      expect(response).to redirect_to(edit_day_path(org, project, Time.zone.today))
+    end
+
+    it "keeps the last log in the history" do
+      delete entry_path(org, project, entry)
+
+      history = RecordHistory.find_by!(record_id: entry.id, event: "deleted")
+      expect(history.record_changes["log"]).to eq([ "Wrote some code", nil ])
+      expect(history.user_id).to eq(member.user_id)
+    end
+
+    it "refuses an entry of a locked past day, and deletes it once unlocked" do
+      old_entry = create(:entry, day: create(:day, project:, date: Time.zone.yesterday), member:)
+
+      expect { delete entry_path(org, project, old_entry) }.not_to change(Entry, :count)
+      expect(flash[:alert]).to include("is locked")
+
+      expect { delete entry_path(org, project, old_entry), params: { unlocked: "1" } }.to change(Entry, :count).by(-1)
+    end
+
+    it "refuses an observer, even for an entry of their own" do
+      participant.update!(role: "observer")
+
+      expect { delete entry_path(org, project, entry) }.not_to change(Entry, :count)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   describe "the edit trail" do
     let(:entry) { create(:entry, day: create(:day, project:, date: Time.zone.today), member:) }
 
@@ -288,6 +323,33 @@ RSpec.describe "Orgs::Entries" do
       expect(response.body).to include(%(action="before" target="new-entry"))
       expect(response.body).to include(%(action="replace" target="new-entry"))
       expect(response.body).to include("Typed and blurred")
+    end
+
+    it "removes a deleted entry from the list" do
+      create(:entry, day: entry.day, member:, log: "Stays on the day")
+
+      delete entry_path(org, project, entry), as: :turbo_stream
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(%(action="remove" target="#{ActionView::RecordIdentifier.dom_id(entry)}"))
+      expect(response.body).not_to include("no-entries-yet")
+    end
+
+    it "puts the hint back once the last entry is deleted" do
+      delete entry_path(org, project, entry), as: :turbo_stream
+
+      expect(response.body).to include(%(action="before" target="new-entry"))
+      expect(response.body).to include(%(id="no-entries-yet"))
+    end
+
+    it "reports a refused delete in place" do
+      old_entry = create(:entry, day: create(:day, project:, date: Time.zone.yesterday), member:)
+
+      delete entry_path(org, project, old_entry), as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include(%(target="#{ActionView::RecordIdentifier.dom_id(old_entry)}"))
+      expect(response.body).to include("is locked")
     end
 
     it "reports an invalid create without throwing the text away" do

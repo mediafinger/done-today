@@ -22,7 +22,7 @@ class RecordHistory < ApplicationRecord
   scope :for_user_events, ->(user:, event:, klass:) { where(user_id: user.id, event:, record_type: klass.name) }
 
   # `record_changes` is NOT NULL and defaults to {}, and an empty diff is a legitimate
-  #   value (e.g. a :deleted event), so it deliberately has no presence validation --
+  #   value, so it deliberately has no presence validation --
   #   see the ignore entry in .active_record_doctor.rb
   #
   validates :done_by_admin, inclusion: [ true, false ]

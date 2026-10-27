@@ -39,6 +39,13 @@ RSpec.describe EntryPolicy do
       it { expect(may_update?(own_entry)).to be(own) }
       it { expect(may_update?(colleagues_entry)).to be(colleagues) }
 
+      # emptying an entry is an edit, deleting it is the end of that edit
+      it "deletes exactly the entries it may update" do
+        destroy = [ own_entry, colleagues_entry ].map { described_class.new(it, member:).apply(:destroy?) }
+
+        expect(destroy).to eq([ own, colleagues ])
+      end
+
       it "shows the edit trail exactly when the project may be managed" do
         manage = ProjectPolicy.new(project, member:).apply(:manage?)
         history = [ own_entry, colleagues_entry ].map { described_class.new(it, member:).apply(:history?) }

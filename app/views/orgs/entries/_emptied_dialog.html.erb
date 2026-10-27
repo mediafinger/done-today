@@ -1,0 +1,24 @@
+<%# locals: (entry:, unlocked: false) %>
+<%# Opened by the entry-form controller once the text of the entry is deleted. Outside the
+    entry's form: the delete is a form of its own. ESC (the dialog's cancel) undoes. %>
+
+<dialog data-entry-form-target="dialog" data-action="cancel->entry-form#undo"
+        aria-labelledby="<%= dom_id(entry, :emptied) %>">
+  <article>
+    <h3 id="<%= dom_id(entry, :emptied) %>">Delete this entry?</h3>
+    <p><%= entry.persisted? ? "Its text is gone. Delete the entry, or undo to get the text back." : "Throw the entry away, or undo to get the text back." %></p>
+
+    <footer>
+      <button type="button" class="secondary" autofocus data-action="entry-form#undo">Undo</button>
+
+      <% if entry.persisted? %>
+        <%= button_to "Delete", entry_path(entry.org, entry.project, entry), method: :delete,
+              params: unlocked ? { unlocked: "1" } : {},
+              form: { data: { action: "turbo:submit-start->entry-form#closeDialog" } } %>
+      <% else %>
+        <%# nothing was saved yet, so nothing is sent %>
+        <button type="button" data-action="entry-form#discard">Delete</button>
+      <% end %>
+    </footer>
+  </article>
+</dialog>

@@ -482,6 +482,19 @@ RSpec.describe "Authorization role matrix" do
     patch entry_path(org, project, own_entry), params: { entry: { log: "Changed by the matrix" } }
   end
 
+  row "DELETE /:org/:project/entries/:id of a colleague", {
+    **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :written,
+    org_owner: :forbidden
+  }, written: -> { !Entry.exists?(colleagues_entry.id) } do
+    delete entry_path(org, project, colleagues_entry)
+  end
+
+  row "DELETE /:org/:project/entries/:id of their own", {
+    observer: :forbidden, participant: :written, project_lead: :written
+  }, written: -> { !Entry.exists?(own_entry.id) } do
+    delete entry_path(org, project, own_entry)
+  end
+
   row "GET /:org/:project/entries/:id/history", {
     **locked_out, outsider: :not_found, member: :not_found, observer: :forbidden, participant: :forbidden, project_lead: :ok,
     org_owner: :ok
@@ -819,6 +832,15 @@ RSpec.describe "Authorization role matrix" do
     project.archive!
 
     patch entry_path(org, project, own_entry), params: { entry: { log: "Changed by the matrix" } }
+  end
+
+  row "DELETE /:org/:project/entries/:id of their own, archived", {
+    participant: :forbidden, project_lead: :forbidden
+  }, written: -> { !Entry.exists?(own_entry.id) } do
+    own_entry
+    project.archive!
+
+    delete entry_path(org, project, own_entry)
   end
 
   row "GET /:org/:project/export_csv archived", {

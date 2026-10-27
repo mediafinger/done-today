@@ -252,3 +252,9 @@ details summary::after {
 .zup {
   z-index: 100;
 }
+
+/* the Delete of a saved entry is a form of its own, Pico only spaces sibling buttons */
+dialog article > footer form.button_to {
+  margin-bottom: 0;
+  margin-left: calc(var(--pico-spacing) * 0.5);
+}
