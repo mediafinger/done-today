@@ -35,10 +35,16 @@ RSpec.describe RecordHistoryService do
       expect(history.record_changes.keys).not_to include("created_at", "updated_at")
     end
 
-    it "stores an empty diff for a deletion" do
-      history = described_class.call(record: create(:entry), event: :deleted, org:, user:)
+    # the record is gone afterwards, its history is the only copy left
+    it "keeps the last values of a deleted record" do
+      entry = create(:entry, log: "Gone but kept", status: "done")
 
-      expect(history.record_changes).to eq({})
+      history = described_class.call(record: entry, event: :deleted, org:, user:)
+
+      expect(history.record_changes).to include(
+        "log" => [ "Gone but kept", nil ], "status" => [ "done", nil ], "day_id" => [ entry.day_id, nil ]
+      )
+      expect(history.record_changes.keys).not_to include("created_at", "updated_at")
     end
 
     it "never writes filtered attributes into the diff" do

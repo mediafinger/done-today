@@ -28,12 +28,14 @@ class RecordHistoryService
     private
 
     # after a successful save the diff lives in `previous_changes`; a :deleted event
-    #   has no diff to report, only that it happened
+    #   keeps the last values, the history is the only copy of them left
     #
     def diff_for(record, event)
-      return {} if event.to_sym == :deleted
-
-      changes = record.previous_changes.presence || record.changes
+      changes = if event.to_sym == :deleted
+        record.attributes.transform_values { [ it, nil ] }
+      else
+        record.previous_changes.presence || record.changes
+      end
 
       changes.except(*FILTERED_KEYS, *TIMESTAMP_KEYS)
     end
