@@ -1,0 +1,13 @@
+<% if @entry.destroyed? %>
+  <%= turbo_stream.remove dom_id(@entry) %>
+
+  <% unless @entries_left %>
+    <%= turbo_stream.before "new-entry" do %>
+      <%= render "orgs/entries/no_entries_yet" %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace dom_id(@entry), method: :morph,
+        partial: "orgs/entries/editable_entry",
+        locals: { entry: @entry, unlocked: @unlocked } %>
+<% end %>

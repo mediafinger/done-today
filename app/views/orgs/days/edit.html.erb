@@ -19,10 +19,7 @@
       <li class="nude"><%= @writable ? "You did not log anything on this day." : "Nobody has logged anything on this day yet." %></li>
     <% end %>
   <% else %>
-    <%# create.turbo_stream removes it along with the first entry %>
-    <% if @entries.none? %>
-      <li class="nude" id="no-entries-yet">You have not logged anything on this day yet. Type what you did and press Enter.</li>
-    <% end %>
+    <%= render "orgs/entries/no_entries_yet" if @entries.none? %>
 
     <% @entries.each do |entry| %>
       <%= render "orgs/entries/editable_entry", entry: entry, unlocked: @unlocked %>

@@ -1,12 +1,12 @@
 module Orgs
-  # Writes entries into the project of the path, each write with a RecordHistory.
+  # Writes and deletes entries in the project of the path, each with a RecordHistory.
   #   They are read and edited on the day, week, tag and member pages.
   #
   class EntriesController < AppOrgBaseController
     include ProjectEntries
 
     # the unlock toggle of the day page comes along as `unlocked`
-    before_action :set_unlocked, only: %i[ create update ]
+    before_action :set_unlocked, only: %i[ create update destroy ]
 
     # create_params[:date] is coming from a hidden form field and contains either
     #   the day's date or the date given in the URL.
@@ -35,6 +35,16 @@ module Orgs
       @entry = authorize! current_project.entries.find(params[:id])
 
       result = Entries::Update.call(entry: @entry, attributes: update_params, unlocked: @unlocked)
+
+      respond_to_save(result.saved, entry: @entry)
+    end
+
+    # The day page asks before, when an entry's text was deleted. The day stays.
+    def destroy
+      @entry = authorize! current_project.entries.find(params[:id])
+
+      result = Entries::Destroy.call(entry: @entry, unlocked: @unlocked)
+      @entries_left = authorized_scope(Entry.all, as: :editable).exists?(day_id: @entry.day_id) if result.saved
 
       respond_to_save(result.saved, entry: @entry)
     end
