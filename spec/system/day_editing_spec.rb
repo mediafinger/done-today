@@ -44,6 +44,13 @@ RSpec.describe "Editing a day" do
 
   def history_count(entry) = RecordHistory.for_org_record(org:, record: entry).count
 
+  # deletes the text key by key, as a user would
+  def erase(field)
+    field.send_keys(:end, *Array.new(field.value.length, :backspace))
+  end
+
+  def open_dialog = find("dialog[open]")
+
   describe "adding an entry" do
     it "puts it above the field with Enter and starts the field over, without reloading" do
       visit edit_day_path(org, project, today)
@@ -116,6 +123,81 @@ RSpec.describe "Editing a day" do
       expect(entry.reload).to have_attributes(log: "Back to work", status: "doing")
       expect(history_count(entry)).to eq(1)
       expect(page_replaced?).to be(false)
+    end
+  end
+
+  describe "deleting the text of an entry" do
+    let!(:entry) { create_entry }
+
+    before do
+      visit edit_day_path(org, project, today)
+      mark_page
+      erase(log_field(entry))
+    end
+
+    it "asks when the field is left, and deletes the entry" do
+      log_field(entry).send_keys(:tab)
+
+      within(open_dialog) { click_button "Delete" }
+
+      expect(page).to have_no_css("li##{dom_id(entry)}")
+      expect(page).to have_text("You have not logged anything on this day yet")
+      expect(Entry.exists?(entry.id)).to be(false)
+      expect(RecordHistory.for_org_record(org:, record: entry).pluck(:event)).to eq([ "deleted" ])
+      expect(page_replaced?).to be(false)
+    end
+
+    it "puts the text back on Undo, without saving" do
+      log_field(entry).send_keys(:tab)
+
+      within(open_dialog) { click_button "Undo" }
+
+      expect(page).to have_no_css("dialog[open]")
+      expect(log_field(entry).value).to eq("Wrote some code")
+      expect(focused_id).to eq(dom_id(entry, :log))
+      expect(history_count(entry)).to eq(0)
+    end
+
+    it "asks on Enter too, and ESC undoes" do
+      log_field(entry).send_keys(:enter)
+      open_dialog.send_keys(:escape)
+
+      expect(page).to have_no_css("dialog[open]")
+      expect(log_field(entry).value).to eq("Wrote some code")
+      expect(Entry.exists?(entry.id)).to be(true)
+    end
+  end
+
+  describe "leaving a started entry empty" do
+    before { visit edit_day_path(org, project, today) }
+
+    it "asks, and Delete throws the draft away without a request" do
+      retype(new_entry_field, "Half a thought")
+      erase(new_entry_field)
+      new_entry_field.send_keys(:tab)
+
+      within(open_dialog) { click_button "Delete" }
+
+      expect(page).to have_no_css("dialog[open]")
+      expect(new_entry_field.value).to eq("")
+      expect(member.entries).to be_empty
+    end
+
+    it "puts the draft back on Undo" do
+      retype(new_entry_field, "Half a thought")
+      erase(new_entry_field)
+      new_entry_field.send_keys(:tab)
+
+      within(open_dialog) { click_button "Undo" }
+
+      expect(new_entry_field.value).to eq("Half a thought")
+      expect(focused_id).to eq(new_entry_field[:id])
+    end
+
+    it "does not ask when nothing was typed" do
+      new_entry_field.send_keys(:tab)
+
+      expect(page).to have_no_css("dialog[open]")
     end
   end
 

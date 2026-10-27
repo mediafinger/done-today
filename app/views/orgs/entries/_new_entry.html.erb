@@ -1,9 +1,10 @@
 <%# locals: (entry:, unlocked: false) %>
 
-<li class="nude" id="new-entry">
+<li class="nude" id="new-entry" data-controller="entry-form">
   <%= form_with(model: entry, url: entries_path(entry.org, entry.day.project), method: :post, data: {
-        controller: "entry-form",
-        action: "keydown.esc->entry-form#revert submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
+        entry_form_target: "form",
+        action: "keydown.esc->entry-form#revert keydown.enter->entry-form#askIfEmptied " \
+                "submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
       }) do |form| %>
 
     <%= hidden_field_tag :unlocked, "1" if unlocked %>
@@ -19,8 +20,10 @@
             placeholder: "What have you done today?", minlength: 3, maxlength: 500,
             id: dom_id(entry, :log),
             data: { controller: "autofocus", entry_form_target: "log",
-                    action: "focus->entry-form#clearStatusPress blur->entry-form#saveIfChanged" } %>
+                    action: "input->entry-form#remember focus->entry-form#clearStatusPress blur->entry-form#saveIfChanged" } %>
       <%= form.hidden_field :date, value: entry.day.date %>
     </div>
   <% end %>
+
+  <%= render "orgs/entries/emptied_dialog", entry:, unlocked: %>
 </li>

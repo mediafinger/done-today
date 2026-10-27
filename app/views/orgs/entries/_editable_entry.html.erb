@@ -1,9 +1,10 @@
 <%# locals: (entry:, unlocked: false) %>
 
-<li class="nude tight" id="<%= dom_id(entry) %>">
+<li class="nude tight" id="<%= dom_id(entry) %>" data-controller="entry-form">
   <%= form_with(model: entry, url: entry_path(entry.org, entry.project, entry), method: :patch, data: {
-        controller: "entry-form",
-        action: "keydown.esc->entry-form#revert submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
+        entry_form_target: "form",
+        action: "keydown.esc->entry-form#revert keydown.enter->entry-form#askIfEmptied " \
+                "submit->entry-form#markSubmitting turbo:submit-end->entry-form#submitEnded",
       }) do |form| %>
 
     <%= hidden_field_tag :unlocked, "1" if unlocked %>
@@ -23,7 +24,7 @@
       <%= form.text_field :log, required: true, value: entry.log, minlength: 3, maxlength: 500,
             id: dom_id(entry, :log),
             data: { entry_form_target: "log",
-                    action: "focus->entry-form#clearStatusPress blur->entry-form#saveIfChanged" } %>
+                    action: "input->entry-form#remember focus->entry-form#clearStatusPress blur->entry-form#saveIfChanged" } %>
 
       <%# Submit buttons, not links: a link to entry_path(entry: { status: }) posted the
           status on its own and threw away whatever had been typed into the field.
@@ -36,4 +37,6 @@
       <% end %>
     </div>
   <% end %>
+
+  <%= render "orgs/entries/emptied_dialog", entry:, unlocked: %>
 </li>
