@@ -24,6 +24,15 @@ RSpec.describe TimeValidation do
     end
   end
 
+  describe "a daily #break line on a day without a break" do
+    it "reports nothing and subtracts no break" do
+      entries = [ entry("start@09:00"), entry("#break for~0m"), entry("end@17:00") ]
+
+      expect(messages(entries)).to be_empty
+      expect(TimeSummary.new(entries).total_minutes).to eq(8 * 60)
+    end
+  end
+
   describe "missing time information" do
     it "is fine for a project that does not require times" do
       expect(described_class.new([ entry("wrote some code"), entry("and some more") ]).issues).to be_empty

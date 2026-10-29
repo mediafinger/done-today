@@ -84,8 +84,9 @@ class EntryLog
 
   # The tag this line's duration counts for in reports: the only tag on a line with a
   #   duration. Never part of the day total, which is start@, end@ and #break alone.
+  #   A duration of 0 counts for no tag, so reports get no empty rows.
   def timed_tag
-    return nil unless duration_minutes && tags.exclude?(BREAK_TAG)
+    return nil unless duration_minutes&.positive? && tags.exclude?(BREAK_TAG)
 
     tags.first if tags.one?
   end
@@ -207,7 +208,7 @@ class EntryLog
   end
 
   def resolve_duration
-    explicit = zeroless(single(:for), "for~ is an empty duration, it is ignored")
+    explicit = single(:for)
     ranged = range_duration
 
     if ranged && explicit && ranged != explicit
@@ -231,8 +232,8 @@ class EntryLog
     zeroless(span, "from@ and to@ are the same time")
   end
 
-  # A duration of zero says nothing about how long something took, so it is reported
-  # and dropped instead of being stored as a 0 that later sums would swallow.
+  # An empty range is almost always a to@ not yet changed, so it is reported and
+  #   dropped. An explicit for~0m is meant: a daily "#break for~0m" on a day without one.
   def zeroless(minutes, message)
     return minutes unless minutes&.zero?
 
@@ -248,8 +249,9 @@ class EntryLog
   end
 
   # A duration counts for a tag only when it is the line's one tag besides #break.
+  #   A duration of 0 counts for nothing, so there is nothing to ask about.
   def check_tag_time
-    return unless duration_minutes
+    return unless duration_minutes&.positive?
 
     others = tags - [ BREAK_TAG ]
     time = TimeSummary.format_minutes(duration_minutes)
