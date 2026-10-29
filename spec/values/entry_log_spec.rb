@@ -174,12 +174,34 @@ RSpec.describe EntryLog do
   describe "issues" do
     def codes(text, **) = parse(text, **).issues.map(&:code)
 
-    it "reports for~0m as zero_duration and stores no duration" do
-      log = parse("for~0m")
+    # a daily "#break for~0m" line on a day without a break
+    it "takes #break for~0m as a break of 0 minutes, without an issue" do
+      log = parse("#break for~0m")
 
-      expect(codes("for~0m")).to eq([ :zero_duration ])
-      expect(log.duration_minutes).to be_nil
-      expect(log.segments).to eq([ [ :time, :for, 0, "for~0m" ] ]) # valid markup, so still a time token
+      expect(log.issues).to be_empty
+      expect(log.duration_minutes).to eq(0)
+      expect(log.tags).to eq(%w[break])
+    end
+
+    it "takes every spelling of an explicit zero as 0 minutes" do
+      %w[for~0m for~0h for~0h00 for~0.0h for~0h0m].each do |zero|
+        log = parse("#break #{zero}")
+
+        expect([ zero, log.issues, log.duration_minutes ]).to eq([ zero, [], 0 ])
+      end
+    end
+
+    it "counts a zero duration for no tag and asks for none" do
+      [ "#review for~0m", "for~0m", "#break #lunch for~0m", "#a #b for~0m" ].each do |text|
+        log = parse(text)
+
+        expect([ text, log.issues, log.timed_tag ]).to eq([ text, [], nil ])
+      end
+    end
+
+    it "keeps reporting a for~ without any number" do
+      expect(codes("#break for~")).to eq([ :invalid_duration ])
+      expect(parse("#break for~").duration_minutes).to be_nil
     end
 
     it "reports minutes over 59 as invalid_time and renders the token as plain text" do
