@@ -98,6 +98,11 @@ class SyntaxGuide
       parsed: { tags: %w[break], duration_minutes: 30 }
     ),
     Example.new(
+      markup: "#break", log: "#break for~0m",
+      meaning: "No break today. Keep the line anyway: 0m is a valid duration.",
+      parsed: { tags: %w[break], duration_minutes: 0 }
+    ),
+    Example.new(
       markup: "#break", log: "#break #lunch for~30m",
       meaning: "A break as well. #break is no tag for times, so the 30m are not counted for #lunch, and the line is listed as an issue.",
       parsed: { tags: %w[break lunch], duration_minutes: 30, timed_tag: nil, issues: %i[break_with_tag] }
