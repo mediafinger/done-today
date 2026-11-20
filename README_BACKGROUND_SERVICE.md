@@ -13,7 +13,7 @@ which holds the real data. It is the same database `bin/dev` uses.
 * **PostgreSQL starts at login.** In Postgres.app, open *Settings* and turn on
   *Automatically start at login* for the server that holds `done_development`.
 * **chruby** is installed via Homebrew, and the Ruby named in `.ruby-version` is
-  installed (`ruby-install ruby 4.0.9`).
+  installed (`ruby-install ruby 4.0.10`).
 
 ## 2. Create a separate checkout for the service
 
